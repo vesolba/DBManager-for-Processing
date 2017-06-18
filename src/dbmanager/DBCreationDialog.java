@@ -1,15 +1,20 @@
 package dbmanager;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -17,32 +22,54 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 @SuppressWarnings("serial")
 public class DBCreationDialog extends JDialog {
 
+	private String initialDBName;
+	private String initialNbuser;
+	private String initialPwd;
+	private String initialDescription;
+	private String initialDBLocation;
+
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtDBName;
 	private JTextField txtNbuser;
-	private JTextField txtPassword;
 	private JTextField txtDescription;
 	private JTextField txtDBLocation;
+	private boolean alreadyRegistered = false;
+	private JPasswordField txtPwd;
+	private JButton okButton;
+	private TreePath treePath;
 
 	/**
 	 * Create the dialog.
+	 * 
+	 * @param treePath
 	 */
-	public DBCreationDialog() {
+	public DBCreationDialog(String initialDBName, String initialNbuser, String initialPwd, String initialDescription,
+			String initialDBLocation, TreePath treePath) {
+		this.initialDBName = initialDBName;
+		this.initialNbuser = initialNbuser;
+		this.initialPwd = initialPwd;
+		this.initialDescription = initialDescription;
+		this.initialDBName = initialDBLocation;
+		this.treePath = treePath;
+
 		jbInit();
 	}
 
 	private void jbInit() {
 		setModal(true);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
 		setTitle("Java DB Database Creation");
 		setBounds(100, 100, 599, 310);
 		getContentPane().setLayout(new BorderLayout());
@@ -63,12 +90,38 @@ public class DBCreationDialog extends JDialog {
 			gbc_lblDatabaseName.gridy = 1;
 			contentPanel.add(lblDatabaseName, gbc_lblDatabaseName);
 		}
+
 		{
 			txtDBName = new JTextField();
+			txtDBName.addFocusListener(new FocusAdapter() {
+
+				@Override
+				public void focusLost(FocusEvent e) {
+					String txtAux = txtDBName.getText();
+					if (txtAux.equals("") || txtAux.equals(initialDBName)) {
+						okButton.setEnabled(false);
+					} else {
+						okButton.setEnabled(true);
+					}
+
+				}
+
+			});
+
+			txtDBName.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					if (txtDBName.getText().equals("")) {
+						okButton.setEnabled(false);
+					} else {
+						okButton.setEnabled(true);
+					}
+				}
+			});
+
 			GridBagConstraints gbc_txtDBName = new GridBagConstraints();
 			gbc_txtDBName.fill = GridBagConstraints.HORIZONTAL;
 			gbc_txtDBName.gridwidth = 2;
-			gbc_txtDBName.insets = new Insets(0, 0, 5, 0);
+			gbc_txtDBName.insets = new Insets(0, 0, 5, 5);
 			gbc_txtDBName.anchor = GridBagConstraints.NORTHWEST;
 			gbc_txtDBName.gridx = 1;
 			gbc_txtDBName.gridy = 1;
@@ -105,15 +158,14 @@ public class DBCreationDialog extends JDialog {
 			contentPanel.add(lblPassword, gbc_lblPassword);
 		}
 		{
-			txtPassword = new JTextField();
-			GridBagConstraints gbc_txtPassword = new GridBagConstraints();
-			gbc_txtPassword.gridwidth = 2;
-			gbc_txtPassword.insets = new Insets(0, 0, 5, 5);
-			gbc_txtPassword.fill = GridBagConstraints.HORIZONTAL;
-			gbc_txtPassword.gridx = 1;
-			gbc_txtPassword.gridy = 3;
-			contentPanel.add(txtPassword, gbc_txtPassword);
-			txtPassword.setColumns(10);
+			txtPwd = new JPasswordField();
+			txtPwd.setToolTipText("tooltip");
+			GridBagConstraints gbc_txtPwd = new GridBagConstraints();
+			gbc_txtPwd.insets = new Insets(0, 0, 5, 5);
+			gbc_txtPwd.fill = GridBagConstraints.HORIZONTAL;
+			gbc_txtPwd.gridx = 1;
+			gbc_txtPwd.gridy = 3;
+			contentPanel.add(txtPwd, gbc_txtPwd);
 		}
 		{
 			JLabel lblDescription = new JLabel("Description: ");
@@ -160,20 +212,32 @@ public class DBCreationDialog extends JDialog {
 		}
 		JButton button = new JButton("Browse...");
 		button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser chooser = new JFileChooser();
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				chooser.setCurrentDirectory(new java.io.File("."));
+				chooser.setCurrentDirectory(new java.io.File(txtDBLocation.getText()));
 				int returnVal = chooser.showOpenDialog(DBCreationDialog.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					// System.out.println("You chose to open this file:
-					// " + chooser.getSelectedFile().getName());
-					txtDBLocation.setText(chooser.getSelectedFile().getName());
+					System.out.println("You chose to use this path: " + chooser.getSelectedFile().getAbsolutePath());
+					txtDBLocation.setText(chooser.getSelectedFile().getAbsolutePath());
+
+					int optionButtons = JOptionPane.YES_NO_OPTION;
+					int dialogResult = JOptionPane.showConfirmDialog(null,
+							"Do you want to have this directory as default for your databases?", "Warning",
+							optionButtons);
+
+					if (dialogResult == JOptionPane.YES_OPTION) {
+						DBManager.derbySystemHome = txtDBLocation.getText();
+						DBManager.propsDBM.setDBMProp("derby.system.home", DBManager.derbySystemHome);
+						DBManager.propsDBM.saveProperties();
+					}
 				}
 
 			}
 		});
+
 		GridBagConstraints gbc_button = new GridBagConstraints();
 		gbc_button.gridx = 3;
 		gbc_button.gridy = 5;
@@ -183,83 +247,138 @@ public class DBCreationDialog extends JDialog {
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				JButton okButton = new JButton("OK");
+				okButton = new JButton("OK");
+				okButton.setEnabled(false);
 				okButton.addActionListener(new ActionListener() {
-
 					@Override
 					public void actionPerformed(ActionEvent e) {
 
-						// Connect to a not registered database. If it does not
-						// exists then creates it.
-						// Checks that the new database is not yet in the
-						// databases tree.
-						String newDBPath = txtDBLocation.getText() + "\\" + txtDBName.getText();
-						System.out.println("newDBPath: " + newDBPath);
+						// Verifies that the database is not yet registered
+						String newDBName = txtDBName.getText();
+						String newDBPath = txtDBLocation.getText();
+						alreadyRegistered = verifyIfRegistered(newDBPath, newDBName);
+						boolean createDB = false;
+						boolean registerDB = false;
+						Connection testConnection = null;
 
-						if (DBManager.DBList.contains(newDBPath)) {
-							JOptionPane.showMessageDialog(contentPanel,
-									"That database already exists \n and it is already registered.");
+						// Verifies if the database exists in the given file path. The system allows
+						// duplicates if their paths do not match.
+						try {
+							testConnection = DBConnect.connect(!DBConnect.serverIsOn, newDBPath + "/" + newDBName,
+									txtNbuser.getText(), txtPwd.getPassword(), false);
+						} catch (Exception g) {
+
+						}
+
+						if (alreadyRegistered) {
+							if (testConnection != null) {
+
+								JOptionPane.showMessageDialog(okButton,
+										"It is not allowed duplicated databases in the same directory.",
+										"That database already exists.", JOptionPane.ERROR_MESSAGE);
+								try {
+									testConnection.close();
+								} catch (Exception g) {
+
+								}
+								txtDBName.invalidate();
+
+							} else {
+
+								int confirm = JOptionPane.showConfirmDialog(okButton,
+										"The database was previously registered "
+												+ "but it doesnt exists phisically in the given path. "
+												+ "If you select \'OK\' it will be created.",
+										"WARNING", JOptionPane.OK_CANCEL_OPTION);
+
+								if (confirm == JOptionPane.OK_OPTION) {
+									createDB = true;
+								}
+							}
 						} else {
+							if (testConnection == null) {
+								createDB = true;
+								registerDB = true;
+							} else {
+								int confirm = JOptionPane.showConfirmDialog(okButton,
+										"The database already exists phisically " + "but it is not registered."
+												+ "If you select \'OK\' it will be registered.",
+										"WARNING", JOptionPane.OK_CANCEL_OPTION);
 
-							Connection con = null;
+								if (confirm == JOptionPane.OK_OPTION) {
+									registerDB = true;
+								}
+							}
+						}
+
+						if (createDB) { // The database is created.
+							try {
+								Connection creaConn = DBConnect.connect(!DBConnect.serverIsOn,
+										newDBPath + "/" + newDBName, txtNbuser.getText(), txtPwd.getPassword(), true);
+							} catch (Exception g) {
+								System.out.println("create failed ");
+								g.printStackTrace();
+							}
+						}
+
+						if (registerDB) {
 
 							try {
-								System.out.println("try sin create ");
-								Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-								con = DriverManager.getConnection("jdbc:derby:" + newDBPath);
-							} catch (SQLException ex) {
-								try {
-									System.out.println("try con create ");
-									Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-									con = DriverManager.getConnection("jdbc:derby:" + newDBPath + ";create=true");
-								} catch (Exception g) {
-									System.out.println("falla create ");
-									g.printStackTrace();
-								}
-							} catch (ClassNotFoundException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
+								Connection sysConn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager,
+										"", null, false);
 
-							if (!DBManager.DBList.contains(newDBPath)) {
-
-								try {
-
-									String absolutePathToSys = "jdbc:derby:" + DBManager.pathToSettings
-											+ "\\PROCESSYS_DBMANAGER";
-
-									System.out.println("absolutePathToSys = " + absolutePathToSys);
-
-									con = DriverManager.getConnection(absolutePathToSys);
-									DBManager.stmt = con.createStatement();
-									String insert = "INSERT INTO DBSYS_LIST (DBNAME, USERD, PWD, DESCRIPTION, FILEPATH) "
-											+ "VALUES ('" + txtDBName.getText() + "', '" + txtNbuser.getText() + "', '"
-											+ txtPassword.getText() + "', '" + txtDescription.getText() + "', '"
-											+ txtDBLocation.getText() + "')";
-									System.out.println("Query INSERT DATA: " + insert);
-									int result = DBManager.stmt.executeUpdate(insert);
-
-									DBManager.DBList.add(newDBPath);
-									Object hierarchy[] = DBManager.DBList.toArray();
-									DefaultMutableTreeNode root = DBGUIFrame.processHierarchy(hierarchy);
-									DBManager.dataModel = new DefaultTreeModel(root);
-
-								} catch (Exception ey) {
-									System.out.println("Error when table creation.");
-									ey.printStackTrace();
+								DBManager.stmt = sysConn.createStatement();
+								String hashFromPaswd = "";
+								char[] paswd = txtPwd.getPassword();
+								if (paswd != null && !paswd.toString().equals("")) {
+									hashFromPaswd = PasswordStorage.createHash(paswd);
 								}
 
-							}
+								String insert = "INSERT INTO DBLIST (DBMS, DBNAME, USERD, PWD, DESCRIPTION, FILEPATH) "
+										+ "VALUES (\'Java DB\', \'" + txtDBName.getText() + "\', \'"
+										+ txtNbuser.getText() + "\', \'" + hashFromPaswd + "\', \'"
+										+ txtDescription.getText() + "\', \'" + txtDBLocation.getText() + "\')";
+								System.out.println("Query INSERT DATA: " + insert);
+								int result = DBManager.stmt.executeUpdate(insert);
+								System.out.println("Resultado: ");
+								if (result >= 0) {
+									DefaultTreeModel model = (DefaultTreeModel) DBManager.dBtree.getModel();
+									DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
+									root.add(new DefaultMutableTreeNode(
+											new DBTreeNodeK("Java DB", txtDBName.getText(), txtDBLocation.getText(),
+													"DBASE", txtDBName.getText(), txtDBName.getText())));
+									model.reload(root);
 
-							setVisible(false);
-							dispose();
+									// DBTreeNodeK nodeInfo = new DBTreeNodeK("Java DB", txtDBName.getText(),
+									// txtDBLocation.getText());
+									// TreePath newPath = treePath.pathByAddingChild(nodeInfo);
+									// ((DefaultTreeModel) DBManager.dBtree.getModel()).reload();
+									// // DefaultMutableTreeNode node = new DefaultMutableTreeNode(nodeInfo);
+									// DefaultMutableTreeNode parent = (DefaultMutableTreeNode)
+									// treePath.getLastPathComponent();
+									// parent.add(node);
+
+									// DBManager.treeDataModel = new DefaultTreeModel(DBManager.getTreeModel());
+									/// DBManager.dBtree.setModel(DBManager.treeDataModel);
+								}
+
+							} catch (Exception ey) {
+								System.out.println("Error when DB registration.");
+								ey.printStackTrace();
+
+							}
 						}
+
+						setVisible(false);
+						dispose();
 					}
+
 				});
 				okButton.setActionCommand("OK");
 				buttonPane.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 			}
+
 			{
 				JButton cancelButton = new JButton("Cancel");
 				cancelButton.addActionListener(new ActionListener() {
@@ -273,7 +392,94 @@ public class DBCreationDialog extends JDialog {
 				buttonPane.add(cancelButton);
 			}
 		}
+
 	}
+
+	// Verifies that there is a record in DBM4PROC sys DB for the given database.
+	public boolean verifyIfRegistered(String DBPath, String DBName) {
+
+		Connection connSYSDBM;
+		boolean AuxRegistered = false;
+
+		try {
+			// Connect to SYSDBM
+			connSYSDBM = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager, txtNbuser.getText(),
+					txtPwd.getPassword(), false);
+		} catch (SQLException ey) {
+
+			// If we are offline, we try to connect online
+			if (!DBConnect.serverIsOn) {
+				try {
+					DBConnect.inicServer();
+					DBGUIFrame.getMnServer().setForeground(Color.GREEN);
+					connSYSDBM = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager,
+							txtNbuser.getText(), txtPwd.getPassword(), false);
+
+					Statement stmt = connSYSDBM.createStatement();
+					String sql = "SELECT * from DBLIST WHERE FILEPATH = \'" + DBPath + "\' AND  DBNAME = \'" + DBName
+							+ "\'";
+					System.out.println(sql);
+
+					ResultSet rs = stmt.executeQuery(sql);
+
+					if (rs.next()) {
+						AuxRegistered = true;
+					}
+
+				} catch (Exception ez) {
+					JOptionPane.showMessageDialog(null, "System Database not available.", "Error",
+							JOptionPane.ERROR_MESSAGE);
+					ez.printStackTrace();
+				}
+			} else {
+				System.out.println("The database " + DBManager.pathToDBManager + " is not available.");
+				ey.printStackTrace();
+			}
+
+		} catch (Exception ey) {
+			System.out.println("Error when table creation.");
+			ey.printStackTrace();
+
+		}
+
+		return AuxRegistered;
+	}
+
+	//
+	// while (rs.next()) {
+	// String redDBMS = rs.getString("DBMS");
+	// String dBName = rs.getString("DBNAME");
+	// String pathToTable = rs.getString("FILEPATH");
+	// nodeInfo = new DBTreeNodeK(redDBMS, dBName, pathToTable);
+	//
+	// DefaultMutableTreeNode auxNode = new DefaultMutableTreeNode(nodeInfo);
+	// partialHead.add(auxNode);
+	// }
+	//
+
+	// DBManager.stmt = con.createStatement();
+	//
+	// String insert = "INSERT INTO DBLIST (DBMS, DBNAME, USERD, PWD, DESCRIPTION,
+	// FILEPATH) "
+	// + "VALUES ('Java DB', '" + txtDBName.getText() + "', '" + txtNbuser.getText()
+	// + "', '"
+	// + txtPwd.getPassword() + "', '" + txtDescription.getText() + "', '" +
+	// txtDBLocation.getText()
+	// + "')";
+	// System.out.println("Query INSERT DATA: " + insert);
+	// int result = DBManager.stmt.executeUpdate(insert);
+	//
+	// }catch(
+	//
+	// Exception ey)
+	// {
+	// System.out.println("Error when table creation.");
+	// ey.printStackTrace();
+	//
+	// }break;
+	//
+	// return true;
+	// }
 
 	/**
 	 * @return the txtDBName
@@ -293,7 +499,7 @@ public class DBCreationDialog extends JDialog {
 	 * @return the txtPassword
 	 */
 	public JTextField getTxtPassword() {
-		return txtPassword;
+		return txtPwd;
 	}
 
 	/**
