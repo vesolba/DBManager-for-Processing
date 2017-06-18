@@ -1,9 +1,9 @@
-## How to install DB Manager
+## How to install DB Manager for Processing
 
 
 ### Install with the Contribution Manager
 
-Add contributed tools by selecting the menu item _Tools_ → _Add Tool..._ This will open the Contribution Manager, where you can browse for DB Manager, or any other tool you want to install.
+Add contributed tools by selecting the menu item _Tools_ → _Add Tool..._ This will open the Contribution Manager, where you can browse for DB Manager for Processing, or any other tool you want to install.
 
 Not all available tools have been converted to show up in this menu. If a tool isn't there, it will need to be installed manually by following the instructions below.
 
@@ -15,25 +15,25 @@ By default the following locations are used for your sketchbook folder:
   * For Mac users, the sketchbook folder is located inside `~/Documents/Processing` 
   * For Windows users, the sketchbook folder is located inside `My Documents/Processing`
 
-Download DB Manager from https://dbmanager.esmiweb.es
+Download DB Manager for Processing from https://github.com/vesolba/DBManager-for-Processing
 
 Unzip and copy the contributed tool's folder into the `tools` folder in the Processing sketchbook. You will need to create this `tools` folder if it does not exist.
     
-The folder structure for tool DB Manager should be as follows:
+The folder structure for tool DB Manager for Processing should be as follows:
 
 ```
 Processing
   tools
-    DB Manager
+    DB Manager for Processing
       examples
       tool
-        DB Manager.jar
+        DB Manager for Processing.jar
       reference
       src
 ```
                       
-Some folders like `examples` or `src` might be missing. After tool DB Manager has been successfully installed, restart the Processing application.
+Some folders like `examples` or `src` might be missing. After tool DB Manager for Processing has been successfully installed, restart the Processing application.
 
 ### Troubleshooting
 
-If you're having trouble, try contacting the author [Venerando Solis Barrado](http://vesolba.esmiweb.es).
+If you're having trouble, try contacting the author [Venerando Solis Barrado](https://github.com/vesolba).
