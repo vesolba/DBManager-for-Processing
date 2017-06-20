@@ -2,7 +2,7 @@
 
 DBManager for Processing is a tool add-in for the [Processing Development Enviroment (PDE)](https://processing.org/reference/environment/) framework (similar to the one with Netbeans or Eclipse).
 
-The manager works with [Java DB](http://docs.oracle.com/javadb/) (Derby) databases. Java DB is included in the Java SDK since Java 6.0, so it is already included in Processing sketches with no additional downloads required, and may be embedded in a sketch as a local or remote server. By installing Java DB in the PDE as a tool it can be accessed concurrently from all processes working in the same Java Virtual Machine (JVM) as the database.
+The manager works with [Java DB](http://docs.oracle.com/javadb/) (Derby) databases. Java DB is included in the Java SDK since Java 6.0, so it is already included in Processing sketches with no additional downloads required, and may be embedded in a sketch as a local or remote server. By installing DBManager in the PDE as a tool it can be accessed concurrently from all processes working in the same Java Virtual Machine (JVM) as the database.
 
 [![DBManager for Processing](https://img.youtube.com/vi/64F0kFhagqk/0.jpg)](https://www.youtube.com/watch?v=64F0kFhagqk)
 
