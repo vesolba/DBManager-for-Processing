@@ -14,7 +14,7 @@ Connection con;
  
 void setup() {
  
-  try {
+  try {
  
     // Tell derby where to put the database files
  
@@ -86,7 +86,7 @@ void draw() {
  
   println("Inicdraw");
  
-  try {
+  try {
  
     // select all rows from the foo table
  
