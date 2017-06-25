@@ -39,8 +39,7 @@ public class MyTreeCellRenderer extends DefaultTreeCellRenderer {
 		if (value != null) {
 			DBTreeNodeK selectedNodeInfo = (DBTreeNodeK) ((DefaultMutableTreeNode) value).getUserObject();
 			category = selectedNodeInfo.getCategory();
-			System.out.println("category = " + category);
-
+			
 			switch (category) {
 			case "root":
 				icon = dbServIcon;

@@ -4,12 +4,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 public class DBTreeNodeK extends DefaultMutableTreeNode {
 	
-	private String category = "";
-	private String nodeText = "";
-	private String pathLocation = "";
-	private String dataType = "";
-	private String dBaseName = "";
-	private String dTypeName = ""; 
+	private String category = "";  // Defines the type of node
+	private String nodeText = "";  // Displayed text/name of the node
+	private String pathLocation = ""; // File path to database
+	private String dataType = ""; // Data type of dTypeName
+	private String dBaseName = ""; // Database of the node
+	private String dTypeName = ""; // Name of dataType
 
 	public DBTreeNodeK(String category, String text) {
 		this.category = category;
@@ -125,6 +125,20 @@ public class DBTreeNodeK extends DefaultMutableTreeNode {
 	 */
 	public void setdBaseName(String dBaseName) {
 		this.dBaseName = dBaseName;
+	}
+
+	/**
+	 * @return the dTypeName
+	 */
+	public String getdTypeName() {
+		return dTypeName;
+	}
+
+	/**
+	 * @param dTypeName the dTypeName to set
+	 */
+	public void setdTypeName(String dTypeName) {
+		this.dTypeName = dTypeName;
 	}
 
 }

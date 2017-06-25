@@ -48,6 +48,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 @SuppressWarnings("serial")
@@ -62,6 +64,8 @@ public class DBGUIFrame extends JFrame {
 	private static JMenuItem mntmStopServer = null;
 	private JSpinner spinRowHeight;
 	private JSpinner spinFontSize;
+	private JSpinner spinTreeFontSize;
+	private JSpinner spinTable;
 	private JTextField txtLastMessage;
 	private JTable tableSQLResult;
 	private JTextPane txtSelected;
@@ -226,9 +230,39 @@ public class DBGUIFrame extends JFrame {
 				DBManager.propsDBM.saveProperties();
 			}
 		});
+
 		mnRowsHeight.add(spinRowHeight);
 		spinRowHeight.setToolTipText("Rows height");
 		spinRowHeight.setModel(new SpinnerNumberModel(new Integer(35), null, null, new Integer(1)));
+
+		// Initialize and Change DBTree Font Size
+		JMenu mnTreeFontSize = new JMenu("Font Size");
+		mnDBTree.add(mnTreeFontSize);
+
+		String propFont = DBManager.propsDBM.getDBMProp("treeFontSize");
+
+		spinTreeFontSize = new JSpinner();
+		spinTreeFontSize.setModel(new SpinnerNumberModel(new Integer(12), null, null, new Integer(1)));
+		spinTreeFontSize.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				DBManager.dBtree.setFont(DBManager.dBtree.getFont()
+						.deriveFont(Float.parseFloat(spinTreeFontSize.getValue().toString())));
+				DBManager.propsDBM.setDBMProp("treeFontSize", spinTreeFontSize.getValue().toString());
+				DBManager.propsDBM.saveProperties();
+			}
+		});
+		mnTreeFontSize.add(spinTreeFontSize);
+		if (propFont != null && !propFont.isEmpty()) {
+			spinTreeFontSize.setValue(Integer.parseInt(propFont));
+			DBManager.dBtree.setFont(
+					DBManager.dBtree.getFont().deriveFont(Float.parseFloat(spinTreeFontSize.getValue().toString())));
+		}
+
+		JMenuItem mntmExpandAll = new JMenuItem("Expand All");
+		mnDBTree.add(mntmExpandAll);
+
+		JMenuItem mntmCollapseAll = new JMenuItem("Collapse All");
+		mnDBTree.add(mntmCollapseAll);
 
 		Component horizontalStrut_2 = Box.createHorizontalStrut(10);
 		menuBar.add(horizontalStrut_2);
@@ -287,24 +321,6 @@ public class DBGUIFrame extends JFrame {
 
 		Component horizontalGlue = Box.createHorizontalGlue();
 		menuBar_1.add(horizontalGlue);
-
-		JLabel lblNewLabel = new JLabel(" Font Size:  ");
-		menuBar_1.add(lblNewLabel);
-
-		spinFontSize = new JSpinner();
-		menuBar_1.add(spinFontSize);
-
-		spinFontSize.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent arg0) {
-				textPaneInSQL.setFont(
-						textPaneInSQL.getFont().deriveFont(Float.parseFloat(spinFontSize.getValue().toString())));
-				DBManager.propsDBM.setDBMProp("fontsize01", spinFontSize.getValue().toString());
-				DBManager.propsDBM.saveProperties();
-			}
-		});
-
-		Component horizontalGlue_2 = Box.createHorizontalGlue();
-		menuBar_1.add(horizontalGlue_2);
 
 		JSeparator separator_3 = new JSeparator();
 		separator_3.setOrientation(SwingConstants.VERTICAL);
@@ -381,9 +397,23 @@ public class DBGUIFrame extends JFrame {
 		separator_2.setMaximumSize(new Dimension(100, 32767));
 		separator_2.setOrientation(SwingConstants.VERTICAL);
 		menuBar_1.add(separator_2);
+
+		spinFontSize = new JSpinner();
+		spinFontSize.setModel(new SpinnerNumberModel(new Integer(12), null, null, new Integer(1)));
+		menuBar_1.add(spinFontSize);
+
+		spinFontSize.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				textPaneInSQL.setFont(
+						textPaneInSQL.getFont().deriveFont(Float.parseFloat(spinFontSize.getValue().toString())));
+
+				DBManager.propsDBM.setDBMProp("fontsize01", spinFontSize.getValue().toString());
+				DBManager.propsDBM.saveProperties();
+			}
+		});
 		textPaneInSQL = new JTextPane();
 		textPaneInSQL.setDropMode(DropMode.INSERT);
-		String propFont = DBManager.propsDBM.getDBMProp("fontsize01");
+		propFont = DBManager.propsDBM.getDBMProp("fontsize01");
 		if (propFont != null && !propFont.isEmpty()) {
 			spinFontSize.setValue(Integer.parseInt(propFont));
 			textPaneInSQL
@@ -448,8 +478,11 @@ public class DBGUIFrame extends JFrame {
 				if ("select ".equalsIgnoreCase(trimmedQuery.substring(0, 7))) {
 
 					System.out.println("query");
-					tableSQLResult.setModel(new MyTableModel(conn, query));
+					MyTableModel tModel = new MyTableModel(conn, trimmedQuery);
+
+					tableSQLResult.setModel(tModel);
 					tableSQLResult.updateUI();
+
 				} else {
 					System.out.println("update");
 					try {
@@ -482,6 +515,11 @@ public class DBGUIFrame extends JFrame {
 			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
 				Component c = super.prepareRenderer(renderer, row, column);
 
+				int rendererWidth = c.getPreferredSize().width;
+				TableColumn tableColumn = getColumnModel().getColumn(column);
+				tableColumn.setPreferredWidth(
+						Math.max(rendererWidth + getIntercellSpacing().width, tableColumn.getPreferredWidth()));
+
 				// Alternate row color
 				if (!isRowSelected(row))
 					c.setBackground(row % 2 == 0 ? getBackground() : Color.LIGHT_GRAY);
@@ -489,11 +527,35 @@ public class DBGUIFrame extends JFrame {
 				return c;
 			}
 		};
-		tableSQLResult.setColumnSelectionAllowed(true);
+		tableSQLResult.setAutoscrolls(false);
+		tableSQLResult.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		tableSQLResult.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		tableSQLResult.setCellSelectionEnabled(true);
 		tableSQLResult.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tableSQLResult.setBackground(SystemColor.info);
+
+		String propTable = DBManager.propsDBM.getDBMProp("spinTable");
+
+		spinTable = new JSpinner();
+		spinTable.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				tableSQLResult.setFont(
+						tableSQLResult.getFont().deriveFont(Float.parseFloat(spinTable.getValue().toString())));
+				tableSQLResult.setRowHeight((int) Float.parseFloat(spinTable.getValue().toString()) + 2);
+				DBManager.propsDBM.setDBMProp("spinTable", spinTable.getValue().toString());
+				DBManager.propsDBM.saveProperties();
+			}
+		});
+		spinTable.setToolTipText("Table Font Size");
+		spinTable.setModel(new SpinnerNumberModel(new Integer(12), null, null, new Integer(1)));
+		horizontalBox.add(spinTable);
+		propTable = DBManager.propsDBM.getDBMProp("spinTable");
+		if (propTable != null && !propTable.isEmpty()) {
+			spinTable.setValue(Integer.parseInt(propTable));
+			tableSQLResult
+					.setFont(tableSQLResult.getFont().deriveFont(Float.parseFloat(spinTable.getValue().toString())));
+			tableSQLResult.setRowHeight((int) Float.parseFloat(spinTable.getValue().toString()) + 2);
+		}
 
 		JScrollPane scrollPane = new JScrollPane(tableSQLResult);
 		scrollPane.setAutoscrolls(true);

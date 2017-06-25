@@ -19,6 +19,7 @@ public class MyTableModel extends AbstractTableModel {
 	ResultSetMetaData metadata;
 	ResultSet resultSet;
 	ArrayList<String> cols = new ArrayList<>();
+	ArrayList<Integer> colsSize = new ArrayList<>();
 	ArrayList<ArrayList<String>> data = new ArrayList<>();
 
 	public MyTableModel(Connection conn, String query) {
@@ -33,6 +34,7 @@ public class MyTableModel extends AbstractTableModel {
 				int c = resultSet.getMetaData().getColumnCount();
 				for (int i = 1; i <= c; i++) {
 					cols.add(resultSet.getMetaData().getColumnName(i));
+					colsSize.add(resultSet.getMetaData().getPrecision(i));
 				}
 
 				while (resultSet.next()) {
@@ -79,5 +81,10 @@ public class MyTableModel extends AbstractTableModel {
 	public String getColumnName(int column) {
 		return cols.get(column);
 	}
+	
+	public int getColumnSize(int column) {
+		return colsSize.get(column);
+	}
 
+	
 }

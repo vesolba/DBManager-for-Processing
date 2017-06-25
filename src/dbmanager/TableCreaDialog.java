@@ -11,6 +11,10 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -35,12 +39,8 @@ import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.InputMethodListener;
-import java.awt.event.InputMethodEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import javax.swing.tree.DefaultTreeModel;
+import java.awt.Cursor;
 
 public class TableCreaDialog extends JDialog {
 
@@ -52,6 +52,8 @@ public class TableCreaDialog extends JDialog {
 	private MyColumnTypes tipo;
 	public static MyComboModel myComboModel;
 	public AddColumnDlg dialog;
+	public DefaultMutableTreeNode currentNode;
+	public DBTreeNodeK currentNodeInfo;
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssSSS");
 	private JButton btnEdit;
@@ -61,27 +63,28 @@ public class TableCreaDialog extends JDialog {
 	}
 
 	private void jbInit() {
-		DefaultMutableTreeNode currentNode = (DefaultMutableTreeNode) DBManager.dBtree.getLastSelectedPathComponent();
-		DBTreeNodeK currentNodeInfo = ((DBTreeNodeK) currentNode.getUserObject());
+		currentNode = (DefaultMutableTreeNode) DBManager.dBtree.getLastSelectedPathComponent();
+		currentNodeInfo = ((DBTreeNodeK) currentNode.getUserObject());
 
 		String currDBPath;
 		String currDBName;
 		String currCategory;
 
-		if (currentNodeInfo.getCategory().equals("Java DB")) {
-			// We are in the database node. We can obtain data here
-			currDBPath = currentNodeInfo.getPathLocation();
-			currDBName = currentNodeInfo.getText();
-			currCategory = currentNodeInfo.getCategory();
-		} else {
+		// if (currentNodeInfo.getCategory().equals("Java DB")) {
+		// We are in the database node. We can obtain data here
+		currDBPath = currentNodeInfo.getPathLocation();
+		currDBName = currentNodeInfo.getdBaseName();
+		currCategory = currentNodeInfo.getCategory();
+		// } else {
 
-			// We are in the "Tables" head node. We need data from parent
-			DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) currentNode.getParent();
-			DBTreeNodeK parentNodeInfo = ((DBTreeNodeK) parentNode.getUserObject());
-			currDBPath = parentNodeInfo.getPathLocation();
-			currDBName = parentNodeInfo.getText();
-			currCategory = currentNodeInfo.getCategory();
-		}
+		// We are in the "Tables" head node. We need data from parent
+		// DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode)
+		// currentNode.getParent();
+		// DBTreeNodeK parentNodeInfo = ((DBTreeNodeK) parentNode.getUserObject());
+		// currDBPath = parentNodeInfo.getPathLocation();
+		// currDBName = parentNodeInfo.getText();
+		// currCategory = currentNodeInfo.getCategory();
+		// }
 		setTitle("Database " + currDBName + " Table Creation");
 
 		try {
@@ -125,6 +128,7 @@ public class TableCreaDialog extends JDialog {
 		txtTablename.setColumns(10);
 
 		table = new JTable();
+		table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		table.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {

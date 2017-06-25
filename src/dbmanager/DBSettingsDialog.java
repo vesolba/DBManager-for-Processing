@@ -19,83 +19,86 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import java.awt.Rectangle;
+import javax.swing.BoxLayout;
+import java.awt.GridLayout;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormSpecs;
+import com.jgoodies.forms.layout.RowSpec;
+import net.miginfocom.swing.MigLayout;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import java.awt.ComponentOrientation;
+import java.awt.Cursor;
+import javax.swing.DropMode;
 
 public class DBSettingsDialog extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtInstallation;
 	private JTextField txtLocation;
+	private JLabel lblDbInstallation;
+	private JButton btnBrowseInst;
+	private JLabel lblDBLocation;
+	private JButton btnBrowseLocate;
+	private JButton okButton;
+	private JButton cancelButton;
 
 	/**
 	 * Create the dialog.
 	 */
 	public DBSettingsDialog() {
+		jbInit();
+	}
+
+	private void jbInit() {
+		getContentPane().setBounds(new Rectangle(20, 20, 20, 20));
 		setModal(true);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setIconImage(Toolkit.getDefaultToolkit()
 				.getImage(DBSettingsDialog.class.getResource("/javax/swing/plaf/basic/icons/image-delayed.png")));
 		setTitle("Java DB Settings");
-		setBounds(100, 100, 537, 300);
+		setBounds(100, 100, 537, 264);
 		getContentPane().setLayout(new BorderLayout());
+		contentPanel.setBounds(new Rectangle(50, 50, 50, 50));
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.NORTH);
-		GridBagLayout gbl_contentPanel = new GridBagLayout();
-		gbl_contentPanel.columnWidths = new int[] { 0, 0, 0, 0 };
-		gbl_contentPanel.rowHeights = new int[] { 0, 0 };
-		gbl_contentPanel.columnWeights = new double[] { 1.0, 0.0, 0.0, Double.MIN_VALUE };
-		gbl_contentPanel.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
-		contentPanel.setLayout(gbl_contentPanel);
+		contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.X_AXIS));
 		{
 			JTextArea txtSpecify = new JTextArea();
+			txtSpecify.setEnabled(false);
+			txtSpecify.setEditable(false);
+			txtSpecify.setDropMode(DropMode.INSERT);
+			txtSpecify.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			txtSpecify.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+			txtSpecify.setColumns(1);
+			txtSpecify.setWrapStyleWord(true);
+			txtSpecify.setRows(1);
 			txtSpecify.setFont(new Font("Monospaced", Font.PLAIN, 11));
 			txtSpecify.setLineWrap(true);
 			txtSpecify.setText("Specify the folder where Java DB is installed and the folder "
 					+ "where you will keep your databases. The database location folder will be used "
 					+ "as the value of the derby.system.home property.");
-			GridBagConstraints gbc_txtSpecify = new GridBagConstraints();
-			gbc_txtSpecify.anchor = GridBagConstraints.NORTH;
-			gbc_txtSpecify.gridwidth = 3;
-			gbc_txtSpecify.insets = new Insets(0, 0, 0, 5);
-			gbc_txtSpecify.fill = GridBagConstraints.HORIZONTAL;
-			gbc_txtSpecify.gridx = 0;
-			gbc_txtSpecify.gridy = 0;
-			contentPanel.add(txtSpecify, gbc_txtSpecify);
+			contentPanel.add(txtSpecify);
 		}
 		{
 			JPanel panel = new JPanel();
-			getContentPane().add(panel, BorderLayout.CENTER);
-			GridBagLayout gbl_panel = new GridBagLayout();
-			gbl_panel.columnWidths = new int[] { 145, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-			gbl_panel.rowHeights = new int[] { 30, 20, 0 };
-			gbl_panel.columnWeights = new double[] { 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-					Double.MIN_VALUE };
-			gbl_panel.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
-			panel.setLayout(gbl_panel);
+			getContentPane().add(panel, BorderLayout.WEST);
 			{
-				JLabel lblDbInstallation = new JLabel("Java DB Installation:");
-				lblDbInstallation.setHorizontalAlignment(SwingConstants.LEFT);
-				GridBagConstraints gbc_lblDbInstallation = new GridBagConstraints();
-				gbc_lblDbInstallation.insets = new Insets(0, 0, 5, 5);
-				gbc_lblDbInstallation.gridx = 0;
-				gbc_lblDbInstallation.gridy = 0;
-				panel.add(lblDbInstallation, gbc_lblDbInstallation);
+				lblDbInstallation = new JLabel("Java DB Installation: ");
+				lblDbInstallation.setHorizontalAlignment(SwingConstants.RIGHT);
 			}
 			{
 				txtInstallation = new JTextField();
 				txtInstallation.setEnabled(false);
 				txtInstallation.setEditable(false);
 				txtInstallation.setHorizontalAlignment(SwingConstants.LEFT);
-				GridBagConstraints gbc_txtInstallation = new GridBagConstraints();
-				gbc_txtInstallation.gridwidth = 9;
-				gbc_txtInstallation.insets = new Insets(0, 0, 5, 5);
-				gbc_txtInstallation.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtInstallation.gridx = 1;
-				gbc_txtInstallation.gridy = 0;
-				panel.add(txtInstallation, gbc_txtInstallation);
 				txtInstallation.setColumns(10);
 			}
 			{
-				JButton btnBrowseInst = new JButton("Browse...");
+				btnBrowseInst = new JButton("Browse...");
 				btnBrowseInst.setEnabled(false);
 				btnBrowseInst.addActionListener(new ActionListener() {
 					@Override
@@ -112,34 +115,17 @@ public class DBSettingsDialog extends JDialog {
 
 					}
 				});
-				GridBagConstraints gbc_btnBrowseInst = new GridBagConstraints();
-				gbc_btnBrowseInst.insets = new Insets(0, 0, 5, 0);
-				gbc_btnBrowseInst.gridx = 10;
-				gbc_btnBrowseInst.gridy = 0;
-				panel.add(btnBrowseInst, gbc_btnBrowseInst);
 			}
 			{
-				JLabel lblDBLocation = new JLabel("Database Location:\r\n");
-				GridBagConstraints gbc_lblDBLocation = new GridBagConstraints();
-				gbc_lblDBLocation.anchor = GridBagConstraints.EAST;
-				gbc_lblDBLocation.insets = new Insets(0, 0, 0, 5);
-				gbc_lblDBLocation.gridx = 0;
-				gbc_lblDBLocation.gridy = 1;
-				panel.add(lblDBLocation, gbc_lblDBLocation);
+				lblDBLocation = new JLabel("Database Location:\r\n ");
+				lblDBLocation.setHorizontalAlignment(SwingConstants.RIGHT);
 			}
 			{
 				txtLocation = new JTextField();
-				GridBagConstraints gbc_txtLocation = new GridBagConstraints();
-				gbc_txtLocation.gridwidth = 9;
-				gbc_txtLocation.insets = new Insets(0, 0, 0, 5);
-				gbc_txtLocation.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtLocation.gridx = 1;
-				gbc_txtLocation.gridy = 1;
-				panel.add(txtLocation, gbc_txtLocation);
 				txtLocation.setColumns(10);
 			}
 			{
-				JButton btnBrowseLocate = new JButton("Browse...");
+				btnBrowseLocate = new JButton("Browse...");
 				btnBrowseLocate.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -154,18 +140,9 @@ public class DBSettingsDialog extends JDialog {
 						}
 					}
 				});
-				GridBagConstraints gbc_btnBrowseLocate = new GridBagConstraints();
-				gbc_btnBrowseLocate.gridx = 10;
-				gbc_btnBrowseLocate.gridy = 1;
-				panel.add(btnBrowseLocate, gbc_btnBrowseLocate);
 			}
-		}
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				JButton okButton = new JButton("OK");
+				okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -174,11 +151,10 @@ public class DBSettingsDialog extends JDialog {
 					}
 				});
 				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 			}
 			{
-				JButton cancelButton = new JButton("Cancel");
+				cancelButton = new JButton("Cancel");
 				cancelButton.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
@@ -187,8 +163,21 @@ public class DBSettingsDialog extends JDialog {
 					}
 				});
 				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
 			}
+			panel.setLayout(new FormLayout(
+					new ColumnSpec[] { ColumnSpec.decode("25px"), ColumnSpec.decode("105px"),
+							FormSpecs.UNRELATED_GAP_COLSPEC, ColumnSpec.decode("273px"), FormSpecs.RELATED_GAP_COLSPEC,
+							ColumnSpec.decode("79px"), ColumnSpec.decode("25px"), },
+					new RowSpec[] { RowSpec.decode("21px"), RowSpec.decode("23px"), FormSpecs.RELATED_GAP_ROWSPEC,
+							RowSpec.decode("23px"), RowSpec.decode("48px"), RowSpec.decode("23px"), }));
+			panel.add(lblDbInstallation, "2, 2, fill, center");
+			panel.add(txtInstallation, "4, 2, fill, center");
+			panel.add(lblDBLocation, "2, 4, fill, center");
+			panel.add(txtLocation, "4, 4, fill, center");
+			panel.add(okButton, "4, 6, right, top");
+			panel.add(btnBrowseLocate, "6, 4, left, top");
+			panel.add(btnBrowseInst, "6, 2, left, top");
+			panel.add(cancelButton, "6, 6, fill, top");
 		}
 	}
 

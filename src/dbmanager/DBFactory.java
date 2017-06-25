@@ -6,6 +6,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -23,11 +24,28 @@ public class DBFactory {
 
 		switch (event.getActionCommand().toString()) {
 		case "Create Database...":
-			callDBCreationDialog(treePath);
-			// DBManager.dBtree.setModel(DBManager.treeDataModel);
-			break;
-
 		case "Register Database...":
+
+			try {
+				DBCreationDialog dialog = new DBCreationDialog("", "", "", null, DBManager.derbySystemHome, treePath,
+						event.getActionCommand().toString());
+				// DB Name, User, Pwd, Description, DB Location (File Location), Path in dBtree, Action command
+
+				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+				dialog.getTxtDBLocation().setText(DBManager.derbySystemHome);
+				dialog.setLocationRelativeTo(null);
+
+				if (event.getActionCommand().toString().equals("Register Database...")) {
+					dialog.button.doClick();
+					dialog.setTitle("Java DB Database Registration");
+				} else {
+					dialog.setTitle("Java DB Database Creation");
+				}
+				dialog.setVisible(true);
+
+			} catch (Exception f) {
+				errorPrint(f);
+			}
 
 			break;
 
@@ -73,7 +91,70 @@ public class DBFactory {
 			}
 
 			break;
-		case "Delete Table...":
+		case "Delete Table":
+			node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
+			nodeInfo = (DBTreeNodeK) node.getUserObject();
+
+			String table2Del = nodeInfo.getText();
+
+			JDialog.setDefaultLookAndFeelDecorated(true);
+
+			response = JOptionPane.showConfirmDialog(null,
+					"You are going to delete the table " + table2Del + ". \n All the data stored there will be lost.\n"
+							+ "Do you want to continue?",
+					"Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+			if (response == JOptionPane.YES_OPTION) {
+
+				Connection conn = null;
+
+				try {
+					conn = DBConnect.connect(!DBConnect.serverIsOn,
+							nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(), "", null, false);
+				} catch (Exception ex) {
+					// If we can not connect and the server is off, we repeat the try with server
+					// on.
+					if (!DBConnect.serverIsOn) {
+						try {
+							DBConnect.inicServer();
+							DBGUIFrame.getMnServer().setForeground(Color.GREEN);
+							conn = DBConnect.connect(!DBConnect.serverIsOn,
+									nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(), "", null, false);
+						} catch (Exception ey) {
+							JOptionPane.showInputDialog("The database " + nodeInfo.getPathLocation() + "/"
+									+ nodeInfo.getdBaseName() + " is not available.");
+							ex.printStackTrace();
+						}
+					} else {
+						JOptionPane.showInputDialog("The database " + nodeInfo.getPathLocation() + "/"
+								+ nodeInfo.getdBaseName() + " is not available.");
+						ex.printStackTrace();
+					}
+				}
+
+				if (conn != null) {
+					try {
+						String sql = "DROP TABLE " + table2Del;
+						Statement statement = conn.createStatement();
+						int result = statement.executeUpdate(sql);
+						JOptionPane.showInputDialog(
+								"Table " + table2Del + " has been droped from the database " + nodeInfo.getdBaseName());
+					} catch (Exception h) {
+						JOptionPane.showInputDialog("It was not possible to delete " + table2Del + " table.");
+						h.printStackTrace();
+					} finally {
+						try {
+							if (conn != null && !conn.isClosed()) {
+								conn.close();
+							}
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+
+				}
+			}
+
 			break;
 		case "Add column...":
 			break;
@@ -88,22 +169,11 @@ public class DBFactory {
 		case "Properties":
 			break;
 		default:
+
 			DBManager.dBtree.repaint();
-			break;
 
 		}
-	}
 
-	public static void callDBCreationDialog(TreePath treePath) {
-		try {
-			DBCreationDialog dialog = new DBCreationDialog("", "", "", null, DBManager.derbySystemHome, treePath);
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.getTxtDBLocation().setText(DBManager.derbySystemHome);
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
-		} catch (Exception f) {
-			f.printStackTrace();
-		}
 	}
 
 	/**
@@ -166,26 +236,26 @@ public class DBFactory {
 			} catch (Exception ey) {
 
 				// If we can not connect and the server is off, lets try with server on.
-				if (!DBConnect.serverIsOn) {
-					try {
-						DBConnect.inicServer();
-						DBGUIFrame.getMnServer().setForeground(Color.GREEN);
-						sysConn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager, "", null, false);
-
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(null, "Database not available.", "Error",
-								JOptionPane.ERROR_MESSAGE);
-						ex.printStackTrace();
-					}
-				} else {
-					System.out.println("The database " + DBManager.pathToDBManager + " is not available.");
-					ey.printStackTrace();
-				}
-
+//				if (!DBConnect.serverIsOn) {
+//					try {
+//						DBConnect.inicServer();
+//						DBGUIFrame.getMnServer().setForeground(Color.GREEN);
+//						sysConn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager, "", null, false);
+//
+//					} catch (Exception ex) {
+//						JOptionPane.showMessageDialog(null, "Database not available.", "Error",
+//								JOptionPane.ERROR_MESSAGE);
+//						ex.printStackTrace();
+//					}
+//				} else {
+//					System.out.println("The database " + DBManager.pathToDBManager + " is not available.");
+//					ey.printStackTrace();
+//				}
+				errorPrint(ey);
 			}
 
 			try {
-				DBManager.stmt = sysConn.createStatement();
+				Statement sysStmt = sysConn.createStatement();
 				String Deletion = "";
 
 				switch (category2Del) {
@@ -208,7 +278,7 @@ public class DBFactory {
 				// break;
 				}
 
-				DBManager.stmt.executeUpdate(Deletion);
+				sysStmt.executeUpdate(Deletion);
 
 				DefaultMutableTreeNode node = selectedElement;
 				DefaultTreeModel model = (DefaultTreeModel) (DBManager.dBtree.getModel());
@@ -216,12 +286,31 @@ public class DBFactory {
 				((DefaultTreeModel) DBManager.dBtree.getModel()).reload();
 
 			} catch (Exception ey) {
-				System.out.println("Error when element deletion.");
-				ey.printStackTrace();
+				errorPrint(ey);
 			}
 
 		}
 
+	}
+
+	
+
+	static void errorPrint(Throwable e) {
+		if (e instanceof SQLException)
+			SQLExceptionPrint((SQLException) e);
+		else
+			System.out.println("A non-SQL error: " + e.toString());
+	}
+
+	static void SQLExceptionPrint(SQLException sqle) {
+		while (sqle != null) {
+			System.out.println("\n---SQLException Caught---\n");
+			System.out.println("SQLState:   " + (sqle).getSQLState());
+			System.out.println("Severity: " + (sqle).getErrorCode());
+			System.out.println("Message:  " + (sqle).getMessage());
+			sqle.printStackTrace();
+			sqle = sqle.getNextException();
+		}
 	}
 
 	public static void loadComboCols(ResultSet rset, MyColumnTypes tipo) throws SQLException {

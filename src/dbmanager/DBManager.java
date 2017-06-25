@@ -86,6 +86,7 @@ public class DBManager implements Tool {
 	private static JPopupMenu popup;
 	public static MyTreeCellRenderer renderer;
 	public static String renderProp;
+	public TreeExpansionUtil xpan;
 
 	@Override
 	public String getMenuTitle() {
@@ -236,6 +237,7 @@ public class DBManager implements Tool {
 				@Override
 				public void mouseClicked(MouseEvent e) {
 
+					DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
 					int row = dBtree.getClosestRowForLocation(e.getX(), e.getY());
 					dBtree.setSelectionRow(row);
 
@@ -246,14 +248,22 @@ public class DBManager implements Tool {
 							public void actionPerformed(ActionEvent event) {
 								dBfactory = new DBFactory(event, dBtree.getSelectionPath());
 								// To refresh the tree, rebuilds the tree
-								// model.
+								// model. But first we save its expansion state.
+
+								final TreeExpansionUtil expander = new TreeExpansionUtil(dBtree);
+
+								final String state = expander.getExpansionState();
+
+								System.out.println(state);
+
 								treeDataModel = new DefaultTreeModel(getTreeModel());
 								dBtree.setModel(treeDataModel);
 								dBtree.repaint();
+
+								// Recover the expansion state
+								expander.setExpansionState(state);
 							}
 						};
-
-						DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
 
 						if (node == null)
 							return;
@@ -288,6 +298,8 @@ public class DBManager implements Tool {
 								popup.add(menuItem = new JMenuItem("Create Table..."));
 								menuItem.addActionListener(menuListener);
 							}
+							popup.add(menuItem = new JMenuItem("Refresh"));
+							menuItem.addActionListener(menuListener);
 
 							break;
 
@@ -304,12 +316,13 @@ public class DBManager implements Tool {
 
 									} else {
 										popup.add(menuItem = new JMenuItem("Error Jtree"));
-
 									}
 
 								}
 							}
 
+							menuItem.addActionListener(menuListener);
+							popup.add(menuItem = new JMenuItem("Refresh"));
 							menuItem.addActionListener(menuListener);
 							break;
 
@@ -323,7 +336,7 @@ public class DBManager implements Tool {
 							popup.add(menuItem = new JMenuItem("Execute Command..."));
 							menuItem.addActionListener(menuListener);
 							popup.addSeparator();
-							popup.add(menuItem = new JMenuItem("Delete"));
+							popup.add(menuItem = new JMenuItem("Delete Table"));
 							menuItem.addActionListener(menuListener);
 
 							popup.add(menuItem = new JMenuItem("Grab Structure..."));
@@ -345,9 +358,12 @@ public class DBManager implements Tool {
 								popup.add(menuItem = new JMenuItem("Create Table..."));
 								menuItem.addActionListener(menuListener);
 							}
+							popup.add(menuItem = new JMenuItem("Refresh"));
+							menuItem.addActionListener(menuListener);
 							break;
 						default:
-							break;
+							popup.add(menuItem = new JMenuItem("Refresh"));
+							menuItem.addActionListener(menuListener);
 						}
 
 						popup.show(e.getComponent(), e.getX(), e.getY());

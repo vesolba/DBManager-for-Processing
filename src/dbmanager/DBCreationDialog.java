@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,6 +40,8 @@ public class DBCreationDialog extends JDialog {
 	private String initialDescription;
 	private String initialDBLocation;
 
+	private File realLocation;
+	private boolean isDBase;
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtDBName;
 	private JTextField txtNbuser;
@@ -48,6 +51,10 @@ public class DBCreationDialog extends JDialog {
 	private JPasswordField txtPwd;
 	private JButton okButton;
 	private TreePath treePath;
+	public JButton button;
+	public boolean isDBCreation;
+	private boolean registerDB = false;
+	private boolean createDB = false;
 
 	/**
 	 * Create the dialog.
@@ -55,14 +62,15 @@ public class DBCreationDialog extends JDialog {
 	 * @param treePath
 	 */
 	public DBCreationDialog(String initialDBName, String initialNbuser, String initialPwd, String initialDescription,
-			String initialDBLocation, TreePath treePath) {
+			String initialDBLocation, TreePath treePath, String command) {
+
 		this.initialDBName = initialDBName;
 		this.initialNbuser = initialNbuser;
 		this.initialPwd = initialPwd;
 		this.initialDescription = initialDescription;
 		this.initialDBName = initialDBLocation;
 		this.treePath = treePath;
-
+		isDBCreation = command.equals("Create Database..."); // if not, then isDBRegistration
 		jbInit();
 	}
 
@@ -70,7 +78,6 @@ public class DBCreationDialog extends JDialog {
 		setModal(true);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
-		setTitle("Java DB Database Creation");
 		setBounds(100, 100, 599, 310);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -210,7 +217,7 @@ public class DBCreationDialog extends JDialog {
 			contentPanel.add(txtDBLocation, gbc_txtDBLocation);
 			txtDBLocation.setColumns(10);
 		}
-		JButton button = new JButton("Browse...");
+		button = new JButton("Browse...");
 		button.addActionListener(new ActionListener() {
 
 			@Override
@@ -220,22 +227,53 @@ public class DBCreationDialog extends JDialog {
 				chooser.setCurrentDirectory(new java.io.File(txtDBLocation.getText()));
 				int returnVal = chooser.showOpenDialog(DBCreationDialog.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					System.out.println("You chose to use this path: " + chooser.getSelectedFile().getAbsolutePath());
-					txtDBLocation.setText(chooser.getSelectedFile().getAbsolutePath());
 
-					int optionButtons = JOptionPane.YES_NO_OPTION;
-					int dialogResult = JOptionPane.showConfirmDialog(null,
-							"Do you want to have this directory as default for your databases?", "Warning",
-							optionButtons);
+					File dBaseLocation = chooser.getSelectedFile();
 
-					if (dialogResult == JOptionPane.YES_OPTION) {
-						DBManager.derbySystemHome = txtDBLocation.getText();
-						DBManager.propsDBM.setDBMProp("derby.system.home", DBManager.derbySystemHome);
-						DBManager.propsDBM.saveProperties();
+					// Check if there is a DBase present in the chosen dirs.
+					// Derby databases are directories
+					if (isDBase = isDBase(dBaseLocation)) {
+
+						if (isDBCreation) {
+							JOptionPane.showMessageDialog(chooser,
+									"The choosen location is a database already. Please, Do not create a database inside another.");
+							return;
+
+						} else {
+							int optionButtons = JOptionPane.YES_NO_OPTION;
+							int dialogResult = JOptionPane.showConfirmDialog(null,
+									"Is " + dBaseLocation + " the database that you want to register?", "Warning",
+									optionButtons);
+							if (dialogResult == JOptionPane.YES_OPTION) {
+								getTxtDBName().setText(dBaseLocation.getName());
+								getTxtDBLocation().setText(dBaseLocation.getParentFile().toString());
+								registerDB = true;
+							}
+						}
+
+						System.out.println(dBaseLocation.getParentFile().toString());
+					} else {
+						getTxtDBName().setText(dBaseLocation.getName());
+						getTxtDBLocation().setText(dBaseLocation.getParentFile().toString());
+
 					}
 				}
 
+				// txtDBLocation.setText(chooser.getSelectedFile().getAbsolutePath());
+
+				System.out.println(chooser.getSelectedFile().getAbsolutePath());
+
+				int optionButtons = JOptionPane.YES_NO_OPTION;
+				int dialogResult = JOptionPane.showConfirmDialog(null,
+						"Do you want to have this directory as default for your databases?", "Warning", optionButtons);
+
+				if (dialogResult == JOptionPane.YES_OPTION) {
+					DBManager.derbySystemHome = txtDBLocation.getText();
+					DBManager.propsDBM.setDBMProp("derby.system.home", DBManager.derbySystemHome);
+					DBManager.propsDBM.saveProperties();
+				}
 			}
+
 		});
 
 		GridBagConstraints gbc_button = new GridBagConstraints();
@@ -257,12 +295,12 @@ public class DBCreationDialog extends JDialog {
 						String newDBName = txtDBName.getText();
 						String newDBPath = txtDBLocation.getText();
 						alreadyRegistered = verifyIfRegistered(newDBPath, newDBName);
-						boolean createDB = false;
-						boolean registerDB = false;
+						createDB = false;
+						registerDB = false;
 						Connection testConnection = null;
 
 						// Verifies if the database exists in the given file path. The system allows
-						// duplicates if their paths do not match.
+						// duplicates if their paths and name in the registration table do not match.
 						try {
 							testConnection = DBConnect.connect(!DBConnect.serverIsOn, newDBPath + "/" + newDBName,
 									txtNbuser.getText(), txtPwd.getPassword(), false);
@@ -344,10 +382,16 @@ public class DBCreationDialog extends JDialog {
 								if (result >= 0) {
 									DefaultTreeModel model = (DefaultTreeModel) DBManager.dBtree.getModel();
 									DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
-									root.add(new DefaultMutableTreeNode(
+									// root.add(new DefaultMutableTreeNode(
+									// new DBTreeNodeK("Java DB", txtDBName.getText(), txtDBLocation.getText(),
+									// "DBASE", txtDBName.getText(), txtDBName.getText())));
+
+									model.insertNodeInto(new DefaultMutableTreeNode(
 											new DBTreeNodeK("Java DB", txtDBName.getText(), txtDBLocation.getText(),
-													"DBASE", txtDBName.getText(), txtDBName.getText())));
-									model.reload(root);
+													"DBASE", txtDBName.getText(), txtDBName.getText())),
+											root, 0);
+									// model.nodeStructureChanged(root);
+									// model.reload(root);
 
 									// DBTreeNodeK nodeInfo = new DBTreeNodeK("Java DB", txtDBName.getText(),
 									// txtDBLocation.getText());
@@ -395,6 +439,38 @@ public class DBCreationDialog extends JDialog {
 
 	}
 
+	// Tests if the given path is a Java database
+	public static boolean isDBase(File filePath) {
+
+		Connection conn = null;
+
+		try {
+			conn = DBConnect.connect(!DBConnect.serverIsOn, filePath.getAbsolutePath().toString(), "", null, false);
+
+			// If success, there was a database in the path
+
+		} catch (Exception ex) {
+
+			try {
+				DBConnect.inicServer();
+				conn = DBConnect.connect(!DBConnect.serverIsOn, filePath.getAbsolutePath().toString(), "", null, false);
+			} catch (Exception ey) {
+				JOptionPane.showMessageDialog(null, "Database not available.", "Error", JOptionPane.ERROR_MESSAGE);
+				DBFactory.errorPrint(ey);
+			}
+
+		} finally {
+			try {
+				if (conn != null && !conn.isClosed()) {
+					conn.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return true;
+	}
+
 	// Verifies that there is a record in DBM4PROC sys DB for the given database.
 	public boolean verifyIfRegistered(String DBPath, String DBName) {
 
@@ -432,7 +508,10 @@ public class DBCreationDialog extends JDialog {
 					ez.printStackTrace();
 				}
 			} else {
-				System.out.println("The database " + DBManager.pathToDBManager + " is not available.");
+				JOptionPane.showMessageDialog(null, "The database " + DBManager.pathToDBManager + " is not available.",
+						"Error", JOptionPane.ERROR_MESSAGE);
+				// System.out.println("The database " + DBManager.pathToDBManager + " is not
+				// available.");
 				ey.printStackTrace();
 			}
 

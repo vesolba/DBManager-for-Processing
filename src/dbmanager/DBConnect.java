@@ -57,7 +57,7 @@ public class DBConnect {
 	// Can connect in embedded mode or as client mode
 	public static Connection connect(boolean embed, String dBPath, String user, char[] paswd, boolean create)
 			throws Exception {
-		
+
 		String myUser = user;
 
 		String dbURL = "";
@@ -110,14 +110,13 @@ public class DBConnect {
 	// node.
 	public static void loadTables(DefaultMutableTreeNode node, DBTreeNodeK nodeInfo) {
 
-//		Connection conn = null;
+		// Connection conn = null;
 		String pathLocation = nodeInfo.getPathLocation();
 		String nodeText = nodeInfo.getText();
 		String childTableName = "";
 		DefaultMutableTreeNode partialCO = null;
 
 		try {
-			System.out.println(pathLocation + "/" + nodeText);
 			DBManager.conn = connect(!serverIsOn, pathLocation + "/" + nodeText, "", null, false);
 		} catch (Exception ex) {
 
