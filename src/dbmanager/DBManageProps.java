@@ -30,12 +30,12 @@ public class DBManageProps {
 		try {
 			// We always read all properties, the defaults ones and those modified by
 			// the application.
-			input = new FileInputStream(DBManager.pathToDBSettings + "/" + defPropsFileName);
+			input = new FileInputStream(pathToDBMSettings + "/" + defPropsFileName);
 			defaultProps.load(input);
 
 			appProps = new Properties(defaultProps); // Copy def props into app props
 
-			input = new FileInputStream(DBManager.pathToDBSettings + "/" + appPropsFileName);
+			input = new FileInputStream(pathToDBMSettings + "/" + appPropsFileName);
 			appProps.load(input);
 
 			input.close();
@@ -56,7 +56,7 @@ public class DBManageProps {
 	public void saveProperties() {
 
 		try {
-			output = new FileOutputStream(DBManager.pathToDBSettings + "/" + appPropsFileName);
+			output = new FileOutputStream(pathToDBMSettings + "/" + appPropsFileName);
 			appProps.store(output, "---Current Properties of DB Manager---");
 			output.close();
 
@@ -76,9 +76,21 @@ public class DBManageProps {
 	public void saveInitialProperties() {
 
 		try {
+			// Default props
+			defaultProps.setProperty("Server_initial_state", "off");
+			defaultProps.setProperty("treerowsheight", "35");
+			defaultProps.setProperty("treeiconsflavour", "Processing");
+			defaultProps.setProperty("fontsize01", "30");
+			defaultProps.setProperty("spinTable", "20");
+			defaultProps.setProperty("treeFontSize", "20");
+
+			output = new FileOutputStream(pathToDBMSettings + "/" + defPropsFileName);
+			defaultProps.store(output, "---Default Properties of DB Manager---");
+			output.close();
+			
+			// App. dynamic props
 			output = new FileOutputStream(pathToDBMSettings + "/" + appPropsFileName);
 			appProps.store(output, "---Current Properties of DB Manager---");
-
 			output.close();
 
 		} catch (IOException io) {

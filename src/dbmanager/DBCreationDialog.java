@@ -31,6 +31,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import org.apache.derby.iapi.reference.SQLState;
+
 @SuppressWarnings("serial")
 public class DBCreationDialog extends JDialog {
 
@@ -232,13 +234,13 @@ public class DBCreationDialog extends JDialog {
 
 					// Check if there is a DBase present in the chosen dirs.
 					// Derby databases are directories
-					if (isDBase = isDBase(dBaseLocation)) {
+					isDBase = isDBase(dBaseLocation);
+					if (isDBase) {
 
 						if (isDBCreation) {
 							JOptionPane.showMessageDialog(chooser,
 									"The choosen location is a database already. Please, Do not create a database inside another.");
-							return;
-
+							registerDB = false;
 						} else {
 							int optionButtons = JOptionPane.YES_NO_OPTION;
 							int dialogResult = JOptionPane.showConfirmDialog(null,
@@ -251,26 +253,33 @@ public class DBCreationDialog extends JDialog {
 							}
 						}
 
-						System.out.println(dBaseLocation.getParentFile().toString());
 					} else {
-						getTxtDBName().setText(dBaseLocation.getName());
-						getTxtDBLocation().setText(dBaseLocation.getParentFile().toString());
 
+						if (isDBCreation) {
+							getTxtDBName().setText(dBaseLocation.getName());
+							getTxtDBLocation().setText(dBaseLocation.getParentFile().toString());
+							registerDB = true;
+						} else {
+							registerDB = false;
+						}
 					}
 				}
 
 				// txtDBLocation.setText(chooser.getSelectedFile().getAbsolutePath());
 
-				System.out.println(chooser.getSelectedFile().getAbsolutePath());
+				// System.out.println(chooser.getSelectedFile().getAbsolutePath());
 
-				int optionButtons = JOptionPane.YES_NO_OPTION;
-				int dialogResult = JOptionPane.showConfirmDialog(null,
-						"Do you want to have this directory as default for your databases?", "Warning", optionButtons);
+				if (isDBCreation && registerDB) {
+					int optionButtons = JOptionPane.YES_NO_OPTION;
+					int dialogResult = JOptionPane.showConfirmDialog(null,
+							"Do you want to have this directory as default for your databases?", "Warning",
+							optionButtons);
 
-				if (dialogResult == JOptionPane.YES_OPTION) {
-					DBManager.derbySystemHome = txtDBLocation.getText();
-					DBManager.propsDBM.setDBMProp("derby.system.home", DBManager.derbySystemHome);
-					DBManager.propsDBM.saveProperties();
+					if (dialogResult == JOptionPane.YES_OPTION) {
+						DBManager.derbySystemHome = txtDBLocation.getText();
+						DBManager.propsDBM.setDBMProp("derby.system.home", DBManager.derbySystemHome);
+						DBManager.propsDBM.saveProperties();
+					}
 				}
 			}
 
@@ -372,9 +381,8 @@ public class DBCreationDialog extends JDialog {
 									hashFromPaswd = PasswordStorage.createHash(paswd);
 								}
 
-								String insert = "INSERT INTO DBLIST (DBMS, DBNAME, USERD, PWD, DESCRIPTION, FILEPATH) "
+								String insert = "INSERT INTO DBLIST (DBMS, DBNAME, DESCRIPTION, FILEPATH) "
 										+ "VALUES (\'Java DB\', \'" + txtDBName.getText() + "\', \'"
-										+ txtNbuser.getText() + "\', \'" + hashFromPaswd + "\', \'"
 										+ txtDescription.getText() + "\', \'" + txtDBLocation.getText() + "\')";
 								System.out.println("Query INSERT DATA: " + insert);
 								int result = DBManager.stmt.executeUpdate(insert);
@@ -448,16 +456,48 @@ public class DBCreationDialog extends JDialog {
 			conn = DBConnect.connect(!DBConnect.serverIsOn, filePath.getAbsolutePath().toString(), "", null, false);
 
 			// If success, there was a database in the path
+			return true;
 
 		} catch (Exception ex) {
 
-			try {
-				DBConnect.inicServer();
-				conn = DBConnect.connect(!DBConnect.serverIsOn, filePath.getAbsolutePath().toString(), "", null, false);
-			} catch (Exception ey) {
-				JOptionPane.showMessageDialog(null, "Database not available.", "Error", JOptionPane.ERROR_MESSAGE);
-				DBFactory.errorPrint(ey);
+			if (ex instanceof SQLException) {
+
+				String sQLState = ((SQLException) ex).getSQLState();
+
+				if (sQLState.equals("08004")) { // Authentication error
+					JOptionPane.showMessageDialog(
+							null, "Error : " + ((SQLException) ex).getSQLState() + "  "
+									+ ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+							"Authentication Error", JOptionPane.WARNING_MESSAGE);
+					return true;
+				}
+
+				if (sQLState.equals("XJ004")) {
+					JOptionPane.showMessageDialog(null,
+							"Error : " + sQLState + "  " + ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+							"The folder is not a valid Java DB.", JOptionPane.ERROR_MESSAGE);
+				} else {
+					JOptionPane.showMessageDialog(null,
+							"Error : " + sQLState + "  " + ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+							"SQL Error", JOptionPane.ERROR_MESSAGE);
+				}
+			} else {
+				JOptionPane.showMessageDialog(null,
+						"It is locked by another process or it is not a valid folder. Try again later.",
+						"Folder not available.", JOptionPane.ERROR_MESSAGE);
 			}
+
+			DBFactory.errorPrint(ex);
+			// try {
+			// DBConnect.inicServer();
+			// conn = DBConnect.connect(!DBConnect.serverIsOn,
+			// filePath.getAbsolutePath().toString(), "", null, false);
+			// } catch (Exception ey) {
+			// JOptionPane.showMessageDialog(null, "Database not available.", "Error",
+			// JOptionPane.ERROR_MESSAGE);
+			// DBFactory.errorPrint(ey);
+			// }
+			return false;
 
 		} finally {
 			try {
@@ -465,10 +505,9 @@ public class DBCreationDialog extends JDialog {
 					conn.close();
 				}
 			} catch (SQLException e) {
-				e.printStackTrace();
+				DBFactory.errorPrint(e);
 			}
 		}
-		return true;
 	}
 
 	// Verifies that there is a record in DBM4PROC sys DB for the given database.
@@ -538,11 +577,10 @@ public class DBCreationDialog extends JDialog {
 
 	// DBManager.stmt = con.createStatement();
 	//
-	// String insert = "INSERT INTO DBLIST (DBMS, DBNAME, USERD, PWD, DESCRIPTION,
+	// String insert = "INSERT INTO DBLIST (DBMS, DBNAME, DESCRIPTION,
 	// FILEPATH) "
-	// + "VALUES ('Java DB', '" + txtDBName.getText() + "', '" + txtNbuser.getText()
-	// + "', '"
-	// + txtPwd.getPassword() + "', '" + txtDescription.getText() + "', '" +
+	// + "VALUES ('Java DB', '" + txtDBName.getText() + "', '" +
+	// txtDescription.getText() + "', '" +
 	// txtDBLocation.getText()
 	// + "')";
 	// System.out.println("Query INSERT DATA: " + insert);

@@ -49,6 +49,7 @@ public class DBConnect {
 			server.shutdown();
 			serverIsOn = false;
 		} catch (Exception f) {
+			DBFactory.errorPrint(f);
 		}
 
 		DBGUIFrame.checkServerMenu();
@@ -58,20 +59,15 @@ public class DBConnect {
 	public static Connection connect(boolean embed, String dBPath, String user, char[] paswd, boolean create)
 			throws Exception {
 
+		String userLit = "; ";
+		String paswLit = "; ";
 		String myUser = user;
-
+		char[] myPaswd = paswd;
 		String dbURL = "";
-		String hashFromPaswd = "";
-		// if (paswd != null && !paswd.toString().equals("")) {
-		// hashFromPaswd = PasswordStorage.createHash(paswd);
-		// }
 
 		if (embed) {
 			try {
 				Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-				// dbURL = "jdbc:derby:" + dBPath + "; user=" + myUser + "; " + "password=" +
-				// hashFromPaswd + "; create="
-				// + create;
 				dbURL = "jdbc:derby:" + dBPath + "; create=" + create;
 			} catch (Exception e) {
 				System.out.println(dbURL);
@@ -79,15 +75,15 @@ public class DBConnect {
 			}
 		} else {
 			if (myUser == null || myUser.equals("")) {
-				myUser = "User";
+				userLit = paswLit = "; ";
+			} else {
+				userLit = "; user=";
+				paswLit = " password= ";
 			}
 			try {
-				// Class.forName("org.apache.derby.jdbc.ClientDriver");
-				// dbURL = "jdbc:derby://localhost:1527/" + dBPath + "; user=" + myUser + ";
-				// password=" + hashFromPaswd
-				// + "; create=" + create;
 				Class.forName("org.apache.derby.jdbc.ClientDriver");
-				dbURL = "jdbc:derby://localhost:1527/" + dBPath + "; create=" + create;
+				dbURL = "jdbc:derby://localhost:1527/" + dBPath + userLit + myUser + paswLit + myPaswd + "; create="
+						+ create;
 			} catch (Exception e) {
 				System.out.println(dbURL);
 				throw e;
@@ -121,29 +117,43 @@ public class DBConnect {
 		} catch (Exception ex) {
 
 			// If we can not connect and the server is off, lets try with server on.
-			if (!serverIsOn) {
-				try {
-					inicServer();
-					DBManager.conn = connect(!serverIsOn, pathLocation + "/" + nodeText, "", null, false);
-				} catch (Exception ey) {
+			// if (!serverIsOn) {
+			// try {
+			// inicServer();
+			// DBManager.conn = connect(!serverIsOn, pathLocation + "/" + nodeText, "",
+			// null, false);
+			// } catch (Exception ey) {
+
+			if (ex instanceof SQLException) {
+
+				String sQLState = ((SQLException) ex).getSQLState();
+
+				if (sQLState.equals("08004")) { // Authentication error
+					JOptionPane.showMessageDialog(
+							null, "Error : " + ((SQLException) ex).getSQLState() + "  "
+									+ ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+							"Authentication Error", JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+
+				if (sQLState.equals("XJ004")) {
 					JOptionPane.showMessageDialog(null,
-							"Database " + nodeText + " not available. Please, check that "
-									+ "there is not other application reserving it.",
-							"Error", JOptionPane.ERROR_MESSAGE);
-					ey.printStackTrace();
+							"Error : " + sQLState + "  " + ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+							"The folder is not a valid Java DB.", JOptionPane.ERROR_MESSAGE);
+				} else {
+					JOptionPane.showMessageDialog(
+							null, "Error : " + ((SQLException) ex).getSQLState() + "  "
+									+ ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+							"SQL Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
-				JOptionPane.showMessageDialog(null, "Database " + nodeText + " not available. Please, check that "
-						+ "there is not other application reserving it.", "Error", JOptionPane.ERROR_MESSAGE);
-				System.out.println("The database " + pathLocation + "/" + nodeText + " is not available.");
-				ex.printStackTrace();
+				JOptionPane.showMessageDialog(null,
+						"It is locked by another process or it is not a valid folder. Try again later.",
+						"Folder not available.", JOptionPane.ERROR_MESSAGE);
 			}
-			JOptionPane.showMessageDialog(null,
-					"Database not available. Please, check that " + "there is not other application reserving it.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-			System.out.println("Database not available.");
-			DBManager.conn = null;
-			ex.printStackTrace();
+
+			DBFactory.errorPrint(ex);
+
 		}
 
 		try {
@@ -322,96 +332,19 @@ public class DBConnect {
 
 			//
 			String query = "create table APP.DBLIST (DBMS VARCHAR(30) default 'Java DB' not null,"
-					+ " DBNAME VARCHAR(30) not null, USERD VARCHAR(30), PWD VARCHAR(90),"
-					+ " DESCRIPTION VARCHAR(255), FILEPATH VARCHAR(255) not null," + " primary key (DBMS, DBNAME))";
+					+ " DBNAME VARCHAR(30) not null, " + " DESCRIPTION VARCHAR(255), FILEPATH VARCHAR(255) not null,"
+					+ " primary key (DBMS, DBNAME))";
 
 			int result = DBManager.stmt.executeUpdate(query);
 			System.out.println("Query Create Table: " + query + " Resultado: " + result);
 
-			query = "INSERT INTO APP.DBLIST (DBMS, DBNAME, USERD, PWD, DESCRIPTION, FILEPATH)" + " VALUES ('Java DB', '"
-					+ DBMSYSTABLE + "', '', null, 'Contains the list of databases.'," + "'" + DBManager.pathToDBSettings
+			query = "INSERT INTO APP.DBLIST (DBMS, DBNAME, DESCRIPTION, FILEPATH)" + " VALUES ('Java DB', '"
+					+ DBMSYSTABLE + "', 'Contains the list of databases.'," + "'" + DBManager.pathToDBSettings
 					+ "')";
 
 			result = DBManager.stmt.executeUpdate(query);
 			System.out.println("Query INSERT DATA: " + query + " Resultado: " + result);
 
-			// // Now a System Drivers Master table
-			// String derbyHome = System.getenv("derby_home");
-			// System.out.println(" user.dir = " + derbyHome);
-			//
-			// // Drivers table
-			// query = "create table APP.DRIVERLIST (DRVNAME VARCHAR(30) not null primary
-			// key,"
-			// + " DRVCLASS VARCHAR(255), DRVFILE VARCHAR(255) default 'c:\\' not null)";
-			//
-			// result = DBManager.stmt.executeUpdate(query);
-			// System.out.println("Query Create Table: " + query + " Resultado: " + result);
-			//
-			// query = "INSERT INTO APP.DRIVERLIST (DRVNAME, DRVCLASS, DRVFILE) "
-			// + " VALUES ('Java DB (Embedded)', 'org.apache.derby.jdbc.EmbeddedDriver'," +
-			// " '" + derbyHome
-			// + "/lib/derby.jar') ";
-			//
-			// System.out.println("Query INSERT DATA: " + query);
-			// result = DBManager.stmt.executeUpdate(query);
-			// System.out.println(" Resultado: " + result);
-			//
-			// query = "INSERT INTO APP.DRIVERLIST (DRVNAME, DRVCLASS, DRVFILE) "
-			// + " VALUES ('Java DB (Network)', 'org.apache.derby.jdbc.ClientDriver'," + "
-			// '" + derbyHome
-			// + "/lib/derbyclient.jar; " + derbyHome + "/lib/derby.jar') ";
-			//
-			// System.out.println("Query INSERT DATA: " + query);
-			// result = DBManager.stmt.executeUpdate(query);
-			// System.out.println(" Resultado: " + result);
-
-			// // CONNLLIST Connections
-			// query = "create table APP.CONNLIST (DISPLAYNAME VARCHAR(255), DATABASEURL
-			// VARCHAR(255),"
-			// + " DRIVER VARCHAR(255), DRIVERCLASS VARCHAR(255), SCHEM VARCHAR(255), DBUSER
-			// VARCHAR(255))";
-			//
-			// System.out.println("Query Create Table: " + query);
-			// result = DBManager.stmt.executeUpdate(query);
-			// System.out.println(" Resultado: " + result);
-			//
-			// query = "INSERT INTO APP.CONNLIST (DISPLAYNAME, DATABASEURL, DRIVER,
-			// DRIVERCLASS, SCHEM, DBUSER)"
-			// + " VALUES ('jdbc:derby://localhost:1527/" + DBManager.pathToDBSettings + "/"
-			// + DBMSYSTABLE + "', "
-			// + " 'jdbc:derby://localhost:1527/" + DBManager.pathToDBSettings + "/" +
-			// DBMSYSTABLE
-			// + "', 'apache_derby_net', " + " 'org.apache.derby.jdbc.ClientDriver', 'APP',
-			// NULL)";
-			//
-			// System.out.println("Query INSERT DATA: " + query);
-			// result = DBManager.stmt.executeUpdate(query);
-			// System.out.println(" Result: " + result);
-
-			// Reading SQL Files
-
-			// ArrayList<String> queries;
-			// ... get queries from sql file .................
-			/*
-			 * String pathname = DBManager.pathToDB Settings + "\\CreateDBSYS_LIST.sql";
-			 * 
-			 * SQLReader sqlread = new SQLReader(); queries =
-			 * sqlread.createQueries(pathname);
-			 * 
-			 * int[] RSList = new int[queries.size()]; // for (String query : queries_01) {
-			 * for (int i = 0; i < queries.size(); i++) { String query = queries.get(i);
-			 * RSList[i] = (stmt.executeUpdate(query)); System.out.println("Query " + i +
-			 * ": " + query + " Resultado: " + RSList[i]); }
-			 * 
-			 */
-
-			/*
-			 * try { ResultSet tmpRS = RSList_01.get(0); if (!tmpRS.isClosed()) { if
-			 * (tmpRS.next()) System.out.println("Query 1: id = " + tmpRS.getInt("id")); }
-			 * 
-			 * } catch (SQLException e) { // TODO Auto-generated catch block
-			 * e.printStackTrace(); }
-			 */
 		} catch (Exception ey) {
 			System.out.println("Error in table creation.");
 			ey.printStackTrace();

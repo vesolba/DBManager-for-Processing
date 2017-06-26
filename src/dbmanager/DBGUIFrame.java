@@ -606,9 +606,6 @@ public class DBGUIFrame extends JFrame {
 		return txtSelected;
 	}
 
-	// To shutting down an unique database from your application
-	// DriverManager.getConnection( "jdbc:derby:sample;shutdown=true");
-
 	private static void addPopup(Component component, final JPopupMenu popup) {
 		component.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {

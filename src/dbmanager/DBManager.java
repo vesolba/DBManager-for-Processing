@@ -25,6 +25,7 @@
 
 package dbmanager;
 
+import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -128,15 +129,13 @@ public class DBManager implements Tool {
 			boolean firstTime = false;
 
 			if (!dirToTest.exists()) {
-				int optionButtons = JOptionPane.YES_NO_OPTION;
-				int dialogResult = JOptionPane.showConfirmDialog(null, "Is this your first time with DBManager?",
-						"Warning", optionButtons);
-				if (dialogResult == JOptionPane.YES_OPTION) {
-					firstTime = true;
-					dirWasCreated = dirToTest.mkdirs();
-				} else {
-					JOptionPane.showConfirmDialog(null, "Fatal Error");
-					System.exit(0);
+				JOptionPane.showMessageDialog(null, "The settings folder " + dirToTest + " will be created.",
+						"Settings folder missing.", JOptionPane.WARNING_MESSAGE);
+				firstTime = true;
+
+				if (!(dirWasCreated = dirToTest.mkdirs())) {
+					JOptionPane.showConfirmDialog(null, "Fatal Error. The settings folder could not be created.");
+					System.exit(-1);
 				}
 			}
 
@@ -236,10 +235,19 @@ public class DBManager implements Tool {
 			dBtree.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
+					DefaultMutableTreeNode node;
+					if (treePath == null) {
+						return;
+					} else {
+						node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
+						int row = dBtree.getClosestRowForLocation(e.getX(), e.getY());
 
-					DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
-					int row = dBtree.getClosestRowForLocation(e.getX(), e.getY());
-					dBtree.setSelectionRow(row);
+						if (row == -1) {
+							return;
+						} else {
+							dBtree.setSelectionRow(row);
+						}
+					}
 
 					if (SwingUtilities.isRightMouseButton(e)) {
 						popup = new JPopupMenu();
@@ -254,7 +262,7 @@ public class DBManager implements Tool {
 
 								final String state = expander.getExpansionState();
 
-								System.out.println(state);
+								// System.out.println(state);
 
 								treeDataModel = new DefaultTreeModel(getTreeModel());
 								dBtree.setModel(treeDataModel);
@@ -294,8 +302,12 @@ public class DBManager implements Tool {
 								menuItem.setEnabled(false);
 							} else {
 								menuItem.addActionListener(menuListener);
-								popup.addSeparator();
-								popup.add(menuItem = new JMenuItem("Create Table..."));
+							}
+							popup.addSeparator();
+							popup.add(menuItem = new JMenuItem("Create Table..."));
+							if (nodeInfo.getText().equals(DBConnect.DBMSYSTABLE)) {
+								menuItem.setEnabled(false);
+							} else {
 								menuItem.addActionListener(menuListener);
 							}
 							popup.add(menuItem = new JMenuItem("Refresh"));
