@@ -19,7 +19,6 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -316,6 +315,8 @@ public class AddColumnDlg extends JDialog {
 		gbc_btnCancel.gridx = 5;
 		gbc_btnCancel.gridy = 8;
 		getContentPane().add(btnCancel, gbc_btnCancel);
+		
+		
 	}
 
 	/**

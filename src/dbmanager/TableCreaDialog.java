@@ -3,6 +3,7 @@ package dbmanager;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -25,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -39,19 +41,18 @@ import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import java.awt.Cursor;
 
 public class TableCreaDialog extends JDialog {
 
 	private JTextField txtTablename;
 	private JTable table;
+
 	private Connection conn = null;
 	private DatabaseMetaData dbmd = null;
 	private Statement stmt = null;
 	private MyColumnTypes tipo;
 	public static MyComboModel myComboModel;
-	public AddColumnDlg dialog;
+	public AddColumnDlg colDialog;
 	public DefaultMutableTreeNode currentNode;
 	public DBTreeNodeK currentNodeInfo;
 
@@ -59,32 +60,22 @@ public class TableCreaDialog extends JDialog {
 	private JButton btnEdit;
 
 	public TableCreaDialog() {
+
 		jbInit();
 	}
 
+	@SuppressWarnings("serial")
 	private void jbInit() {
+		BorderLayout borderLayout = (BorderLayout) getContentPane().getLayout();
+		borderLayout.setVgap(5);
+		borderLayout.setHgap(5);
 		currentNode = (DefaultMutableTreeNode) DBManager.dBtree.getLastSelectedPathComponent();
 		currentNodeInfo = ((DBTreeNodeK) currentNode.getUserObject());
 
-		String currDBPath;
-		String currDBName;
-		String currCategory;
+		String currDBPath = currentNodeInfo.getPathLocation();
+		String currDBName = currentNodeInfo.getdBaseName();
+		String currCategory = currentNodeInfo.getCategory();
 
-		// if (currentNodeInfo.getCategory().equals("Java DB")) {
-		// We are in the database node. We can obtain data here
-		currDBPath = currentNodeInfo.getPathLocation();
-		currDBName = currentNodeInfo.getdBaseName();
-		currCategory = currentNodeInfo.getCategory();
-		// } else {
-
-		// We are in the "Tables" head node. We need data from parent
-		// DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode)
-		// currentNode.getParent();
-		// DBTreeNodeK parentNodeInfo = ((DBTreeNodeK) parentNode.getUserObject());
-		// currDBPath = parentNodeInfo.getPathLocation();
-		// currDBName = parentNodeInfo.getText();
-		// currCategory = currentNodeInfo.getCategory();
-		// }
 		setTitle("Database " + currDBName + " Table Creation");
 
 		try {
@@ -110,11 +101,9 @@ public class TableCreaDialog extends JDialog {
 		}
 
 		setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
-		setMinimumSize(new Dimension(600, 400));
-		setMaximumSize(new Dimension(3000, 3000));
 		setModal(true);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		BorderLayout borderLayout = (BorderLayout) getContentPane().getLayout();
+		getContentPane().getLayout();
 
 		JToolBar toolBar = new JToolBar();
 		getContentPane().add(toolBar, BorderLayout.NORTH);
@@ -127,7 +116,13 @@ public class TableCreaDialog extends JDialog {
 		toolBar.add(txtTablename);
 		txtTablename.setColumns(10);
 
+		JPanel panel_1 = new JPanel();
+		getContentPane().add(panel_1, BorderLayout.CENTER);
+
 		table = new JTable();
+		table.setPreferredScrollableViewportSize(new Dimension(0, 0));
+		table.setIntercellSpacing(new Dimension(10, 5));
+
 		table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		table.addKeyListener(new KeyAdapter() {
 			@Override
@@ -149,35 +144,62 @@ public class TableCreaDialog extends JDialog {
 				}
 			}
 		});
+		panel_1.setLayout(new BoxLayout(panel_1, BoxLayout.X_AXIS));
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
 		table.setModel(new DefaultTableModel(new Object[][] {}, new String[] { "Key", "Unique", "Null", "Index",
 				"Column name", "Data type", "Size", "Scale", "Default value", "Check", "Check constrains" }) {
 			Class[] columnTypes = new Class[] { Boolean.class, Boolean.class, Boolean.class, Boolean.class,
 					String.class, Object.class, Integer.class, Integer.class, String.class, Boolean.class,
 					String.class };
 
-			public Class getColumnClass(int columnIndex) {
-				return columnTypes[columnIndex];
-			}
 		});
+		table.getColumnModel().getColumn(0).setPreferredWidth(100);
+		table.getColumnModel().getColumn(0).setMinWidth(50);
+		table.getColumnModel().getColumn(0).setMaxWidth(1000);
+		table.getColumnModel().getColumn(1).setPreferredWidth(100);
+		table.getColumnModel().getColumn(1).setMinWidth(50);
+		table.getColumnModel().getColumn(1).setMaxWidth(1000);
+		table.getColumnModel().getColumn(2).setPreferredWidth(100);
+		table.getColumnModel().getColumn(2).setMinWidth(50);
+		table.getColumnModel().getColumn(2).setMaxWidth(1000);
+		table.getColumnModel().getColumn(3).setPreferredWidth(100);
+		table.getColumnModel().getColumn(3).setMinWidth(50);
+		table.getColumnModel().getColumn(3).setMaxWidth(1000);
+		table.getColumnModel().getColumn(4).setPreferredWidth(150);
+		table.getColumnModel().getColumn(4).setMinWidth(100);
+		table.getColumnModel().getColumn(4).setMaxWidth(1000);
+		table.getColumnModel().getColumn(5).setPreferredWidth(150);
+		table.getColumnModel().getColumn(5).setMinWidth(100);
+		table.getColumnModel().getColumn(5).setMaxWidth(1000);
+		table.getColumnModel().getColumn(6).setPreferredWidth(100);
+		table.getColumnModel().getColumn(6).setMinWidth(50);
+		table.getColumnModel().getColumn(6).setMaxWidth(1000);
+		table.getColumnModel().getColumn(7).setPreferredWidth(50);
+		table.getColumnModel().getColumn(7).setMinWidth(20);
+		table.getColumnModel().getColumn(7).setMaxWidth(1000);
+		table.getColumnModel().getColumn(8).setPreferredWidth(100);
+		table.getColumnModel().getColumn(8).setMinWidth(50);
+		table.getColumnModel().getColumn(8).setMaxWidth(1000);
+		table.getColumnModel().getColumn(9).setPreferredWidth(50);
+		table.getColumnModel().getColumn(9).setMinWidth(20);
+		table.getColumnModel().getColumn(9).setMaxWidth(1000);
+		table.getColumnModel().getColumn(10).setPreferredWidth(300);
+		table.getColumnModel().getColumn(10).setMinWidth(200);
+		table.getColumnModel().getColumn(10).setMaxWidth(1000);
 
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setColumnSelectionAllowed(true);
-		table.setCellSelectionEnabled(true);
 
 		JScrollPane scrollPane = new JScrollPane(table);
+		panel_1.add(scrollPane);
 		scrollPane.setAutoscrolls(true);
 		scrollPane.setViewportBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		getContentPane().add(scrollPane, BorderLayout.CENTER);
 
 		JPanel buttonsPanel = new JPanel();
-		getContentPane().add(buttonsPanel, BorderLayout.EAST);
-		GridBagLayout gbl_buttonsPanel = new GridBagLayout();
-		gbl_buttonsPanel.columnWidths = new int[] { 90, 0 };
-		gbl_buttonsPanel.rowHeights = new int[] { 35, 27, 27, 27, 27, 0, 0 };
-		gbl_buttonsPanel.columnWeights = new double[] { 0.0, Double.MIN_VALUE };
-		gbl_buttonsPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		buttonsPanel.setLayout(gbl_buttonsPanel);
+		buttonsPanel.setAlignmentY(Component.TOP_ALIGNMENT);
+		panel_1.add(buttonsPanel);
+		buttonsPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 
 		JButton btnAddColumn = new JButton("Add Column");
 		btnAddColumn.addActionListener(new ActionListener() {
@@ -187,56 +209,53 @@ public class TableCreaDialog extends JDialog {
 					// Data for the data type combo
 					dbmd = conn.getMetaData();
 					ResultSet rset = dbmd.getTypeInfo();
-					dialog = new AddColumnDlg();
-					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+					colDialog = new AddColumnDlg();
+					colDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 					myComboModel = new MyComboModel();
-					DBFactory.loadComboCols(rset, tipo);
-					dialog.getComboType().setModel(myComboModel);
+					loadComboCols(rset, tipo);
+					colDialog.getComboType().setModel(myComboModel);
 					rset.close();
 
-					dialog.setLocationRelativeTo(null);
-					dialog.getComboType().setSelectedIndex(0);
-					dialog.getComboType().setEnabled(true);
-					dialog.setVisible(true);
+					colDialog.setLocationRelativeTo(null);
+					colDialog.getComboType().setSelectedIndex(0);
+					colDialog.getComboType().setEnabled(true);
+					colDialog.setVisible(true);
 
 				} catch (Exception e) {
-					dialog.setEnabled(false);
+					colDialog.setEnabled(false);
 					e.printStackTrace();
 				}
 
-				if (dialog.result == 0) {
-					int numCols = table.getModel().getColumnCount();
+				// Return from the column dialog
+				if (colDialog.result == 0) {
+					// int numCols = table.getModel().getColumnCount();
 
-					Object[] fila = new Object[numCols];
-					fila[0] = dialog.getChkbxPrimKey().isSelected();
-					fila[1] = dialog.getChkbxUnique().isSelected();
-					fila[2] = dialog.getChkbxNull().isSelected();
-					fila[3] = dialog.getChkbxIndex().isSelected();
-					fila[4] = dialog.getTextName().getText();
-					fila[5] = dialog.getComboType().getSelectedItem();
-					fila[6] = dialog.getTextSize().getValue();
-					fila[7] = dialog.getTextScale().getValue();
-					fila[8] = dialog.getTxtDefValue().getText();
-					fila[9] = dialog.getChkbxCheck().isSelected();
-					fila[10] = dialog.getTextCheck().getText();
+					Object[] fila = new Object[11];
+					fila[0] = colDialog.getChkbxPrimKey().isSelected();
+					fila[1] = colDialog.getChkbxUnique().isSelected();
+					fila[2] = colDialog.getChkbxNull().isSelected();
+					fila[3] = colDialog.getChkbxIndex().isSelected();
+					fila[4] = colDialog.getTextName().getText();
+					fila[5] = colDialog.getComboType().getSelectedItem();
+					fila[6] = colDialog.getTextSize().getValue();
+					fila[7] = colDialog.getTextScale().getValue();
+					fila[8] = colDialog.getTxtDefValue().getText();
+					fila[9] = colDialog.getChkbxCheck().isSelected();
+					fila[10] = colDialog.getTextCheck().getText();
 					((DefaultTableModel) table.getModel()).addRow(fila);
 				}
 
 			}
 		});
+		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.PAGE_AXIS));
 		btnAddColumn.setPreferredSize(new Dimension(90, 35));
 		btnAddColumn.setMinimumSize(new Dimension(90, 35));
 		btnAddColumn.setMaximumSize(new Dimension(125, 35));
 		btnAddColumn.setAlignmentX(Component.CENTER_ALIGNMENT);
+		buttonsPanel.add(btnAddColumn);
 
-		GridBagConstraints gbc_btnAddColumn = new GridBagConstraints();
-		gbc_btnAddColumn.anchor = GridBagConstraints.NORTHWEST;
-		gbc_btnAddColumn.insets = new Insets(0, 0, 5, 0);
-		gbc_btnAddColumn.gridx = 0;
-		gbc_btnAddColumn.gridy = 0;
-		buttonsPanel.add(btnAddColumn, gbc_btnAddColumn);
-
-		btnEdit = new JButton("Edit");
+		btnEdit = new JButton("Edit"); // Edit column
 		btnEdit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
@@ -247,49 +266,50 @@ public class TableCreaDialog extends JDialog {
 						// Data for the data type combo
 						dbmd = conn.getMetaData();
 						ResultSet rset = dbmd.getTypeInfo();
-						dialog = new AddColumnDlg();
-						dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+						colDialog = new AddColumnDlg();
+						colDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 						myComboModel = new MyComboModel();
-						DBFactory.loadComboCols(rset, tipo);
-						dialog.getComboType().setModel(myComboModel);
+						loadComboCols(rset, tipo);
+						colDialog.getComboType().setModel(myComboModel);
 						rset.close();
-						dialog.setLocationRelativeTo(null);
 
-						dialog.getChkbxPrimKey().setSelected((boolean) table.getModel().getValueAt(selectedRow, 0));
-						dialog.getChkbxUnique().setSelected((boolean) table.getModel().getValueAt(selectedRow, 1));
-						dialog.getChkbxNull().setSelected((boolean) table.getModel().getValueAt(selectedRow, 2));
-						dialog.getChkbxIndex().setSelected((boolean) table.getModel().getValueAt(selectedRow, 3));
-						dialog.getTextName().setText((String) table.getModel().getValueAt(selectedRow, 4));
-						dialog.getComboType().getModel().setSelectedItem(table.getModel().getValueAt(selectedRow, 5));
-						dialog.getTextSize().setValue((int) table.getModel().getValueAt(selectedRow, 6));
-						dialog.getTextScale().setValue((int) table.getModel().getValueAt(selectedRow, 7));
-						dialog.getTxtDefValue().setText((String) table.getModel().getValueAt(selectedRow, 8));
-						dialog.getChkbxCheck().setSelected((boolean) table.getModel().getValueAt(selectedRow, 9));
-						dialog.getTextCheck().setText((String) table.getModel().getValueAt(selectedRow, 10));
+						colDialog.setLocationRelativeTo(null);
 
-						dialog.getComboType().setEnabled(true);
-						dialog.setVisible(true);
+						colDialog.getChkbxPrimKey().setSelected((boolean) table.getModel().getValueAt(selectedRow, 0));
+						colDialog.getChkbxUnique().setSelected((boolean) table.getModel().getValueAt(selectedRow, 1));
+						colDialog.getChkbxNull().setSelected((boolean) table.getModel().getValueAt(selectedRow, 2));
+						colDialog.getChkbxIndex().setSelected((boolean) table.getModel().getValueAt(selectedRow, 3));
+						colDialog.getTextName().setText((String) table.getModel().getValueAt(selectedRow, 4));
+						colDialog.getComboType().getModel()
+								.setSelectedItem(table.getModel().getValueAt(selectedRow, 5));
+						colDialog.getTextSize().setValue((int) table.getModel().getValueAt(selectedRow, 6));
+						colDialog.getTextScale().setValue((int) table.getModel().getValueAt(selectedRow, 7));
+						colDialog.getTxtDefValue().setText((String) table.getModel().getValueAt(selectedRow, 8));
+						colDialog.getChkbxCheck().setSelected((boolean) table.getModel().getValueAt(selectedRow, 9));
+						colDialog.getTextCheck().setText((String) table.getModel().getValueAt(selectedRow, 10));
+
+						colDialog.getComboType().setEnabled(true);
+						colDialog.setVisible(true);
 
 					} catch (Exception e2) {
-						dialog.setEnabled(false);
+						colDialog.setEnabled(false);
 						e2.printStackTrace();
 					}
 
-					if (dialog.result == 0) {
+					if (colDialog.result == 0) {
 
-						int numCols = table.getModel().getColumnCount();
-
-						table.getModel().setValueAt(dialog.getChkbxPrimKey().isSelected(), selectedRow, 0);
-						table.getModel().setValueAt(dialog.getChkbxUnique().isSelected(), selectedRow, 1);
-						table.getModel().setValueAt(dialog.getChkbxNull().isSelected(), selectedRow, 2);
-						table.getModel().setValueAt(dialog.getChkbxIndex().isSelected(), selectedRow, 3);
-						table.getModel().setValueAt(dialog.getTextName().getText(), selectedRow, 4);
-						table.getModel().setValueAt(dialog.getComboType().getModel().getSelectedItem(), selectedRow, 5);
-						table.getModel().setValueAt(dialog.getTextSize().getValue(), selectedRow, 6);
-						table.getModel().setValueAt(dialog.getTextScale().getValue(), selectedRow, 7);
-						table.getModel().setValueAt(dialog.getTxtDefValue().getText(), selectedRow, 8);
-						table.getModel().setValueAt(dialog.getChkbxCheck().isSelected(), selectedRow, 9);
-						table.getModel().setValueAt(dialog.getTextCheck().getText(), selectedRow, 10);
+						table.getModel().setValueAt(colDialog.getChkbxPrimKey().isSelected(), selectedRow, 0);
+						table.getModel().setValueAt(colDialog.getChkbxUnique().isSelected(), selectedRow, 1);
+						table.getModel().setValueAt(colDialog.getChkbxNull().isSelected(), selectedRow, 2);
+						table.getModel().setValueAt(colDialog.getChkbxIndex().isSelected(), selectedRow, 3);
+						table.getModel().setValueAt(colDialog.getTextName().getText(), selectedRow, 4);
+						table.getModel().setValueAt(colDialog.getComboType().getModel().getSelectedItem(), selectedRow,
+								5);
+						table.getModel().setValueAt(colDialog.getTextSize().getValue(), selectedRow, 6);
+						table.getModel().setValueAt(colDialog.getTextScale().getValue(), selectedRow, 7);
+						table.getModel().setValueAt(colDialog.getTxtDefValue().getText(), selectedRow, 8);
+						table.getModel().setValueAt(colDialog.getChkbxCheck().isSelected(), selectedRow, 9);
+						table.getModel().setValueAt(colDialog.getTextCheck().getText(), selectedRow, 10);
 					}
 				}
 			}
@@ -299,53 +319,33 @@ public class TableCreaDialog extends JDialog {
 		btnEdit.setMaximumSize(new Dimension(125, 35));
 		btnEdit.setHorizontalTextPosition(SwingConstants.CENTER);
 		btnEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-		GridBagConstraints gbc_btnEdit = new GridBagConstraints();
-		gbc_btnEdit.anchor = GridBagConstraints.WEST;
-		gbc_btnEdit.fill = GridBagConstraints.VERTICAL;
-		gbc_btnEdit.insets = new Insets(0, 0, 5, 0);
-		gbc_btnEdit.gridx = 0;
-		gbc_btnEdit.gridy = 1;
-		buttonsPanel.add(btnEdit, gbc_btnEdit);
+		buttonsPanel.add(btnEdit);
 
 		JButton btnRemove = new JButton("Remove");
+		btnRemove.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				((DefaultTableModel) table.getModel()).removeRow(table.getSelectedRow());
+			}
+		});
 		btnRemove.setPreferredSize(new Dimension(90, 35));
 		btnRemove.setMinimumSize(new Dimension(90, 35));
 		btnRemove.setMaximumSize(new Dimension(125, 35));
 		btnRemove.setAlignmentX(Component.CENTER_ALIGNMENT);
-		GridBagConstraints gbc_btnRemove = new GridBagConstraints();
-		gbc_btnRemove.anchor = GridBagConstraints.WEST;
-		gbc_btnRemove.fill = GridBagConstraints.VERTICAL;
-		gbc_btnRemove.insets = new Insets(0, 0, 5, 0);
-		gbc_btnRemove.gridx = 0;
-		gbc_btnRemove.gridy = 2;
-		buttonsPanel.add(btnRemove, gbc_btnRemove);
+		buttonsPanel.add(btnRemove);
 
 		JButton btnMoveUp = new JButton("Move Up");
 		btnMoveUp.setPreferredSize(new Dimension(90, 35));
 		btnMoveUp.setMinimumSize(new Dimension(90, 35));
 		btnMoveUp.setMaximumSize(new Dimension(125, 35));
 		btnMoveUp.setAlignmentX(Component.CENTER_ALIGNMENT);
-		GridBagConstraints gbc_btnMoveUp = new GridBagConstraints();
-		gbc_btnMoveUp.anchor = GridBagConstraints.WEST;
-		gbc_btnMoveUp.fill = GridBagConstraints.VERTICAL;
-		gbc_btnMoveUp.insets = new Insets(0, 0, 5, 0);
-		gbc_btnMoveUp.gridx = 0;
-		gbc_btnMoveUp.gridy = 3;
-		buttonsPanel.add(btnMoveUp, gbc_btnMoveUp);
+		buttonsPanel.add(btnMoveUp);
 
 		JButton btnMoveDown = new JButton("Move Down");
 		btnMoveDown.setPreferredSize(new Dimension(90, 35));
 		btnMoveDown.setMinimumSize(new Dimension(90, 35));
 		btnMoveDown.setMaximumSize(new Dimension(125, 35));
 		btnMoveDown.setAlignmentX(Component.CENTER_ALIGNMENT);
-		GridBagConstraints gbc_btnMoveDown = new GridBagConstraints();
-		gbc_btnMoveDown.insets = new Insets(0, 0, 5, 0);
-		gbc_btnMoveDown.anchor = GridBagConstraints.WEST;
-		gbc_btnMoveDown.fill = GridBagConstraints.VERTICAL;
-		gbc_btnMoveDown.gridx = 0;
-		gbc_btnMoveDown.gridy = 4;
-		buttonsPanel.add(btnMoveDown, gbc_btnMoveDown);
+		buttonsPanel.add(btnMoveDown);
 
 		JPanel panel = new JPanel();
 
@@ -498,9 +498,9 @@ public class TableCreaDialog extends JDialog {
 
 		});
 
-		btnOK.setMinimumSize(new Dimension(79, 29));
-		btnOK.setMaximumSize(new Dimension(79, 29));
-		btnOK.setPreferredSize(new Dimension(79, 29));
+		// btnOK.setMinimumSize(new Dimension(79, 29));
+		// btnOK.setMaximumSize(new Dimension(79, 29));
+		// btnOK.setPreferredSize(new Dimension(79, 29));
 
 		GridBagConstraints gbc_btnOK = new GridBagConstraints();
 		gbc_btnOK.anchor = GridBagConstraints.NORTH;
@@ -516,6 +516,12 @@ public class TableCreaDialog extends JDialog {
 		gbc_btnCancel.gridx = 3;
 		gbc_btnCancel.gridy = 0;
 		panelOKCancel.add(btnCancel, gbc_btnCancel);
+
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		pack();
+		setSize(screenSize.width * 2 / 5, screenSize.height * 2 / 5);
+		setLocationRelativeTo(null);
+
 	}
 
 	public static boolean isNumeric(String inputData) {
@@ -528,4 +534,31 @@ public class TableCreaDialog extends JDialog {
 		// btnEdit.setEnabled(false);
 		// }
 	}
+
+	public static void loadComboCols(ResultSet rset, MyColumnTypes tipo) throws SQLException {
+
+		while (rset.next()) {
+			tipo = new MyColumnTypes();
+			tipo.TYPE_NAME = rset.getString("TYPE_NAME");
+			tipo.DATA_TYPE = rset.getInt("DATA_TYPE");
+			tipo.PRECISION = rset.getInt("PRECISION");
+			tipo.LITERAL_PREFIX = rset.getString("LITERAL_PREFIX");
+			tipo.LITERAL_SUFFIX = rset.getString("LITERAL_SUFFIX");
+			tipo.CREATE_PARAMS = rset.getString("CREATE_PARAMS");
+			tipo.NULLABLE = rset.getShort("NULLABLE");
+			tipo.CASE_SENSITIVE = rset.getBoolean("CASE_SENSITIVE");
+			tipo.SEARCHABLE = rset.getShort("SEARCHABLE");
+			tipo.UNSIGNED_ATTRIBUTE = rset.getBoolean("UNSIGNED_ATTRIBUTE");
+			tipo.FIXED_PREC_SCALE = rset.getBoolean("FIXED_PREC_SCALE");
+			tipo.AUTO_INCREMENT = rset.getBoolean("AUTO_INCREMENT");
+			tipo.LOCAL_TYPE_NAME = rset.getString("LOCAL_TYPE_NAME");
+			tipo.MINIMUM_SCALE = rset.getShort("MINIMUM_SCALE");
+			tipo.MAXIMUM_SCALE = rset.getShort("MAXIMUM_SCALE");
+			tipo.SQL_DATA_TYPE = rset.getInt("SQL_DATA_TYPE");
+			tipo.SQL_DATETIME_SUB = rset.getInt("SQL_DATETIME_SUB");
+			tipo.NUM_PREC_RADIX = rset.getInt("NUM_PREC_RADIX");
+			TableCreaDialog.myComboModel.insertItem(tipo);
+		}
+	}
+
 }

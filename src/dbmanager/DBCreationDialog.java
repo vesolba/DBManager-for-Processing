@@ -31,16 +31,14 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import org.apache.derby.iapi.reference.SQLState;
-
 @SuppressWarnings("serial")
 public class DBCreationDialog extends JDialog {
 
-	private String initialDBName;
-	private String initialNbuser;
-	private String initialPwd;
-	private String initialDescription;
-	private String initialDBLocation;
+	private String initialDBName = "";
+	private String initialNbuser = "";
+	private String initialPwd = "";
+	private String initialDescription = "";
+	private String initialDBLocation = "";
 
 	private File realLocation;
 	private boolean isDBase;
@@ -55,6 +53,7 @@ public class DBCreationDialog extends JDialog {
 	private TreePath treePath;
 	public JButton button;
 	public boolean isDBCreation;
+	public boolean isDBRegistration;
 	private boolean registerDB = false;
 	private boolean createDB = false;
 
@@ -70,9 +69,11 @@ public class DBCreationDialog extends JDialog {
 		this.initialNbuser = initialNbuser;
 		this.initialPwd = initialPwd;
 		this.initialDescription = initialDescription;
-		this.initialDBName = initialDBLocation;
+		this.initialDBLocation = initialDBLocation;
 		this.treePath = treePath;
-		isDBCreation = command.equals("Create Database..."); // if not, then isDBRegistration
+		isDBCreation = command.equals("Create Database...");
+		isDBRegistration = command.equals("Register Database...");
+
 		jbInit();
 	}
 
@@ -101,13 +102,12 @@ public class DBCreationDialog extends JDialog {
 		}
 
 		{
-			txtDBName = new JTextField();
+			txtDBName = new JTextField(initialDBName);
 			txtDBName.addFocusListener(new FocusAdapter() {
 
 				@Override
 				public void focusLost(FocusEvent e) {
-					String txtAux = txtDBName.getText();
-					if (txtAux.equals("") || txtAux.equals(initialDBName)) {
+					if (txtDBName.getText().trim().equals("") || txtDBLocation.getText().trim().equals("")) {
 						okButton.setEnabled(false);
 					} else {
 						okButton.setEnabled(true);
@@ -119,7 +119,7 @@ public class DBCreationDialog extends JDialog {
 
 			txtDBName.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					if (txtDBName.getText().equals("")) {
+					if (txtDBName.getText().trim().equals("") || txtDBLocation.getText().trim().equals("")) {
 						okButton.setEnabled(false);
 					} else {
 						okButton.setEnabled(true);
@@ -147,7 +147,7 @@ public class DBCreationDialog extends JDialog {
 			contentPanel.add(lblUserName, gbc_lblUserName);
 		}
 		{
-			txtNbuser = new JTextField();
+			txtNbuser = new JTextField(initialNbuser);
 			GridBagConstraints gbc_txtNbuser = new GridBagConstraints();
 			gbc_txtNbuser.gridwidth = 2;
 			gbc_txtNbuser.insets = new Insets(0, 0, 5, 5);
@@ -167,7 +167,7 @@ public class DBCreationDialog extends JDialog {
 			contentPanel.add(lblPassword, gbc_lblPassword);
 		}
 		{
-			txtPwd = new JPasswordField();
+			txtPwd = new JPasswordField(initialPwd);
 			txtPwd.setToolTipText("tooltip");
 			GridBagConstraints gbc_txtPwd = new GridBagConstraints();
 			gbc_txtPwd.insets = new Insets(0, 0, 5, 5);
@@ -186,8 +186,7 @@ public class DBCreationDialog extends JDialog {
 			contentPanel.add(lblDescription, gbc_lblDescription);
 		}
 		{
-
-			txtDescription = new JTextField();
+			txtDescription = new JTextField(initialDescription);
 			GridBagConstraints gbc_txtDescription = new GridBagConstraints();
 			gbc_txtDescription.gridwidth = 2;
 			gbc_txtDescription.insets = new Insets(0, 0, 5, 5);
@@ -208,7 +207,27 @@ public class DBCreationDialog extends JDialog {
 			contentPanel.add(lblDatabaseLocation, gbc_lblDatabaseLocation);
 		}
 		{
-			txtDBLocation = new JTextField();
+			txtDBLocation = new JTextField(initialDBLocation);
+			txtDBLocation.addFocusListener(new FocusAdapter() {
+
+				@Override
+				public void focusLost(FocusEvent arg0) {
+					if (txtDBName.getText().trim().equals("") || txtDBLocation.getText().trim().equals("")) {
+						okButton.setEnabled(false);
+					} else {
+						okButton.setEnabled(true);
+					}
+				}
+			});
+			txtDBLocation.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if (txtDBName.getText().trim().equals("") || txtDBLocation.getText().trim().equals("")) {
+						okButton.setEnabled(false);
+					} else {
+						okButton.setEnabled(true);
+					}
+				}
+			});
 			txtDBLocation.setHorizontalAlignment(SwingConstants.LEFT);
 			GridBagConstraints gbc_txtDBLocation = new GridBagConstraints();
 			gbc_txtDBLocation.insets = new Insets(0, 0, 0, 5);
@@ -224,61 +243,97 @@ public class DBCreationDialog extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+
 				JFileChooser chooser = new JFileChooser();
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				chooser.setCurrentDirectory(new java.io.File(txtDBLocation.getText()));
+				chooser.setCurrentDirectory(new File(txtDBLocation.getText()));
 				int returnVal = chooser.showOpenDialog(DBCreationDialog.this);
+
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 
 					File dBaseLocation = chooser.getSelectedFile();
 
 					// Check if there is a DBase present in the chosen dirs.
 					// Derby databases are directories
-					isDBase = isDBase(dBaseLocation);
-					if (isDBase) {
+					try {
+						isDBase = isDBase(dBaseLocation);
+					} catch (SQLException sqlex) {
 
+						String sQLState = sqlex.getSQLState();
+
+						if (sQLState.equals("08004")) { // Authentication error
+							isDBase = true;
+							// JOptionPane.showMessageDialog(chooser, "The choosen location, " +
+							// dBaseLocation
+							// + ", is a database already. "
+							// + "Creating a database inside another can lead to errors and unwanted
+							// deletions.");
+
+							// JOptionPane.showMessageDialog(null,
+							// "Error : " + sqlex.getSQLState() + " "
+							// + sqlex.getErrorCode() + " " + sqlex.getMessage(),
+							// "Authentication Error", JOptionPane.WARNING_MESSAGE);
+							//
+						} else {
+							isDBase = false;
+						}
+
+						// if (sQLState.equals("XJ004")) {
+						//
+						// isDBase = false;
+						// JOptionPane.showMessageDialog(null,
+						// "Error : " + sQLState + " " + sqlex.getErrorCode() + " "
+						// + sqlex.getMessage(),
+						// "The folder is not a valid Java DB.", JOptionPane.ERROR_MESSAGE);
+						// } else {
+						// JOptionPane.showMessageDialog(null,
+						// "Error : " + sQLState + " " + sqlex.getErrorCode() + " " +
+						// sqlex.getMessage(),
+						// "SQL Error", JOptionPane.ERROR_MESSAGE);
+						// }
+
+					}
+
+					if (isDBase) {
+						int dialogResult = 0;
 						if (isDBCreation) {
-							JOptionPane.showMessageDialog(chooser,
-									"The choosen location is a database already. Please, Do not create a database inside another.");
-							registerDB = false;
+							JOptionPane.showMessageDialog(chooser, "The choosen location, " + dBaseLocation
+									+ ", is a database already. "
+									+ "Creating a database inside another can lead to errors and unwanted deletions.");
 						} else {
 							int optionButtons = JOptionPane.YES_NO_OPTION;
-							int dialogResult = JOptionPane.showConfirmDialog(null,
+							dialogResult = JOptionPane.showConfirmDialog(null,
 									"Is " + dBaseLocation + " the database that you want to register?", "Warning",
 									optionButtons);
+
 							if (dialogResult == JOptionPane.YES_OPTION) {
 								getTxtDBName().setText(dBaseLocation.getName());
 								getTxtDBLocation().setText(dBaseLocation.getParentFile().toString());
 								registerDB = true;
+
 							}
 						}
-
 					} else {
 
+						txtDBLocation.setText(chooser.getSelectedFile().getAbsolutePath());
+
 						if (isDBCreation) {
-							getTxtDBName().setText(dBaseLocation.getName());
-							getTxtDBLocation().setText(dBaseLocation.getParentFile().toString());
-							registerDB = true;
+							int optionButtons = JOptionPane.YES_NO_OPTION;
+							int dialogResult = JOptionPane.showConfirmDialog(null,
+									"Do you want to have this directory as default for your databases?", "Warning",
+									optionButtons);
+
+							if (dialogResult == JOptionPane.YES_OPTION) {
+								DBManager.derbySystemHome = txtDBLocation.getText();
+								DBManager.propsDBM.setDBMProp("derby.system.home", DBManager.derbySystemHome);
+								DBManager.propsDBM.saveProperties();
+							}
 						} else {
-							registerDB = false;
+							JOptionPane.showMessageDialog(chooser, "The choosen location, " + dBaseLocation
+									+ ", is not a database. " + "It can not be registered in DBManager System.");
+
 						}
-					}
-				}
 
-				// txtDBLocation.setText(chooser.getSelectedFile().getAbsolutePath());
-
-				// System.out.println(chooser.getSelectedFile().getAbsolutePath());
-
-				if (isDBCreation && registerDB) {
-					int optionButtons = JOptionPane.YES_NO_OPTION;
-					int dialogResult = JOptionPane.showConfirmDialog(null,
-							"Do you want to have this directory as default for your databases?", "Warning",
-							optionButtons);
-
-					if (dialogResult == JOptionPane.YES_OPTION) {
-						DBManager.derbySystemHome = txtDBLocation.getText();
-						DBManager.propsDBM.setDBMProp("derby.system.home", DBManager.derbySystemHome);
-						DBManager.propsDBM.saveProperties();
 					}
 				}
 			}
@@ -445,10 +500,17 @@ public class DBCreationDialog extends JDialog {
 			}
 		}
 
+		// Just before to set the dialog visible
+		if (txtDBName.getText().trim().equals("") || txtDBLocation.getText().trim().equals("")) {
+			okButton.setEnabled(false);
+		} else {
+			okButton.setEnabled(true);
+		}
+
 	}
 
 	// Tests if the given path is a Java database
-	public static boolean isDBase(File filePath) {
+	public static boolean isDBase(File filePath) throws SQLException {
 
 		Connection conn = null;
 
@@ -460,43 +522,32 @@ public class DBCreationDialog extends JDialog {
 
 		} catch (Exception ex) {
 
-			if (ex instanceof SQLException) {
-
-				String sQLState = ((SQLException) ex).getSQLState();
-
-				if (sQLState.equals("08004")) { // Authentication error
-					JOptionPane.showMessageDialog(
-							null, "Error : " + ((SQLException) ex).getSQLState() + "  "
-									+ ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
-							"Authentication Error", JOptionPane.WARNING_MESSAGE);
-					return true;
-				}
-
-				if (sQLState.equals("XJ004")) {
-					JOptionPane.showMessageDialog(null,
-							"Error : " + sQLState + "  " + ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
-							"The folder is not a valid Java DB.", JOptionPane.ERROR_MESSAGE);
-				} else {
-					JOptionPane.showMessageDialog(null,
-							"Error : " + sQLState + "  " + ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
-							"SQL Error", JOptionPane.ERROR_MESSAGE);
-				}
-			} else {
-				JOptionPane.showMessageDialog(null,
-						"It is locked by another process or it is not a valid folder. Try again later.",
-						"Folder not available.", JOptionPane.ERROR_MESSAGE);
-			}
-
-			DBFactory.errorPrint(ex);
-			// try {
-			// DBConnect.inicServer();
-			// conn = DBConnect.connect(!DBConnect.serverIsOn,
-			// filePath.getAbsolutePath().toString(), "", null, false);
-			// } catch (Exception ey) {
-			// JOptionPane.showMessageDialog(null, "Database not available.", "Error",
-			// JOptionPane.ERROR_MESSAGE);
-			// DBFactory.errorPrint(ey);
+			// String sQLState = ((SQLException) ex).getSQLState();
+			//
+			// if (sQLState.equals("08004")) { // Authentication error
+			// JOptionPane.showMessageDialog(
+			// null, "Error : " + ((SQLException) ex).getSQLState() + " "
+			// + ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+			// "Authentication Error", JOptionPane.WARNING_MESSAGE);
+			// return true;
 			// }
+			//
+			// if (sQLState.equals("XJ004")) {
+			// JOptionPane.showMessageDialog(null,
+			// "Error : " + sQLState + " " + ((SQLException) ex).getErrorCode() + " " +
+			// (ex).getMessage(),
+			// "The folder is not a valid Java DB.", JOptionPane.ERROR_MESSAGE);
+			// return false;
+			// } else {
+			// JOptionPane.showMessageDialog(null,
+			// "Error : " + sQLState + " " + ((SQLException) ex).getErrorCode() + " " +
+			// (ex).getMessage(),
+			// "SQL Error", JOptionPane.ERROR_MESSAGE);
+			// }
+			// } else {
+			// JOptionPane.showMessageDialog(null, "It is locked by another process or it is
+			// not a valid folder.",
+			// "Folder not available.", JOptionPane.ERROR_MESSAGE);
 			return false;
 
 		} finally {
@@ -505,7 +556,7 @@ public class DBCreationDialog extends JDialog {
 					conn.close();
 				}
 			} catch (SQLException e) {
-				DBFactory.errorPrint(e);
+
 			}
 		}
 	}

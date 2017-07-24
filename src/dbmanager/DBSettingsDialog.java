@@ -1,15 +1,16 @@
 package dbmanager;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.ComponentOrientation;
+import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BoxLayout;
+import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -19,21 +20,13 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import java.awt.Rectangle;
-import javax.swing.BoxLayout;
-import java.awt.GridLayout;
-import com.jgoodies.forms.layout.FormLayout;
+
 import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
-import net.miginfocom.swing.MigLayout;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import java.awt.ComponentOrientation;
-import java.awt.Cursor;
-import javax.swing.DropMode;
 
+@SuppressWarnings("serial")
 public class DBSettingsDialog extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();

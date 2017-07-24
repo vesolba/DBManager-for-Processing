@@ -25,7 +25,6 @@
 
 package dbmanager;
 
-import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -41,6 +40,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JDialog;
 import javax.swing.JMenuItem;
@@ -68,10 +69,9 @@ import processing.app.ui.Editor;
 // when creating a tool, the name of the main class which implements Tool must
 // be the same as the value defined for project.name in your build.properties
 
-public class DBManager implements Tool {
-
+public class DBManager<propsDBM> implements Tool {
 	Base base;
-	DBGUIFrame frame;
+	public DBGUIFrame frame;
 	public static String javaDBInstall; // Path to Derby installation
 	public static String pathToDBSettings;
 	public static DBManageProps propsDBM;
@@ -86,8 +86,12 @@ public class DBManager implements Tool {
 	public static DBFactory dBfactory;
 	private static JPopupMenu popup;
 	public static MyTreeCellRenderer renderer;
-	public static String renderProp;
+	public static String renderProp = "";
 	public TreeExpansionUtil xpan;
+	private static Object[][] hiddenTypesTable = new Object[50][20];
+	private static Map<String, Integer> rowSearch = new HashMap<String, Integer>();
+	private static Map<String, Integer> colSearch = new HashMap<String, Integer>();
+	public static Map<String, String> typeConvert = new HashMap<String, String>();
 
 	@Override
 	public String getMenuTitle() {
@@ -114,6 +118,9 @@ public class DBManager implements Tool {
 		System.out.println("Tool ##tool.name## ##tool.prettyVersion## by ##author##");
 
 		if (frame == null) { // We are beginning
+
+			initTypesTitles();
+
 			// Obtains Processing System parameters
 			Base.locateSketchbookFolder(); // Directory for sketches
 			pathToSketchBook = Base.getSketchbookFolder().getAbsolutePath();
@@ -152,15 +159,18 @@ public class DBManager implements Tool {
 			String processingPath = System.getProperty("user.dir");
 			derbySystemHome = propsDBM.getDBMProp("derby.system.home");
 
-			if (derbySystemHome == null || derbySystemHome.equals("")) {
-				derbySystemHome = processingPath + "/data";
+			if (derbySystemHome == null || derbySystemHome.trim().equals("")) {
+				derbySystemHome = processingPath + "\\data";
 				propsDBM.setDBMProp("derby.system.home", derbySystemHome);
 				propsDBM.saveProperties();
 				System.setProperty("derby.system.home", derbySystemHome);
 			}
 
+			propsDBM.readProperties();
+
 			dBtree = new JTree();
 			dBtree.setRowHeight(Integer.parseInt(propsDBM.getDBMProp("treerowsheight")));
+			dBtree.setDragEnabled(true);
 
 			// Enable tool tips.
 			ToolTipManager.sharedInstance().registerComponent(dBtree);
@@ -186,12 +196,19 @@ public class DBManager implements Tool {
 				@Override
 				public void valueChanged(TreeSelectionEvent event) {
 					if (event != null) {
-						JTree tree = (JTree) event.getSource();
-						DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree
+						JTree auxTree = (JTree) event.getSource();
+						DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) auxTree
 								.getLastSelectedPathComponent();
 						if (selectedNode != null) {
 							DBTreeNodeK nodeInfo = (DBTreeNodeK) selectedNode.getUserObject();
-							frame.getTxtSelected().setText(nodeInfo.getdBaseName());
+							ExecSQLPanel.getTxtSelected()
+									.setText(nodeInfo.getPathLocation() + '/' + nodeInfo.getdBaseName());
+							if (nodeInfo.getCategory().equals("TABLE")) {
+
+								String table2Manage = nodeInfo.getText();
+								frame.getExecSQLPanel().getTextEditingElement().setText(table2Manage);
+								frame.getExecSQLPanel().executeSQL("SELECT * FROM " + table2Manage, "MODE_FILL");
+							}
 						}
 					}
 				}
@@ -235,7 +252,9 @@ public class DBManager implements Tool {
 			dBtree.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					DefaultMutableTreeNode node;
+
+					DefaultMutableTreeNode node = null;
+
 					if (treePath == null) {
 						return;
 					} else {
@@ -254,7 +273,7 @@ public class DBManager implements Tool {
 						dBtree.add(popup);
 						ActionListener menuListener = new ActionListener() {
 							public void actionPerformed(ActionEvent event) {
-								dBfactory = new DBFactory(event, dBtree.getSelectionPath());
+								dBfactory = new DBFactory(event, dBtree.getSelectionPath(), frame);
 								// To refresh the tree, rebuilds the tree
 								// model. But first we save its expansion state.
 
@@ -278,6 +297,11 @@ public class DBManager implements Tool {
 
 						DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
 						JMenuItem menuItem;
+
+						popup.add(menuItem = new JMenuItem("Copy name"));
+						menuItem.addActionListener(menuListener);
+						popup.addSeparator();
+
 						switch (nodeInfo.getCategory()) { // Action callbacks are in DBFactory
 						case "root":
 							popup.add(menuItem = new JMenuItem("Create Database..."));
@@ -291,23 +315,16 @@ public class DBManager implements Tool {
 							break;
 
 						case "Java DB":
-							popup.add(menuItem = new JMenuItem("Delete Database..."));
-							if (nodeInfo.getText().equals(DBConnect.DBMSYSTABLE)) { // Take care not delete sys database
-								menuItem.setEnabled(false);
-							} else {
+							if (!nodeInfo.getText().equals(DBConnect.DBMSYSTABLE)) { // Take care not delete sys
+																						// database contents
+								popup.add(menuItem = new JMenuItem("Delete Database..."));
 								menuItem.addActionListener(menuListener);
-							}
-							popup.add(menuItem = new JMenuItem("Unregister Database..."));
-							if (nodeInfo.getText().equals(DBConnect.DBMSYSTABLE)) {
-								menuItem.setEnabled(false);
-							} else {
+								popup.add(menuItem = new JMenuItem("Unregister Database..."));
 								menuItem.addActionListener(menuListener);
-							}
-							popup.addSeparator();
-							popup.add(menuItem = new JMenuItem("Create Table..."));
-							if (nodeInfo.getText().equals(DBConnect.DBMSYSTABLE)) {
-								menuItem.setEnabled(false);
-							} else {
+								popup.addSeparator();
+								popup.add(menuItem = new JMenuItem("Create Table..."));
+								menuItem.addActionListener(menuListener);
+								popup.add(menuItem = new JMenuItem("Recreate Table..."));
 								menuItem.addActionListener(menuListener);
 							}
 							popup.add(menuItem = new JMenuItem("Refresh"));
@@ -316,46 +333,42 @@ public class DBManager implements Tool {
 							break;
 
 						case "HEAD":
-							if (nodeInfo.getText().equals("Tables")) {
-								popup.add(menuItem = new JMenuItem("Create Table..."));
-							} else {
-								if (nodeInfo.getText().equals("Columns")) {
-									popup.add(menuItem = new JMenuItem("Add column..."));
 
-								} else {
-									if (nodeInfo.getText().equals("Indices")) {
-										popup.add(menuItem = new JMenuItem());
+							if (!nodeInfo.getdBaseName().equals(DBConnect.DBMSYSTABLE)) { // Take care not delete sys
+								if (nodeInfo.getText().equals("Tables") || nodeInfo.getText().equals("Columns")
+										|| nodeInfo.getText().equals("Indices")) {
+									// menuItem.addActionListener(menuListener);
+								}
 
-									} else {
-										popup.add(menuItem = new JMenuItem("Error Jtree"));
-									}
-
+								if (nodeInfo.getText().equals("Tables")) {
+									popup.add(menuItem = new JMenuItem("Create Table..."));
+									menuItem.addActionListener(menuListener);
+									popup.add(menuItem = new JMenuItem("Recreate Table..."));
+									menuItem.addActionListener(menuListener);
 								}
 							}
 
-							menuItem.addActionListener(menuListener);
 							popup.add(menuItem = new JMenuItem("Refresh"));
 							menuItem.addActionListener(menuListener);
 							break;
 
 						case "TABLE":
-							popup.add(menuItem = new JMenuItem("Manage Data..."));
+							popup.add(menuItem = new JMenuItem("Manage data..."));
 							menuItem.addActionListener(menuListener);
 
-							popup.add(menuItem = new JMenuItem("Add Column..."));
+							if (!nodeInfo.getdBaseName().equals(DBConnect.DBMSYSTABLE)) { // Take care not delete sys
+								popup.add(menuItem = new JMenuItem("Delete Table"));
+								menuItem.addActionListener(menuListener);
+								popup.add(menuItem = new JMenuItem("Add column..."));
+								menuItem.addActionListener(menuListener);
+
+								popup.add(menuItem = new JMenuItem("Execute Command..."));
+								menuItem.addActionListener(menuListener);
+								popup.addSeparator();
+							}
+							popup.add(menuItem = new JMenuItem("Generate DDL..."));
 							menuItem.addActionListener(menuListener);
 
-							popup.add(menuItem = new JMenuItem("Execute Command..."));
-							menuItem.addActionListener(menuListener);
-							popup.addSeparator();
-							popup.add(menuItem = new JMenuItem("Delete Table"));
-							menuItem.addActionListener(menuListener);
-
-							popup.add(menuItem = new JMenuItem("Grab Structure..."));
-							menuItem.addActionListener(menuListener);
-
-							popup.add(menuItem = new JMenuItem("Recreate Table..."));
-							menuItem.addActionListener(menuListener);
 							popup.addSeparator();
 
 							popup.add(menuItem = new JMenuItem("Refresh"));
@@ -369,6 +382,9 @@ public class DBManager implements Tool {
 							if (nodeInfo.getText().equals("Tables")) {
 								popup.add(menuItem = new JMenuItem("Create Table..."));
 								menuItem.addActionListener(menuListener);
+								popup.add(menuItem = new JMenuItem("Recreate Table..."));
+								menuItem.addActionListener(menuListener);
+
 							}
 							popup.add(menuItem = new JMenuItem("Refresh"));
 							menuItem.addActionListener(menuListener);
@@ -395,6 +411,7 @@ public class DBManager implements Tool {
 		if (servInicSt.equals("on")) {
 			DBConnect.inicServer();
 		}
+
 		DBGUIFrame.checkServerMenu();
 		frame.setVisible(true);
 		frame.toFront();
@@ -403,7 +420,8 @@ public class DBManager implements Tool {
 	// Reads from DBMSYSTABLE and begins to build the JTree model
 	public static DefaultMutableTreeNode getTreeModel() {
 
-		DBTreeNodeK nodeInfo = new DBTreeNodeK("root", "Databases");
+		DBTreeNodeK nodeInfo = new DBTreeNodeK("root", "Databases", pathToDBSettings, "DBASE", DBConnect.DBMSYSTABLE,
+				DBConnect.DBMSYSTABLE);
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(nodeInfo);
 
 		WelcomeDlg dialog = null;
@@ -468,15 +486,21 @@ public class DBManager implements Tool {
 		}
 
 		try {
+
+			// Fills a local table with data types
+			loadHiddenDataTypes(conn);
+
 			// Check that DBLIST table exists
 			DatabaseMetaData dmd = conn.getMetaData();
 			ResultSet rs = dmd.getTables(null, "APP", "DBLIST", null);
+
 			if (!rs.next()) {
 				System.out.println("SysTable creation when reswasnull");
 				DBConnect.createSysDB(conn, pathToDBManager);
 			} else {
 
 				System.out.println("SysTable exists detected." + rs.toString());
+
 			}
 
 		} catch (SQLException ex) {
@@ -486,10 +510,14 @@ public class DBManager implements Tool {
 		}
 
 		try {
+			// Statement stmt =
+			// conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+			// ResultSet.CONCUR_UPDATABLE);
 			stmt = conn.createStatement();
-
 			String sql = "SELECT * from DBLIST";
 			ResultSet rs = stmt.executeQuery(sql);
+			DatabaseMetaData dmd = conn.getMetaData();
+
 			DefaultMutableTreeNode partialHead = root;
 
 			// Partial lazy reading. First, we complete the tree until the list of
@@ -564,4 +592,95 @@ public class DBManager implements Tool {
 		return (str.matches("[+-]?\\d*(\\.\\d+)?") && str.equals("") == false);
 	}
 
+	public static void loadHiddenDataTypes(Connection conn) {
+		try {
+
+			// private Object[][] hiddenTypesTable = {};
+			// private Map rowSearch = new HashMap();
+
+			DatabaseMetaData dbmd = conn.getMetaData();
+			ResultSet rset;
+			rset = dbmd.getTypeInfo();
+			int counter = 0;
+
+			while (rset.next()) {
+				Object[] tipo = new Object[18];
+				tipo[0] = rset.getString("TYPE_NAME");
+				rowSearch.put(tipo[0].toString(), counter);
+
+				tipo[1] = rset.getInt("DATA_TYPE");
+				tipo[2] = rset.getInt("PRECISION");
+				tipo[3] = rset.getString("LITERAL_PREFIX");
+				tipo[4] = rset.getString("LITERAL_SUFFIX");
+				tipo[5] = rset.getString("CREATE_PARAMS");
+				tipo[6] = rset.getShort("NULLABLE");
+				tipo[7] = rset.getBoolean("CASE_SENSITIVE");
+				tipo[8] = rset.getShort("SEARCHABLE");
+				tipo[9] = rset.getBoolean("UNSIGNED_ATTRIBUTE");
+				tipo[10] = rset.getBoolean("FIXED_PREC_SCALE");
+				tipo[11] = rset.getBoolean("AUTO_INCREMENT");
+				tipo[12] = rset.getString("LOCAL_TYPE_NAME");
+				tipo[13] = rset.getShort("MINIMUM_SCALE");
+				tipo[14] = rset.getShort("MAXIMUM_SCALE");
+				tipo[15] = rset.getInt("SQL_DATA_TYPE");
+				tipo[16] = rset.getInt("SQL_DATETIME_SUB");
+				tipo[17] = rset.getInt("NUM_PREC_RADIX");
+				hiddenTypesTable[counter] = tipo;
+				counter++;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void initTypesTitles() {
+
+		colSearch.put("TYPE_NAME", 0);
+		colSearch.put("DATA_TYPE", 1);
+		colSearch.put("PRECISION", 2);
+		colSearch.put("LITERAL_PREFIX", 3);
+		colSearch.put("LITERAL_SUFFIX", 4);
+		colSearch.put("CREATE_PARAMS", 5);
+		colSearch.put("NULLABLE", 6);
+		colSearch.put("CASE_SENSITIVE", 7);
+		colSearch.put("SEARCHABLE", 8);
+		colSearch.put("UNSIGNED_ATTRIBUTE", 9);
+		colSearch.put("FIXED_PREC_SCALE", 10);
+		colSearch.put("AUTO_INCREMENT", 11);
+		colSearch.put("LOCAL_TYPE_NAME", 12);
+		colSearch.put("MINIMUM_SCALE", 13);
+		colSearch.put("MAXIMUM_SCALE", 14);
+		colSearch.put("SQL_DATA_TYPE", 15);
+		colSearch.put("SQL_DATETIME_SUB", 16);
+		colSearch.put("NUM_PREC_RADIX", 17);
+
+		typeConvert.put("BIGINT", "java.lang.Long");
+		typeConvert.put("LONG VARCHAR FOR BIT DATA", "java.lang.Byte[]");
+		typeConvert.put("VARCHAR () FOR BIT DATA", "java.lang.Byte[]");
+		typeConvert.put("CHAR () FOR BIT DATA", "java.lang.Byte[]");
+		typeConvert.put("LONG VARCHAR", "java.lang.String");
+		typeConvert.put("CHAR", "java.lang.String");
+		typeConvert.put("NUMERIC", "java.math.BigDecimal");
+		typeConvert.put("DECIMAL", "java.math.BigDecimal");
+		typeConvert.put("INTEGER", "java.lang.Integer");
+		typeConvert.put("SMALLINT", "java.lang.Integer");
+		typeConvert.put("FLOAT", "java.lang.Double");
+		typeConvert.put("REAL", "java.lang.Float");
+		typeConvert.put("DOUBLE", "java.lang.Double");
+		typeConvert.put("VARCHAR", "java.lang.String");
+		typeConvert.put("BOOLEAN", "java.lang.Boolean");
+		typeConvert.put("DATE", "java.sql.Date");
+		typeConvert.put("TIME", "java.sql.Time");
+		typeConvert.put("TIMESTAMP", "java.sql.Timestamp");
+		typeConvert.put("BLOB", "java.sql.Blob");
+		typeConvert.put("CLOB", "java.sql.Clob");
+		typeConvert.put("XML", "java.sql.SQLXML");
+	}
+
+	public static Object dataTypeInfo(String row, String col) {
+
+		System.out.println(" row " + row + " column " + col + "  " + rowSearch.get(row) + "  " + colSearch.get(col));
+		return hiddenTypesTable[rowSearch.get(row)][colSearch.get(col)];
+	}
 }
