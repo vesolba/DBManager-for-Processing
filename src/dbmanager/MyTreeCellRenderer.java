@@ -21,6 +21,10 @@ public class MyTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	public MyTreeCellRenderer() {
 		super();
+		jbInit();
+	}
+
+	private void jbInit() {
 
 		dbServIcon = new ImageIcon(this.getClass().getResource("/data/DBServ-32.png"));
 		databaseIcon = new ImageIcon(this.getClass().getResource("/data/JavaDB-32.png"));
@@ -39,7 +43,7 @@ public class MyTreeCellRenderer extends DefaultTreeCellRenderer {
 		if (value != null) {
 			DBTreeNodeK selectedNodeInfo = (DBTreeNodeK) ((DefaultMutableTreeNode) value).getUserObject();
 			category = selectedNodeInfo.getCategory();
-			
+
 			switch (category) {
 			case "root":
 				icon = dbServIcon;

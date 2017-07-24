@@ -56,7 +56,10 @@ public class WelcomeDlg extends JDialog {
 		txtAreaLegend.setEditable(false);
 		txtAreaLegend.setWrapStyleWord(true);
 		txtAreaLegend.setText(
-				"Following, there are several directories defining where have been installed the applications that we are using and its working environments. Please, take a look and choose whether you agree or want to change any of the indicated parameters that allow it. Then, press OK to continue or Cancel to exit.");
+				"Following, there are several directories defining where have been installed " +
+				"the applications that we are using and its working environments. " +
+				"Please, take a look and choose whether you agree or want to change any of the " +
+				"indicated parameters that allow it. Then, press OK to continue or Cancel to exit.");
 		txtAreaLegend.setLineWrap(true);
 		txtAreaLegend.setFont(new Font("Verdana", Font.PLAIN, 12));
 		panelSup.add(txtAreaLegend, "name_231839158424816");
@@ -242,6 +245,11 @@ public class WelcomeDlg extends JDialog {
 		});
 		panel.add(btnCancel);
 		btnCancel.setHorizontalAlignment(SwingConstants.RIGHT);
+		
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		pack();
+		setSize(screenSize.width * 2 / 4, screenSize.height * 2 / 4);
+		setLocationRelativeTo(null);
 	}
 
 	/**

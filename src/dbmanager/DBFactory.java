@@ -1,41 +1,59 @@
 package dbmanager;
 
 import java.awt.Color;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import org.apache.derby.tools.dblook;
+
 public class DBFactory {
 
-	public DBFactory() {
+	public DBFactory(ActionEvent event, TreePath treePath, DBGUIFrame frame) {
 
-	}
+		String actCommand = event.getActionCommand().toString();
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
+		DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
 
-	public DBFactory(ActionEvent event, TreePath treePath) {
+		switch (actCommand) {
+		case "Copy name": // Copy the node name in the clipboard
 
-		switch (event.getActionCommand().toString()) {
+			StringSelection stringSelection = new StringSelection(nodeInfo.getText());
+			Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+			clpbrd.setContents(stringSelection, null);
+			break;
+
 		case "Create Database...":
 		case "Register Database...":
 
 			try {
 				DBCreationDialog dialog = new DBCreationDialog("", "", "", null, DBManager.derbySystemHome, treePath,
-						event.getActionCommand().toString());
-				// DB Name, User, Pwd, Description, DB Location (File Location), Path in dBtree, Action command
-
+						actCommand);
+				// DB Name, User, Pwd, Description, DB Location (File Location), Path in dBtree,
+				// Action command
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				dialog.getTxtDBLocation().setText(DBManager.derbySystemHome);
 				dialog.setLocationRelativeTo(null);
 
-				if (event.getActionCommand().toString().equals("Register Database...")) {
+				if (actCommand.equals("Register Database...")) {
 					dialog.button.doClick();
 					dialog.setTitle("Java DB Database Registration");
 				} else {
@@ -50,9 +68,6 @@ public class DBFactory {
 			break;
 
 		case "Delete Database...":
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
-			DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
-
 			// In Java DB, a database is just a directory with particular contents
 			String sDirectory = nodeInfo.getPathLocation() + "/" + nodeInfo.getText();
 			JDialog.setDefaultLookAndFeelDecorated(true);
@@ -79,11 +94,9 @@ public class DBFactory {
 			break;
 
 		case "Create Table...":
-
 			try {
 				TableCreaDialog dialog = new TableCreaDialog();
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-				dialog.setLocationRelativeTo(null);
 				dialog.setVisible(true);
 
 			} catch (Exception h) {
@@ -91,17 +104,15 @@ public class DBFactory {
 			}
 
 			break;
-		case "Delete Table":
-			node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
-			nodeInfo = (DBTreeNodeK) node.getUserObject();
 
-			String table2Del = nodeInfo.getText();
+		case "Delete Table":
+			String table2Manage = nodeInfo.getText();
 
 			JDialog.setDefaultLookAndFeelDecorated(true);
 
 			response = JOptionPane.showConfirmDialog(null,
-					"You are going to delete the table " + table2Del + ". \n All the data stored there will be lost.\n"
-							+ "Do you want to continue?",
+					"You are going to delete the table " + table2Manage
+							+ ". \n All the data stored there will be lost.\n" + "Do you want to continue?",
 					"Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 
 			if (response == JOptionPane.YES_OPTION) {
@@ -121,12 +132,12 @@ public class DBFactory {
 							conn = DBConnect.connect(!DBConnect.serverIsOn,
 									nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(), "", null, false);
 						} catch (Exception ey) {
-							JOptionPane.showInputDialog("The database " + nodeInfo.getPathLocation() + "/"
+							JOptionPane.showConfirmDialog(null, "The database " + nodeInfo.getPathLocation() + "/"
 									+ nodeInfo.getdBaseName() + " is not available.");
 							ex.printStackTrace();
 						}
 					} else {
-						JOptionPane.showInputDialog("The database " + nodeInfo.getPathLocation() + "/"
+						JOptionPane.showMessageDialog(null, "The database " + nodeInfo.getPathLocation() + "/"
 								+ nodeInfo.getdBaseName() + " is not available.");
 						ex.printStackTrace();
 					}
@@ -134,13 +145,14 @@ public class DBFactory {
 
 				if (conn != null) {
 					try {
-						String sql = "DROP TABLE " + table2Del;
+						String sql = "DROP TABLE " + table2Manage;
 						Statement statement = conn.createStatement();
 						int result = statement.executeUpdate(sql);
-						JOptionPane.showInputDialog(
-								"Table " + table2Del + " has been droped from the database " + nodeInfo.getdBaseName());
+						JOptionPane.showMessageDialog(null, "Table " + table2Manage
+								+ " has been droped from the database " + nodeInfo.getdBaseName());
 					} catch (Exception h) {
-						JOptionPane.showInputDialog("It was not possible to delete " + table2Del + " table.");
+						JOptionPane.showMessageDialog(null,
+								"It was not possible to delete " + table2Manage + " table.");
 						h.printStackTrace();
 					} finally {
 						try {
@@ -156,9 +168,69 @@ public class DBFactory {
 			}
 
 			break;
+
+		case "Generate DDL...":
+			JFileChooser chooser1 = new JFileChooser();
+			chooser1.setCurrentDirectory(null);
+			int returnVal1 = chooser1.showOpenDialog(chooser1);
+			if (returnVal1 == JFileChooser.APPROVE_OPTION) {
+
+				File filePath = chooser1.getSelectedFile();
+				String table2Grab = nodeInfo.getText();
+
+				String[] args = { "-d", "jdbc:derby:" + nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(),
+						"-t", table2Grab, "-o", filePath.toString(), "-append", "-verbose", "-noview" };
+				System.out.println(args);
+
+				////////////////////////////////////////////////////////////////////////
+				// DBLook options
+				// -z schemaName Only objects with the specified schema are included in the DDL.
+				// -t tableOne tableTwo ... Tables to which the DDL should be restricted.
+				// -td Statement delimiter for SQL statements generated by dblook. Default
+				// semmicolon (;).
+				// -o filename File where the generated DDL is written. If not specified,
+				// console (System.out).
+				// -append Prevents overwriting the DDL output.
+				// -verbose All errors and warnings (both SQL and internal) should be echoed
+				// (System.err).
+				// -noview Specifies that CREATE VIEW statements should not be generated
+				////////////////////////////////////////////////////////////////////////
+
+				try {
+					new dblook(args);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			break;
+		case "Recreate Table...":
+			JFileChooser chooser2 = new JFileChooser();
+			// chooser2.setCurrentDirectory(null);
+			int returnVal2 = chooser2.showOpenDialog(chooser2);
+			if (returnVal2 == JFileChooser.APPROVE_OPTION) {
+
+				File filePath = chooser2.getSelectedFile();
+				System.out.println("File: " + filePath.getName());
+
+				try {
+					BufferedReader in = new BufferedReader(new FileReader(filePath));
+					frame.getExecSQLPanel().getTextPaneInSQL().read(in, filePath);
+					in.close();
+					System.out.println(frame.getExecSQLPanel().getTextPaneInSQL().getText());
+				} catch (IOException ex) {
+					System.err.println("Open plaintext error: " + ex);
+				}
+			}
+
+			break;
 		case "Add column...":
 			break;
-		case "Add index...":
+		case "Manage data...":
+			table2Manage = nodeInfo.getText();
+			frame.getExecSQLPanel().getTextEditingElement().setText(table2Manage);
+			frame.getExecSQLPanel().executeSQL("SELECT * FROM " + table2Manage, "MODE_FILL");
+
 			break;
 		case "Error Jtree":
 			break;
@@ -218,9 +290,9 @@ public class DBFactory {
 	public static void unregisterDB(DefaultMutableTreeNode selectedElement, boolean callFromDel) {
 
 		DBTreeNodeK nodeInfo = (DBTreeNodeK) selectedElement.getUserObject();
-		String name2Del = nodeInfo.getText();
-		String category2Del = nodeInfo.getCategory();
-		String path2Del = nodeInfo.getPathLocation();
+		String nameSelected = nodeInfo.getText();
+		String categorySelected = nodeInfo.getCategory();
+		String pathSelected = nodeInfo.getPathLocation();
 		int dialogResult = JOptionPane.NO_OPTION;
 		Connection sysConn = null;
 
@@ -236,21 +308,23 @@ public class DBFactory {
 			} catch (Exception ey) {
 
 				// If we can not connect and the server is off, lets try with server on.
-//				if (!DBConnect.serverIsOn) {
-//					try {
-//						DBConnect.inicServer();
-//						DBGUIFrame.getMnServer().setForeground(Color.GREEN);
-//						sysConn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager, "", null, false);
-//
-//					} catch (Exception ex) {
-//						JOptionPane.showMessageDialog(null, "Database not available.", "Error",
-//								JOptionPane.ERROR_MESSAGE);
-//						ex.printStackTrace();
-//					}
-//				} else {
-//					System.out.println("The database " + DBManager.pathToDBManager + " is not available.");
-//					ey.printStackTrace();
-//				}
+				// if (!DBConnect.serverIsOn) {
+				// try {
+				// DBConnect.inicServer();
+				// DBGUIFrame.getMnServer().setForeground(Color.GREEN);
+				// sysConn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager,
+				// "", null, false);
+				//
+				// } catch (Exception ex) {
+				// JOptionPane.showMessageDialog(null, "Database not available.", "Error",
+				// JOptionPane.ERROR_MESSAGE);
+				// ex.printStackTrace();
+				// }
+				// } else {
+				// System.out.println("The database " + DBManager.pathToDBManager + " is not
+				// available.");
+				// ey.printStackTrace();
+				// }
 				errorPrint(ey);
 			}
 
@@ -258,22 +332,23 @@ public class DBFactory {
 				Statement sysStmt = sysConn.createStatement();
 				String Deletion = "";
 
-				switch (category2Del) {
+				switch (categorySelected) {
 				case "Java DB":
-					Deletion = "DELETE FROM DBLIST WHERE " + "FILEPATH = \'" + path2Del + "\' AND DBNAME = \'"
-							+ name2Del + "\'";
+					Deletion = "DELETE FROM DBLIST WHERE " + "FILEPATH = \'" + pathSelected + "\' AND DBNAME = \'"
+							+ nameSelected + "\'";
 
 					break;
 
 				// case "Drivers":
 				// Deletion = "DELETE FROM DRIVERLIST WHERE "
-				// + "DRVFILE = \'" + path2Del + "\' AND DRVNAME = \'" + name2Del + "\'";
+				// + "DRVFILE = \'" + pathSelected + "\' AND DRVNAME = \'" + nameSelected +
+				// "\'";
 				//
 				// break;
 				//
 				// default:
 				// Deletion = "DELETE FROM CONNLIST WHERE "
-				// + "DISPLAYNAME = \'" + name2Del + "\'";
+				// + "DISPLAYNAME = \'" + nameSelected + "\'";
 				//
 				// break;
 				}
@@ -288,12 +363,8 @@ public class DBFactory {
 			} catch (Exception ey) {
 				errorPrint(ey);
 			}
-
 		}
-
 	}
-
-	
 
 	static void errorPrint(Throwable e) {
 		if (e instanceof SQLException)
@@ -313,31 +384,5 @@ public class DBFactory {
 		}
 	}
 
-	public static void loadComboCols(ResultSet rset, MyColumnTypes tipo) throws SQLException {
-
-		while (rset.next()) {
-			tipo = new MyColumnTypes();
-			tipo.TYPE_NAME = rset.getString("TYPE_NAME");
-			tipo.DATA_TYPE = rset.getInt("DATA_TYPE");
-			tipo.PRECISION = rset.getInt("PRECISION");
-			tipo.LITERAL_PREFIX = rset.getString("LITERAL_PREFIX");
-			tipo.LITERAL_SUFFIX = rset.getString("LITERAL_SUFFIX");
-			tipo.CREATE_PARAMS = rset.getString("CREATE_PARAMS");
-			tipo.NULLABLE = rset.getShort("NULLABLE");
-			tipo.CASE_SENSITIVE = rset.getBoolean("CASE_SENSITIVE");
-			tipo.SEARCHABLE = rset.getShort("SEARCHABLE");
-			tipo.UNSIGNED_ATTRIBUTE = rset.getBoolean("UNSIGNED_ATTRIBUTE");
-			tipo.FIXED_PREC_SCALE = rset.getBoolean("FIXED_PREC_SCALE");
-			tipo.AUTO_INCREMENT = rset.getBoolean("AUTO_INCREMENT");
-			tipo.LOCAL_TYPE_NAME = rset.getString("LOCAL_TYPE_NAME");
-			tipo.MINIMUM_SCALE = rset.getShort("MINIMUM_SCALE");
-			tipo.MAXIMUM_SCALE = rset.getShort("MAXIMUM_SCALE");
-			tipo.SQL_DATA_TYPE = rset.getInt("SQL_DATA_TYPE");
-			tipo.SQL_DATETIME_SUB = rset.getInt("SQL_DATETIME_SUB");
-			tipo.NUM_PREC_RADIX = rset.getInt("NUM_PREC_RADIX");
-			TableCreaDialog.myComboModel.insertItem(tipo);
-
-		}
-	}
-
+	
 }

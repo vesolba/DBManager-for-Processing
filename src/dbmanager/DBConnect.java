@@ -12,6 +12,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.derby.drda.NetworkServerControl;
 
 public class DBConnect {
+
 	private static NetworkServerControl server;
 	public static boolean serverIsOn;
 	public static final String DBMSYSTABLE = "DBM4PROC";
@@ -339,8 +340,7 @@ public class DBConnect {
 			System.out.println("Query Create Table: " + query + " Resultado: " + result);
 
 			query = "INSERT INTO APP.DBLIST (DBMS, DBNAME, DESCRIPTION, FILEPATH)" + " VALUES ('Java DB', '"
-					+ DBMSYSTABLE + "', 'Contains the list of databases.'," + "'" + DBManager.pathToDBSettings
-					+ "')";
+					+ DBMSYSTABLE + "', 'Contains the list of databases.'," + "'" + DBManager.pathToDBSettings + "')";
 
 			result = DBManager.stmt.executeUpdate(query);
 			System.out.println("Query INSERT DATA: " + query + " Resultado: " + result);
