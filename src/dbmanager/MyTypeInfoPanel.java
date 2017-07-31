@@ -22,6 +22,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+
 import java.awt.Dimension;
 import javax.swing.JTextArea;
 import javax.swing.BoxLayout;
@@ -43,7 +44,7 @@ public class MyTypeInfoPanel extends JPanel {
 		Component horizontalGlue = Box.createHorizontalGlue();
 		menuBar.add(horizontalGlue);
 
-		JLabel lblNewLabel = new JLabel("  Column  data types availables in Java DB  ");
+		JLabel lblNewLabel = new JLabel("  Java DB available column data types  ");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		menuBar.add(lblNewLabel);
 

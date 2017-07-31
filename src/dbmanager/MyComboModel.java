@@ -16,10 +16,6 @@ public class MyComboModel extends DefaultComboBoxModel<MyColumnTypes> {
 	Vector<String> myColVec = new Vector<String>(arrTypes.length);
 
 	public MyComboModel() {
-		jbInit();
-	}
-
-	private void jbInit() {
 		for (int i = 0; i < arrTypes.length; i++) {
 			addElement(new MyColumnTypes());
 			myColVec.addElement(arrTypes[i]);

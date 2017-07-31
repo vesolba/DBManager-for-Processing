@@ -21,11 +21,7 @@ public class MyTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	public MyTreeCellRenderer() {
 		super();
-		jbInit();
-	}
-
-	private void jbInit() {
-
+	
 		dbServIcon = new ImageIcon(this.getClass().getResource("/data/DBServ-32.png"));
 		databaseIcon = new ImageIcon(this.getClass().getResource("/data/JavaDB-32.png"));
 		tablesIcon = new ImageIcon(this.getClass().getResource("/data/Tables-32.png"));

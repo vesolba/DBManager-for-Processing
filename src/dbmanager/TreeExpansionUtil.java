@@ -28,11 +28,6 @@ public class TreeExpansionUtil {
 	public TreeExpansionUtil(JTree tree) {
 
 		this.tree = tree;
-		jbInit();
-	}
-
-	private void jbInit() {
-	
 	}
 
 	/**
