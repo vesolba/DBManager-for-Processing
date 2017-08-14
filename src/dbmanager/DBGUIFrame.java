@@ -63,7 +63,7 @@ public class DBGUIFrame extends JFrame {
 		setPreferredSize(new Dimension(600, 400));
 		setMinimumSize(new Dimension(300, 200));
 		setMaximumSize(new Dimension(3000, 3000));
-		// setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
+		setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 661, 431);
 		setTitle("DB Manager for Processing ");

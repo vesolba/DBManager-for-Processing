@@ -30,6 +30,8 @@ import java.awt.Font;
 
 public class MyTypeInfoPanel extends JPanel {
 	private JTable table;
+	private JTextArea textAreaMessage1 = null;
+	private JTextArea textAreaMessage2;
 
 	public MyTypeInfoPanel() {
 		jbInit();
@@ -85,6 +87,15 @@ public class MyTypeInfoPanel extends JPanel {
 			String propTable = DBManager.propsDBM.getDBMProp("spinTestPane");
 			spinTestPane.addChangeListener(new ChangeListener() {
 				public void stateChanged(ChangeEvent arg0) {
+
+					if (textAreaMessage1 != null) {
+						textAreaMessage1.setFont(
+								table.getFont().deriveFont(Float.parseFloat(spinTestPane.getValue().toString())));
+					}
+					if (textAreaMessage2 != null) {
+						textAreaMessage2.setFont(
+								table.getFont().deriveFont(Float.parseFloat(spinTestPane.getValue().toString())));
+					}
 					table.setFont(table.getFont().deriveFont(Float.parseFloat(spinTestPane.getValue().toString())));
 					table.setRowHeight((int) Float.parseFloat(spinTestPane.getValue().toString()) + 5);
 					DBManager.propsDBM.setDBMProp("spinTestPane", spinTestPane.getValue().toString());
@@ -121,7 +132,7 @@ public class MyTypeInfoPanel extends JPanel {
 		add(mesagesPane, BorderLayout.SOUTH);
 		mesagesPane.setLayout(new BoxLayout(mesagesPane, BoxLayout.X_AXIS));
 
-		JTextArea textAreaMessage1 = new JTextArea();
+		textAreaMessage1 = new JTextArea();
 		textAreaMessage1.setFont(new Font("Monospaced", Font.PLAIN, 13));
 		textAreaMessage1.setEnabled(false);
 		textAreaMessage1.setEditable(false);
@@ -130,7 +141,7 @@ public class MyTypeInfoPanel extends JPanel {
 		textAreaMessage1.setColumns(20);
 		mesagesPane.add(textAreaMessage1);
 
-		JTextArea textAreaMessage2 = new JTextArea();
+		textAreaMessage2 = new JTextArea();
 		textAreaMessage2.setEnabled(false);
 		textAreaMessage2.setEditable(false);
 		textAreaMessage2.setFont(new Font("Monospaced", Font.PLAIN, 13));

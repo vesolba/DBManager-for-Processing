@@ -439,9 +439,9 @@ public class DBCreationDialog extends JDialog {
 								String insert = "INSERT INTO DBLIST (DBMS, DBNAME, DESCRIPTION, FILEPATH) "
 										+ "VALUES (\'Java DB\', \'" + txtDBName.getText() + "\', \'"
 										+ txtDescription.getText() + "\', \'" + txtDBLocation.getText() + "\')";
-								System.out.println("Query INSERT DATA: " + insert);
+
 								int result = DBManager.stmt.executeUpdate(insert);
-								System.out.println("Resultado: ");
+
 								if (result >= 0) {
 									DefaultTreeModel model = (DefaultTreeModel) DBManager.dBtree.getModel();
 									DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();

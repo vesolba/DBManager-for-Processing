@@ -2,7 +2,6 @@ package dbmanager;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -10,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,7 +70,7 @@ public class MyTableModel extends AbstractTableModel {
 					String columnTypeName = resultSet.getMetaData().getColumnTypeName(i);
 					colsTypes.add(columnTypeName);
 					int columnType = resultSet.getMetaData().getColumnType(i);
-					colsClasses.add(getColClass(columnType, columnTypeName));
+					colsClasses.add(DBManager.getColClass(columnType, columnTypeName));
 				}
 
 				if (mode.equals("MODE_FILL") && resultSet.next()) {
@@ -357,15 +355,8 @@ public class MyTableModel extends AbstractTableModel {
 	}
 
 	@Override
-	public Class<? extends Object> getColumnClass(int column) {
-		Class classToReturn;
-
-		if ((column >= 0) && column < getColumnCount() && getRowCount() > 0) {
-			classToReturn = getValueAt(0, column).getClass();
-		} else {
-			classToReturn = Object.class;
-		}
-		return classToReturn;
+	public Class<?> getColumnClass(int column) {
+		return colsClasses.get(column);
 	}
 
 	/**
@@ -373,68 +364,6 @@ public class MyTableModel extends AbstractTableModel {
 	 */
 	public ArrayList<Boolean> getColsSearchable() {
 		return colsSearchable;
-	}
-
-	/**
-	 * Obtains the column class statically.
-	 *
-	 * @param columnType,
-	 *            SQL type.
-	 *
-	 * @param columnTypeName,
-	 *            Name of the column type.
-	 */
-	public Class<?> getColClass(int columnType, String columnTypeName) {
-
-		switch (columnType) {
-		case Types.SMALLINT:
-		case Types.INTEGER:
-			return Integer.class;
-
-		case Types.BIGINT:
-			return Long.class;
-
-		case Types.FLOAT:
-		case Types.DOUBLE:
-			return Double.class;
-
-		case Types.REAL:
-			return Double.class;
-
-		case Types.DECIMAL:
-		case Types.NUMERIC:
-			return BigDecimal.class;
-
-		case Types.DATE:
-			return java.sql.Date.class;
-
-		case Types.TIME:
-			return java.sql.Time.class;
-
-		case Types.TIMESTAMP:
-			return java.sql.Timestamp.class;
-
-		case Types.CLOB:
-			return java.sql.Clob.class;
-
-		case Types.BLOB:
-			return java.sql.Blob.class;
-
-		case Types.BINARY:
-		case Types.VARBINARY:
-			return Byte.class;
-
-		case Types.CHAR:
-		case Types.VARCHAR:
-			return String.class;
-
-		case Types.SQLXML:
-			return java.sql.SQLXML.class;
-
-		default:
-			System.out.println("Error in columnType: " + columnType + " " + columnTypeName);
-			return String.class;
-		}
 	}
 
 	public void insertNewData() {
@@ -449,7 +378,7 @@ public class MyTableModel extends AbstractTableModel {
 		for (int i = 0; i < numRows; i++) {
 			String order = "INSERT INTO " + tableName + "(";
 			String order2 = " VALUES (";
-			
+
 			ArrayList<Object> row = data2Add.get(i);
 			boolean colsAdded = false;
 
@@ -463,11 +392,10 @@ public class MyTableModel extends AbstractTableModel {
 						order2 += ", ";
 					}
 					order += colsNames.get(j);
-					
-					
+
 					quotePrefix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_PREFIX");
 					quoteSuffix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_SUFFIX");
-				
+
 					if (quotePrefix != null) {
 						order2 += quotePrefix;
 					}
@@ -482,16 +410,16 @@ public class MyTableModel extends AbstractTableModel {
 				order += ")" + order2 + ")";
 
 				System.out.println(order);
-				
-				try {					
+
+				try {
 					statement = conn.createStatement();
 					int result = statement.executeUpdate(order);
 					numRowsAdded++;
-					System.out.println("Rows added = " + numRowsAdded);					
+					System.out.println("Rows added = " + numRowsAdded);
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}				
+				}
 			}
 		}
 	}

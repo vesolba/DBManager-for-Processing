@@ -75,8 +75,6 @@ public class InsertRowDlg extends JDialog {
 		btnAddRow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
-				System.out.println("Conn: " + (conn == null) + " " + conn);
-
 				tModel.data2Add.add(tModel.addEmptyRow(conn));
 				table.updateUI();
 

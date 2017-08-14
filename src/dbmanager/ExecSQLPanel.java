@@ -48,6 +48,7 @@ public class ExecSQLPanel extends JPanel {
 
 	private JSpinner spinFontSize;
 	private JSpinner spinTable;
+	private JSpinner spintTabCrea;
 	private JTextField txtLastMessage;
 	private JTable tableSQLResult;
 	private static JTextPane txtSelected;
@@ -345,7 +346,6 @@ public class ExecSQLPanel extends JPanel {
 						}
 
 						Object redValue = model.getValueAt(rowSel, i);
-						System.out.println(" redvalue " + redValue);
 
 						text2Delete += model.getColumnName(i) + " = ";
 						String quotePrefix = (String) DBManager.dataTypeInfo(model.colsTypes.get(i), "LITERAL_PREFIX");
@@ -365,7 +365,6 @@ public class ExecSQLPanel extends JPanel {
 						JOptionPane.YES_NO_OPTION);
 
 				if (deleteConfirm == JOptionPane.YES_OPTION) {
-					System.out.println(" text2delete: " + text2Delete);
 
 					executeSQL(text2Delete, "MODE_FILL");
 					executeSQL(lastSelect, "MODE_FILL"); // To refresh JTable
@@ -498,8 +497,6 @@ public class ExecSQLPanel extends JPanel {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-
-		System.out.println("redQuery: " + redQuery);
 
 		if ("SELECT ".equalsIgnoreCase(redQuery.trim().substring(0, 7))) {
 

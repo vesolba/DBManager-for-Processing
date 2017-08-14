@@ -82,6 +82,7 @@ public class DBManageProps {
 			defaultProps.setProperty("treeiconsflavour", "Processing");
 			defaultProps.setProperty("fontsize01", "30");
 			defaultProps.setProperty("spinTable", "20");
+			defaultProps.setProperty("spinTabCrea", "20");
 			defaultProps.setProperty("spinInserTable", "30");
 			defaultProps.setProperty("spinTestPane", "20");
 			defaultProps.setProperty("treeFontSize", "20");
