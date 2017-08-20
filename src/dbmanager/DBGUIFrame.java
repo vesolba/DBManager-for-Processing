@@ -63,7 +63,7 @@ public class DBGUIFrame extends JFrame {
 		setPreferredSize(new Dimension(600, 400));
 		setMinimumSize(new Dimension(300, 200));
 		setMaximumSize(new Dimension(3000, 3000));
-		// setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
+		setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 661, 431);
 		setTitle("DB Manager for Processing ");
@@ -239,13 +239,99 @@ public class DBGUIFrame extends JFrame {
 		}
 
 		JMenuItem mntmExpandAll = new JMenuItem("Expand All");
+		mntmExpandAll.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+
+				int numRows = DBManager.dBtree.getRowCount();
+				for (int i = 0; i < numRows; i++) {
+					DBManager.dBtree.expandRow(i);
+				}
+			}
+		});
 		mnDBTree.add(mntmExpandAll);
 
 		JMenuItem mntmCollapseAll = new JMenuItem("Collapse All");
+		mntmCollapseAll.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int numRows = DBManager.dBtree.getRowCount();
+				for (int i = 0; i < numRows; i++) {
+					DBManager.dBtree.collapseRow(i);
+				}
+			}
+		});
 		mnDBTree.add(mntmCollapseAll);
 
 		Component horizontalStrut_2 = Box.createHorizontalStrut(10);
 		menuBar.add(horizontalStrut_2);
+
+		JMenu mnCreate = new JMenu(" Create ");
+		menuBar.add(mnCreate);
+
+		JMenuItem mntmDBCreate = new JMenuItem("Create Database"); // Create DB
+		mntmDBCreate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					DBCreationDialog dialog = new DBCreationDialog("", "", "", null, DBManager.derbySystemHome,
+							"Create Database...");
+					// DB Name, User, Pwd, Description, DB Location (File Location), Path in dBtree,
+					// Action command
+					dialog.getTxtDBLocation().setText(DBManager.derbySystemHome);
+					dialog.setLocationRelativeTo(null);
+
+					dialog.setTitle("Java DB Database Creation");
+					dialog.setVisible(true);
+
+				} catch (Exception f) {
+					DBFactory.errorPrint(f);
+				}
+			}
+		});
+		mnCreate.add(mntmDBCreate);
+
+		JMenuItem mntmNewMenuItem = new JMenuItem("Register Database...");
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					DBCreationDialog dialog = new DBCreationDialog("", "", "", null, DBManager.derbySystemHome,
+							"Register Database...");
+					// DB Name, User, Pwd, Description, DB Location (File Location), Action command
+					dialog.getTxtDBLocation().setText(DBManager.derbySystemHome);
+					dialog.setLocationRelativeTo(null);
+
+					dialog.setTitle("Java DB Database Registration");
+					dialog.button.doClick();
+
+					dialog.setVisible(true);
+
+				} catch (Exception f) {
+					DBFactory.errorPrint(f);
+				}
+
+			}
+		});
+		mnCreate.add(mntmNewMenuItem);
+
+		JMenuItem mntmTableCrea = new JMenuItem("Create Table"); // Create table
+		mntmTableCrea.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					TableCreaDialog dialog = new TableCreaDialog();
+					Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+					dialog.pack();
+					dialog.setSize(screenSize.width * 2 / 3, screenSize.height * 2 / 3);
+					dialog.setLocationRelativeTo(null);
+					dialog.setVisible(true);
+
+				} catch (Exception h) {
+					h.printStackTrace();
+				}
+
+			}
+		});
+		mnCreate.add(mntmTableCrea);
+
+		Component horizontalStrut_1 = Box.createHorizontalStrut(10);
+		menuBar.add(horizontalStrut_1);
 
 		mntmExit.setHorizontalAlignment(SwingConstants.LEFT);
 		menuBar.add(mntmExit);

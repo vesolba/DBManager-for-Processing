@@ -32,11 +32,7 @@ public class MyColumnTypes {
 	public int NUM_PREC_RADIX; // => usually 2 or 10
 
 	public MyColumnTypes() {
-		jbInit();
-	}
-
-	private void jbInit() {
-
+	
 		TYPE_NAME = ""; // => Type name
 		DATA_TYPE = 0;// => SQL data type from java.sql.Types
 		PRECISION = 0; // => maximum precision

@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.SystemColor;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -13,12 +14,11 @@ import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.DropMode;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -43,13 +43,12 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
-import javafx.scene.layout.Pane;
-
 @SuppressWarnings("serial")
 public class ExecSQLPanel extends JPanel {
 
 	private JSpinner spinFontSize;
 	private JSpinner spinTable;
+	private JSpinner spintTabCrea;
 	private JTextField txtLastMessage;
 	private JTable tableSQLResult;
 	private static JTextPane txtSelected;
@@ -257,8 +256,9 @@ public class ExecSQLPanel extends JPanel {
 		JPanel lowPanel = new JPanel();
 		splPanExecSQL.setRightComponent(lowPanel);
 		lowPanel.setLayout(new BorderLayout(0, 0));
+		MyTableModel tModel = new MyTableModel(null, lastSelect, lastSelect);
 
-		tableSQLResult = new JTable() {
+		tableSQLResult = new JTable(tModel) {
 			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
 				Component c = super.prepareRenderer(renderer, row, column);
 
@@ -307,7 +307,7 @@ public class ExecSQLPanel extends JPanel {
 				spinTable.setValue(Integer.parseInt(propTable));
 				tableSQLResult.setFont(
 						tableSQLResult.getFont().deriveFont(Float.parseFloat(spinTable.getValue().toString())));
-				tableSQLResult.setRowHeight((int) Float.parseFloat(spinTable.getValue().toString()) + 2);
+				tableSQLResult.setRowHeight((int) Float.parseFloat(spinTable.getValue().toString()) + 5);
 			}
 		}
 		JScrollPane scrollPane = new JScrollPane(tableSQLResult);
@@ -325,8 +325,11 @@ public class ExecSQLPanel extends JPanel {
 		btnDeleteRow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
-				// MyTableModel model = (MyTableModel) tableSQLResult.getModel();
 				MyTableModel model = (MyTableModel) tableSQLResult.getModel();
+
+				if (model.getRowCount() <= 0)
+					return;
+
 				int rowSel = tableSQLResult.getSelectedRow();
 
 				String text2Delete = " DELETE FROM " + textEditingElement.getText() + " WHERE ";
@@ -343,7 +346,6 @@ public class ExecSQLPanel extends JPanel {
 						}
 
 						Object redValue = model.getValueAt(rowSel, i);
-						System.out.println(" redvalue " + redValue);
 
 						text2Delete += model.getColumnName(i) + " = ";
 						String quotePrefix = (String) DBManager.dataTypeInfo(model.colsTypes.get(i), "LITERAL_PREFIX");
@@ -363,7 +365,6 @@ public class ExecSQLPanel extends JPanel {
 						JOptionPane.YES_NO_OPTION);
 
 				if (deleteConfirm == JOptionPane.YES_OPTION) {
-					System.out.println(" text2delete: " + text2Delete);
 
 					executeSQL(text2Delete, "MODE_FILL");
 					executeSQL(lastSelect, "MODE_FILL"); // To refresh JTable
@@ -371,31 +372,46 @@ public class ExecSQLPanel extends JPanel {
 				}
 			}
 		});
-		btnDeleteRow.setPreferredSize(new Dimension(30, 0));
-		btnDeleteRow.setMinimumSize(new Dimension(93, 50));
-		btnDeleteRow.setMaximumSize(new Dimension(300, 50));
+
+		Component horizontalStrut_1 = Box.createHorizontalStrut(20);
+		editTableToolsBar.add(horizontalStrut_1);
+		btnDeleteRow.setPreferredSize(new Dimension(100, 23));
+		btnDeleteRow.setMinimumSize(new Dimension(200, 0));
+		btnDeleteRow.setMaximumSize(new Dimension(1000, 30));
 		btnDeleteRow.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 		editTableToolsBar.add(btnDeleteRow);
 
-		JButton btnInsertRow = new JButton(" Insert Row ");
-		btnInsertRow.setPreferredSize(new Dimension(30, 0));
-		btnInsertRow.setMaximumSize(new Dimension(300, 50));
+		JButton btnInsertRow = new JButton(" Insert Rows");
+		btnInsertRow.setMinimumSize(new Dimension(200, 0));
+		btnInsertRow.setActionCommand(" Insert Rows");
+		btnInsertRow.setPreferredSize(new Dimension(100, 23));
+		btnInsertRow.setMaximumSize(new Dimension(1000, 30));
 		btnInsertRow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+
 				String query = "SELECT * FROM " + textEditingElement.getText();
 				executeSQL(query, "MODE_NEW_ROW");
-				tableSQLResult.editCellAt(tableSQLResult.getSelectedRow(), tableSQLResult.getSelectedColumn());
 			}
 		});
 		btnInsertRow.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 		editTableToolsBar.add(btnInsertRow);
 
-		JButton btnUpdateRow = new JButton(" Edit Row ");
-		btnUpdateRow.setPreferredSize(new Dimension(30, 0));
-		btnUpdateRow.setMaximumSize(new Dimension(300, 50));
-		btnUpdateRow.setHorizontalTextPosition(SwingConstants.CENTER);
-		btnUpdateRow.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
-		editTableToolsBar.add(btnUpdateRow);
+		JButton btnSaveChanges = new JButton("Save changes");
+		btnSaveChanges.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+
+			}
+		});
+		btnSaveChanges.setPreferredSize(new Dimension(100, 23));
+		btnSaveChanges.setMinimumSize(new Dimension(200, 23));
+		btnSaveChanges.setMaximumSize(new Dimension(1000, 30));
+		btnSaveChanges.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
+		editTableToolsBar.add(btnSaveChanges);
+
+		Component glue = Box.createGlue();
+		glue.setMinimumSize(new Dimension(30, 23));
+		glue.setMaximumSize(new Dimension(1000, 23));
+		editTableToolsBar.add(glue);
 
 		JLabel lblNewLabel = new JLabel(" Table: ");
 		lblNewLabel.setMaximumSize(new Dimension(60, 50));
@@ -482,14 +498,31 @@ public class ExecSQLPanel extends JPanel {
 			ex.printStackTrace();
 		}
 
-		System.out.println("redQuery: " + redQuery);
-
-		if ("SELECT ".equalsIgnoreCase(redQuery.trim().substring(0, 7))) {
+		if ("SELECT ".equalsIgnoreCase(redQuery.trim().substring(0, 7))
+				|| "VALUES ".equalsIgnoreCase(redQuery.trim().substring(0, 7))) {
 
 			lastSelect = redQuery;
 			MyTableModel tModel = new MyTableModel(conn, redQuery.trim(), mode);
-			tableSQLResult.setModel(tModel);
-			tableSQLResult.updateUI();
+
+			if (mode.equals("MODE_NEW_ROW")) {
+				try {
+					InsertRowDlg dialog = new InsertRowDlg(tModel, conn);
+
+					Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+					dialog.pack();
+					dialog.setSize(screenSize.width * 1 / 3, screenSize.height * 1 / 3);
+					dialog.setLocationRelativeTo(null);
+					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+					dialog.setVisible(true);
+
+				} catch (Exception h) {
+					h.printStackTrace();
+				}
+
+			} else {
+				tableSQLResult.setModel(tModel);
+				tableSQLResult.updateUI();
+			}
 
 		} else {
 			if (redQuery != null && !redQuery.equals("")) {
@@ -525,8 +558,7 @@ public class ExecSQLPanel extends JPanel {
 					}
 				}
 
-				// ((DefaultTreeModel) DBManager.dBtree.getModel()).reload();
-				DBManager.dBtree.repaint();
+				DBManager.dBtree.updateUI();
 				textPaneInSQL.setText("");
 
 			}

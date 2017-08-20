@@ -34,12 +34,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.io.File;
+import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -274,8 +276,6 @@ public class DBManager<propsDBM> implements Tool {
 						ActionListener menuListener = new ActionListener() {
 							public void actionPerformed(ActionEvent event) {
 								dBfactory = new DBFactory(event, dBtree.getSelectionPath(), frame);
-								// To refresh the tree, rebuilds the tree
-								// model. But first we save its expansion state.
 
 								final TreeExpansionUtil expander = new TreeExpansionUtil(dBtree);
 
@@ -285,7 +285,7 @@ public class DBManager<propsDBM> implements Tool {
 
 								treeDataModel = new DefaultTreeModel(getTreeModel());
 								dBtree.setModel(treeDataModel);
-								dBtree.repaint();
+								dBtree.updateUI();
 
 								// Recover the expansion state
 								expander.setExpansionState(state);
@@ -338,6 +338,7 @@ public class DBManager<propsDBM> implements Tool {
 								if (nodeInfo.getText().equals("Tables") || nodeInfo.getText().equals("Columns")
 										|| nodeInfo.getText().equals("Indices")) {
 									// menuItem.addActionListener(menuListener);
+									dBtree.setToolTipText(nodeInfo.getDataType() + " ");
 								}
 
 								if (nodeInfo.getText().equals("Tables")) {
@@ -495,11 +496,10 @@ public class DBManager<propsDBM> implements Tool {
 			ResultSet rs = dmd.getTables(null, "APP", "DBLIST", null);
 
 			if (!rs.next()) {
-				System.out.println("SysTable creation when reswasnull");
 				DBConnect.createSysDB(conn, pathToDBManager);
 			} else {
 
-				System.out.println("SysTable exists detected." + rs.toString());
+//				System.out.println("SysTable exists detected." + rs.toString());
 
 			}
 
@@ -678,9 +678,77 @@ public class DBManager<propsDBM> implements Tool {
 		typeConvert.put("XML", "java.sql.SQLXML");
 	}
 
-	public static Object dataTypeInfo(String row, String col) {
+	public static Object dataTypeInfo(String colType, String colInfo) {
 
-		System.out.println(" row " + row + " column " + col + "  " + rowSearch.get(row) + "  " + colSearch.get(col));
-		return hiddenTypesTable[rowSearch.get(row)][colSearch.get(col)];
+//		System.out.println(" row " + colType + " column " + colInfo + "  " + rowSearch.get(colInfo) + "  "
+//				+ colSearch.get(colInfo));
+		return hiddenTypesTable[rowSearch.get(colType)][colSearch.get(colInfo)];
+	}
+
+	/**
+	 * Obtains the column class statically.
+	 *
+	 * @param columnType,
+	 *            SQL type.
+	 *
+	 * @param columnTypeName,
+	 *            Name of the column type.
+	 * @ @return Class<?>.
+	 * 
+	 */
+	public static Class<?> getColClass(int columnType, String columnTypeName) {
+
+		switch (columnType) {
+		case Types.SMALLINT:
+		case Types.INTEGER:
+			return Integer.class;
+
+		case Types.BIGINT:
+			return Long.class;
+
+		case Types.FLOAT:
+		case Types.DOUBLE:
+			return Double.class;
+
+		case Types.REAL:
+			return Double.class;
+
+		case Types.DECIMAL:
+		case Types.NUMERIC:
+			return BigDecimal.class;
+
+		case Types.DATE:
+			return java.sql.Date.class;
+
+		case Types.TIME:
+			return java.sql.Time.class;
+
+		case Types.TIMESTAMP:
+			return java.sql.Timestamp.class;
+
+		case Types.CLOB:
+			return java.sql.Clob.class;
+
+		case Types.BLOB:
+			return java.sql.Blob.class;
+
+		case Types.BINARY:
+		case Types.VARBINARY:
+			return Byte.class;
+
+		case Types.CHAR:
+		case Types.VARCHAR:
+			return String.class;
+
+		case Types.BOOLEAN:
+			return Boolean.class;
+
+		case Types.SQLXML:
+			return java.sql.SQLXML.class;
+
+		default:
+			System.out.println("Error in columnType: " + columnType + " " + columnTypeName);
+			return Object.class;
+		}
 	}
 }

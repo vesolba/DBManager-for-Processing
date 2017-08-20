@@ -29,7 +29,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 
 @SuppressWarnings("serial")
 public class DBCreationDialog extends JDialog {
@@ -40,7 +39,6 @@ public class DBCreationDialog extends JDialog {
 	private String initialDescription = "";
 	private String initialDBLocation = "";
 
-	private File realLocation;
 	private boolean isDBase;
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtDBName;
@@ -50,7 +48,6 @@ public class DBCreationDialog extends JDialog {
 	private boolean alreadyRegistered = false;
 	private JPasswordField txtPwd;
 	private JButton okButton;
-	private TreePath treePath;
 	public JButton button;
 	public boolean isDBCreation;
 	public boolean isDBRegistration;
@@ -60,17 +57,15 @@ public class DBCreationDialog extends JDialog {
 	/**
 	 * Create the dialog.
 	 * 
-	 * @param treePath
 	 */
 	public DBCreationDialog(String initialDBName, String initialNbuser, String initialPwd, String initialDescription,
-			String initialDBLocation, TreePath treePath, String command) {
+			String initialDBLocation, String command) {
 
 		this.initialDBName = initialDBName;
 		this.initialNbuser = initialNbuser;
 		this.initialPwd = initialPwd;
 		this.initialDescription = initialDescription;
 		this.initialDBLocation = initialDBLocation;
-		this.treePath = treePath;
 		isDBCreation = command.equals("Create Database...");
 		isDBRegistration = command.equals("Register Database...");
 
@@ -430,43 +425,25 @@ public class DBCreationDialog extends JDialog {
 										"", null, false);
 
 								DBManager.stmt = sysConn.createStatement();
-								String hashFromPaswd = "";
 								char[] paswd = txtPwd.getPassword();
 								if (paswd != null && !paswd.toString().equals("")) {
-									hashFromPaswd = PasswordStorage.createHash(paswd);
 								}
 
 								String insert = "INSERT INTO DBLIST (DBMS, DBNAME, DESCRIPTION, FILEPATH) "
 										+ "VALUES (\'Java DB\', \'" + txtDBName.getText() + "\', \'"
 										+ txtDescription.getText() + "\', \'" + txtDBLocation.getText() + "\')";
-								System.out.println("Query INSERT DATA: " + insert);
+
 								int result = DBManager.stmt.executeUpdate(insert);
-								System.out.println("Resultado: ");
+
 								if (result >= 0) {
 									DefaultTreeModel model = (DefaultTreeModel) DBManager.dBtree.getModel();
 									DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
-									// root.add(new DefaultMutableTreeNode(
-									// new DBTreeNodeK("Java DB", txtDBName.getText(), txtDBLocation.getText(),
-									// "DBASE", txtDBName.getText(), txtDBName.getText())));
 
 									model.insertNodeInto(new DefaultMutableTreeNode(
 											new DBTreeNodeK("Java DB", txtDBName.getText(), txtDBLocation.getText(),
 													"DBASE", txtDBName.getText(), txtDBName.getText())),
 											root, 0);
-									// model.nodeStructureChanged(root);
-									// model.reload(root);
-
-									// DBTreeNodeK nodeInfo = new DBTreeNodeK("Java DB", txtDBName.getText(),
-									// txtDBLocation.getText());
-									// TreePath newPath = treePath.pathByAddingChild(nodeInfo);
-									// ((DefaultTreeModel) DBManager.dBtree.getModel()).reload();
-									// // DefaultMutableTreeNode node = new DefaultMutableTreeNode(nodeInfo);
-									// DefaultMutableTreeNode parent = (DefaultMutableTreeNode)
-									// treePath.getLastPathComponent();
-									// parent.add(node);
-
-									// DBManager.treeDataModel = new DefaultTreeModel(DBManager.getTreeModel());
-									/// DBManager.dBtree.setModel(DBManager.treeDataModel);
+									DBManager.dBtree.updateUI();
 								}
 
 							} catch (Exception ey) {

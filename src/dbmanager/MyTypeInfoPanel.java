@@ -22,6 +22,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+
 import java.awt.Dimension;
 import javax.swing.JTextArea;
 import javax.swing.BoxLayout;
@@ -29,6 +30,8 @@ import java.awt.Font;
 
 public class MyTypeInfoPanel extends JPanel {
 	private JTable table;
+	private JTextArea textAreaMessage1 = null;
+	private JTextArea textAreaMessage2;
 
 	public MyTypeInfoPanel() {
 		jbInit();
@@ -43,7 +46,7 @@ public class MyTypeInfoPanel extends JPanel {
 		Component horizontalGlue = Box.createHorizontalGlue();
 		menuBar.add(horizontalGlue);
 
-		JLabel lblNewLabel = new JLabel("  Column  data types availables in Java DB  ");
+		JLabel lblNewLabel = new JLabel("  Java DB available column data types  ");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		menuBar.add(lblNewLabel);
 
@@ -84,6 +87,15 @@ public class MyTypeInfoPanel extends JPanel {
 			String propTable = DBManager.propsDBM.getDBMProp("spinTestPane");
 			spinTestPane.addChangeListener(new ChangeListener() {
 				public void stateChanged(ChangeEvent arg0) {
+
+					if (textAreaMessage1 != null) {
+						textAreaMessage1.setFont(
+								table.getFont().deriveFont(Float.parseFloat(spinTestPane.getValue().toString())));
+					}
+					if (textAreaMessage2 != null) {
+						textAreaMessage2.setFont(
+								table.getFont().deriveFont(Float.parseFloat(spinTestPane.getValue().toString())));
+					}
 					table.setFont(table.getFont().deriveFont(Float.parseFloat(spinTestPane.getValue().toString())));
 					table.setRowHeight((int) Float.parseFloat(spinTestPane.getValue().toString()) + 5);
 					DBManager.propsDBM.setDBMProp("spinTestPane", spinTestPane.getValue().toString());
@@ -120,7 +132,7 @@ public class MyTypeInfoPanel extends JPanel {
 		add(mesagesPane, BorderLayout.SOUTH);
 		mesagesPane.setLayout(new BoxLayout(mesagesPane, BoxLayout.X_AXIS));
 
-		JTextArea textAreaMessage1 = new JTextArea();
+		textAreaMessage1 = new JTextArea();
 		textAreaMessage1.setFont(new Font("Monospaced", Font.PLAIN, 13));
 		textAreaMessage1.setEnabled(false);
 		textAreaMessage1.setEditable(false);
@@ -129,7 +141,7 @@ public class MyTypeInfoPanel extends JPanel {
 		textAreaMessage1.setColumns(20);
 		mesagesPane.add(textAreaMessage1);
 
-		JTextArea textAreaMessage2 = new JTextArea();
+		textAreaMessage2 = new JTextArea();
 		textAreaMessage2.setEnabled(false);
 		textAreaMessage2.setEditable(false);
 		textAreaMessage2.setFont(new Font("Monospaced", Font.PLAIN, 13));
@@ -148,8 +160,6 @@ public class MyTypeInfoPanel extends JPanel {
 			while (rset.next()) {
 				Object[] tipo = new Object[18];
 				tipo[0] = rset.getString("TYPE_NAME");
-				System.out.println(tipo[0]);
-
 				tipo[1] = rset.getInt("DATA_TYPE");
 				tipo[2] = rset.getInt("PRECISION");
 				tipo[3] = rset.getString("LITERAL_PREFIX");

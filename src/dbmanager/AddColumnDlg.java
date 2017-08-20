@@ -1,27 +1,33 @@
 package dbmanager;
 
-import java.awt.Color;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JTextArea;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
@@ -29,66 +35,116 @@ public class AddColumnDlg extends JDialog {
 
 	private JFormattedTextField textName;
 	private JFormattedTextField textSize;
-	private JTextField txtDefValue;
+	private JTextField textDefault;
 	private JFormattedTextField textScale;
 	private JComboBox<MyColumnTypes> comboType;
 	private JButton btnOK;
 	public int result = -1;
 	private JCheckBox chkbxPrimKey;
 	private JCheckBox chkbxUnique;
-	private JCheckBox chkbxNull;
+	private JCheckBox chkbxNotNull;
 	private JCheckBox chkbxIndex;
+	private final ButtonGroup buttonGroup = new ButtonGroup();
+	private JLabel label;
+	private JPanel panelUpper;
+	private JPanel panelAuto;
+	private JPanel panelButtons;
+	private JPanel panel_3;
+	private JPanel panel_4;
+	private JPanel panel_5;
+	private JPanel panel_6;
+	private JPanel panel_7;
+	private JPanel panel_8;
+	private JPanel panelForeign;
+	private JPanel panelCheck;
+	private Component horizontalStrut;
+	private JCheckBox chkbxAutoinc;
+	private JPanel panel_9;
+	private JLabel label_1;
+	private JLabel label_2;
+	private JPanel panel_12;
+	private JLabel label_3;
+	private JFormattedTextField txtInitValue;
+	private JPanel panel_13;
+	private JLabel label_4;
+	private JFormattedTextField txtIncrement;
+	private JPanel panel_14;
+	private JCheckBox chkbxCycle;
+	private JLabel label_5;
+	private JCheckBox chkbxForeign;
+	private JPanel panel_15;
+	private JLabel label_6;
+	private JFormattedTextField txtConstName;
+	private JPanel panel_16;
+	private JLabel label_7;
+	private JTextField txtRefTable;
+	private JPanel panel_17;
+	private JLabel label_8;
+	private JTextField txtColNames;
+	private JPanel panel_18;
+	private JCheckBox chkbxOnDelete;
+	private JComboBox<MyColumnTypes> comboOnDelete;
+	private JLabel label_9;
+	private JPanel panel_19;
+	private JCheckBox chkbxOnUpdate;
+	private JComboBox<MyColumnTypes> comboOnUpdate;
 	private JCheckBox chkbxCheck;
-	private JTextArea textCheck;
+	private JPanel panel_20;
+	private JLabel lblConstraintName;
+	private JTextField txtConstCheck;
+	private JPanel panel_21;
+	private JLabel label_11;
+	private JEditorPane editorPaneConditions;
+	private JLabel label_12;
+	private JComboBox comboGenerated;
+	private JSeparator separator;
+	private JSeparator separator_1;
+	private JSeparator separator_2;
+	private JSeparator separator_3;
+	private JPanel panel;
+	private JPanel panel_1;
+	private JPanel panel_2;
 
 	public AddColumnDlg() {
 		jbInit();
 	}
 
 	private void jbInit() {
+		setFont(new Font("Tahoma", Font.PLAIN, 14));
 		setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
-		setBounds(new Rectangle(0, 0, 600, 400));
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setTitle("Add column");
 		setModal(true);
-		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 55, 15, 157, 55, 71, 97, 0 };
-		gridBagLayout.rowHeights = new int[] { 10, 28, 28, 28, 28, 57, 52, 31, 23, 0 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		getContentPane().setLayout(gridBagLayout);
+		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+
+		panelUpper = new JPanel();
+		panelUpper.setPreferredSize(new Dimension(1000, 50));
+		panelUpper.setMinimumSize(new Dimension(1000, 50));
+		panelUpper.setMaximumSize(new Dimension(20000, 20000));
+		getContentPane().add(panelUpper);
+
+		panel_3 = new JPanel();
+		panelUpper.add(panel_3);
 
 		JLabel lblName = new JLabel("Name: ");
+		panel_3.add(lblName);
 		lblName.setHorizontalAlignment(SwingConstants.RIGHT);
-		GridBagConstraints gbc_lblName = new GridBagConstraints();
-		gbc_lblName.fill = GridBagConstraints.BOTH;
-		gbc_lblName.insets = new Insets(0, 0, 5, 5);
-		gbc_lblName.gridwidth = 2;
-		gbc_lblName.gridx = 0;
-		gbc_lblName.gridy = 1;
-		getContentPane().add(lblName, gbc_lblName);
 
 		textName = new JFormattedTextField();
-		textName.setColumns(10);
-		GridBagConstraints gbc_textName = new GridBagConstraints();
-		gbc_textName.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textName.insets = new Insets(0, 0, 5, 0);
-		gbc_textName.gridwidth = 4;
-		gbc_textName.gridx = 2;
-		gbc_textName.gridy = 1;
-		getContentPane().add(textName, gbc_textName);
+		panel_3.add(textName);
+		textName.setColumns(20);
+
+		panel_4 = new JPanel();
+		panelUpper.add(panel_4);
 
 		JLabel lblType = new JLabel("Type: ");
+		panel_4.add(lblType);
 		lblType.setHorizontalAlignment(SwingConstants.RIGHT);
-		GridBagConstraints gbc_lblType = new GridBagConstraints();
-		gbc_lblType.fill = GridBagConstraints.BOTH;
-		gbc_lblType.insets = new Insets(0, 0, 5, 5);
-		gbc_lblType.gridwidth = 2;
-		gbc_lblType.gridx = 0;
-		gbc_lblType.gridy = 2;
-		getContentPane().add(lblType, gbc_lblType);
 
 		comboType = new JComboBox<MyColumnTypes>();
+		comboType.setPreferredSize(new Dimension(200, 20));
+		comboType.setMaximumSize(new Dimension(1000, 1000));
+		panel_4.add(comboType);
 		comboType.setAutoscrolls(true);
 		comboType.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -105,6 +161,11 @@ public class AddColumnDlg extends JDialog {
 					textScale.setEnabled(true);
 				}
 
+				if (comboType.getSelectedItem().toString().equals("CLOB")) {
+					getTextDefault().setText("EMPTY_CLOB()");
+
+				}
+
 				if (!textName.getText().equals("")) {
 					btnOK.setEnabled(true);
 				}
@@ -113,25 +174,21 @@ public class AddColumnDlg extends JDialog {
 		});
 		comboType.setEditable(false);
 
-		GridBagConstraints gbc_comboType = new GridBagConstraints();
-		gbc_comboType.fill = GridBagConstraints.HORIZONTAL;
-		gbc_comboType.insets = new Insets(0, 0, 5, 0);
-		gbc_comboType.gridwidth = 4;
-		gbc_comboType.gridx = 2;
-		gbc_comboType.gridy = 2;
-		getContentPane().add(comboType, gbc_comboType);
+		panel = new JPanel();
+		panelUpper.add(panel);
+
+		panel_5 = new JPanel();
+		panel.add(panel_5);
 
 		JLabel lblSize = new JLabel("Size: ");
+		panel_5.add(lblSize);
 		lblSize.setHorizontalAlignment(SwingConstants.RIGHT);
-		GridBagConstraints gbc_lblSize = new GridBagConstraints();
-		gbc_lblSize.fill = GridBagConstraints.BOTH;
-		gbc_lblSize.insets = new Insets(0, 0, 5, 5);
-		gbc_lblSize.gridwidth = 2;
-		gbc_lblSize.gridx = 0;
-		gbc_lblSize.gridy = 3;
-		getContentPane().add(lblSize, gbc_lblSize);
 
 		textSize = new JFormattedTextField(new Integer(0));
+		textSize.setEnabled(false);
+		textSize.setEditable(false);
+		textSize.setHorizontalAlignment(SwingConstants.LEFT);
+		panel_5.add(textSize);
 		textSize.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (!textName.getText().equals("")) {
@@ -141,66 +198,44 @@ public class AddColumnDlg extends JDialog {
 		});
 		textSize.setText("");
 		textSize.setColumns(10);
-		GridBagConstraints gbc_textSize = new GridBagConstraints();
-		gbc_textSize.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textSize.insets = new Insets(0, 0, 5, 5);
-		gbc_textSize.gridx = 2;
-		gbc_textSize.gridy = 3;
-		getContentPane().add(textSize, gbc_textSize);
 
-		JLabel label = new JLabel("Scale: ");
-		label.setHorizontalAlignment(SwingConstants.RIGHT);
-		GridBagConstraints gbc_label = new GridBagConstraints();
-		gbc_label.fill = GridBagConstraints.BOTH;
-		gbc_label.insets = new Insets(0, 0, 5, 5);
-		gbc_label.gridx = 3;
-		gbc_label.gridy = 3;
-		getContentPane().add(label, gbc_label);
+		panel_6 = new JPanel();
+		panel.add(panel_6);
+
+		label = new JLabel("Scale: ");
+		panel_6.add(label);
+		label.setSize(new Dimension(1000, 0));
+		label.setHorizontalAlignment(SwingConstants.CENTER);
 
 		textScale = new JFormattedTextField(0);
+		textScale.setText("");
+		panel_6.add(textScale);
 		textScale.setColumns(10);
-		GridBagConstraints gbc_textScale = new GridBagConstraints();
-		gbc_textScale.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textScale.insets = new Insets(0, 0, 5, 0);
-		gbc_textScale.gridwidth = 2;
-		gbc_textScale.gridx = 4;
-		gbc_textScale.gridy = 3;
-		getContentPane().add(textScale, gbc_textScale);
+
+		panel_7 = new JPanel();
+		panel.add(panel_7);
 
 		JLabel lblDefault = new JLabel("Default: ");
+		panel_7.add(lblDefault);
 		lblDefault.setHorizontalAlignment(SwingConstants.RIGHT);
-		GridBagConstraints gbc_lblDefault = new GridBagConstraints();
-		gbc_lblDefault.fill = GridBagConstraints.BOTH;
-		gbc_lblDefault.insets = new Insets(0, 0, 5, 5);
-		gbc_lblDefault.gridwidth = 2;
-		gbc_lblDefault.gridx = 0;
-		gbc_lblDefault.gridy = 4;
-		getContentPane().add(lblDefault, gbc_lblDefault);
 
-		txtDefValue = new JTextField();
-		txtDefValue.setColumns(10);
-		GridBagConstraints gbc_txtDefValue = new GridBagConstraints();
-		gbc_txtDefValue.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtDefValue.insets = new Insets(0, 0, 5, 0);
-		gbc_txtDefValue.gridwidth = 4;
-		gbc_txtDefValue.gridx = 2;
-		gbc_txtDefValue.gridy = 4;
-		getContentPane().add(txtDefValue, gbc_txtDefValue);
+		textDefault = new JTextField();
+		panel_7.add(textDefault);
+		textDefault.setColumns(10);
 
-		Box horizontalBox = Box.createHorizontalBox();
-		horizontalBox.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Constraints",
-				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-		horizontalBox.setToolTipText("ttrt");
+		panel_8 = new JPanel();
+		panelUpper.add(panel_8);
 
 		chkbxPrimKey = new JCheckBox("Primary key");
+		panel_8.add(chkbxPrimKey);
 		chkbxPrimKey.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (chkbxPrimKey.isSelected()) {
 					chkbxUnique.setSelected(true);
 					chkbxUnique.setEnabled(true);
 
-					chkbxNull.setSelected(false);
-					chkbxNull.setEnabled(true);
+					chkbxNotNull.setSelected(false);
+					chkbxNotNull.setEnabled(true);
 
 					chkbxIndex.setSelected(true);
 					chkbxIndex.setEnabled(false);
@@ -214,9 +249,9 @@ public class AddColumnDlg extends JDialog {
 		});
 		chkbxPrimKey.setIconTextGap(10);
 		chkbxPrimKey.setMargin(new Insets(0, 50, 0, 0));
-		horizontalBox.add(chkbxPrimKey);
 
 		chkbxUnique = new JCheckBox("Unique");
+		panel_8.add(chkbxUnique);
 		chkbxUnique.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (chkbxUnique.isSelected()) {
@@ -234,89 +269,276 @@ public class AddColumnDlg extends JDialog {
 		chkbxUnique.setIconTextGap(10);
 		chkbxUnique.setLocation(new Point(20, 0));
 		chkbxUnique.setMargin(new Insets(0, 40, 0, 0));
-		horizontalBox.add(chkbxUnique);
 
-		chkbxNull = new JCheckBox("Null");
-		chkbxNull.addActionListener(new ActionListener() {
+		chkbxNotNull = new JCheckBox("Null");
+		panel_8.add(chkbxNotNull);
+		chkbxNotNull.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (chkbxNull.isSelected()) {
+				if (chkbxNotNull.isSelected()) {
 					chkbxPrimKey.setSelected(false);
 				}
 			}
 		});
-		chkbxNull.setIconTextGap(10);
-		chkbxNull.setLocation(new Point(20, 0));
-		chkbxNull.setMargin(new Insets(0, 40, 0, 0));
-		chkbxNull.setSelected(true);
-		horizontalBox.add(chkbxNull);
+		chkbxNotNull.setIconTextGap(10);
+		chkbxNotNull.setLocation(new Point(20, 0));
+		chkbxNotNull.setMargin(new Insets(0, 40, 0, 0));
+		chkbxNotNull.setSelected(true);
 
 		chkbxIndex = new JCheckBox("Index");
+		panel_8.add(chkbxIndex);
 		chkbxIndex.setIconTextGap(10);
 		chkbxIndex.setLocation(new Point(20, 0));
 		chkbxIndex.setMargin(new Insets(0, 40, 0, 0));
-		horizontalBox.add(chkbxIndex);
-		GridBagConstraints gbc_horizontalBox = new GridBagConstraints();
-		gbc_horizontalBox.fill = GridBagConstraints.BOTH;
-		gbc_horizontalBox.insets = new Insets(0, 0, 5, 0);
-		gbc_horizontalBox.gridwidth = 6;
-		gbc_horizontalBox.gridx = 0;
-		gbc_horizontalBox.gridy = 5;
-		getContentPane().add(horizontalBox, gbc_horizontalBox);
+
+		separator = new JSeparator();
+		separator.setMaximumSize(new Dimension(32767, 0));
+		separator.setAlignmentY(Component.TOP_ALIGNMENT);
+		getContentPane().add(separator);
+
+		panelAuto = new JPanel();
+		panelAuto.setPreferredSize(new Dimension(1000, 15));
+		panelAuto.setMinimumSize(new Dimension(1000, 5));
+		panelAuto.setMaximumSize(new Dimension(20000, 20000));
+		getContentPane().add(panelAuto);
+
+		chkbxAutoinc = new JCheckBox("Identity Generation");
+		chkbxAutoinc.setEnabled(false);
+		panelAuto.add(chkbxAutoinc);
+
+		panel_9 = new JPanel();
+		panelAuto.add(panel_9);
+
+		label_1 = new JLabel("    ... GENERATED ");
+		panel_9.add(label_1);
+
+		comboGenerated = new JComboBox();
+		comboGenerated.setEnabled(false);
+		comboGenerated.setModel(new DefaultComboBoxModel(new String[] { "BY DEFAULT", "ALWAYS" }));
+		comboGenerated.setMaximumRowCount(20);
+
+		panel_9.add(comboGenerated);
+
+		label_2 = new JLabel(" AS IDENTITY ");
+		panel_9.add(label_2);
+
+		panel_1 = new JPanel();
+		panel_1.setBorder(new TitledBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null), "Autoincrement",
+				TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panelAuto.add(panel_1);
+
+		panel_12 = new JPanel();
+		panel_1.add(panel_12);
+
+		label_3 = new JLabel("(START WITH \r\n");
+		panel_12.add(label_3);
+
+		txtInitValue = new JFormattedTextField();
+		txtInitValue.setText("0");
+		txtInitValue.setColumns(10);
+		panel_12.add(txtInitValue);
+
+		panel_13 = new JPanel();
+		panel_1.add(panel_13);
+
+		label_4 = new JLabel(", INCREMENT BY ");
+		panel_13.add(label_4);
+
+		txtIncrement = new JFormattedTextField();
+		txtIncrement.setText("0");
+		txtIncrement.setEnabled(false);
+		txtIncrement.setEditable(false);
+		txtIncrement.setColumns(10);
+		panel_13.add(txtIncrement);
+
+		panel_14 = new JPanel();
+		panel_1.add(panel_14);
+
+		chkbxCycle = new JCheckBox(", CYCLE");
+		chkbxCycle.setEnabled(false);
+		panel_14.add(chkbxCycle);
+
+		label_5 = new JLabel(")");
+		panel_14.add(label_5);
+
+		separator_1 = new JSeparator();
+		separator_1.setMaximumSize(new Dimension(32767, 0));
+		getContentPane().add(separator_1);
+
+		panelForeign = new JPanel();
+		panelForeign.setPreferredSize(new Dimension(1000, 50));
+		panelForeign.setMinimumSize(new Dimension(1000, 50));
+		panelForeign.setMaximumSize(new Dimension(20000, 20000));
+		getContentPane().add(panelForeign);
+
+		chkbxForeign = new JCheckBox("Foreign Key");
+		chkbxForeign.setVerticalAlignment(SwingConstants.TOP);
+		chkbxForeign.setHorizontalAlignment(SwingConstants.LEFT);
+		chkbxForeign.setEnabled(false);
+		panelForeign.add(chkbxForeign);
+
+		panel_15 = new JPanel();
+		panelForeign.add(panel_15);
+
+		label_6 = new JLabel("... CONSTRAINT ");
+		panel_15.add(label_6);
+
+		txtConstName = new JFormattedTextField();
+		txtConstName.setEnabled(false);
+		txtConstName.setEditable(false);
+		txtConstName.setColumns(10);
+		TextPrompt tptxtConstName = new TextPrompt("Constraint Name (optional)", txtConstName);
+		tptxtConstName.changeAlpha(0.5f);
+		panel_15.add(txtConstName);
+
+		panel_16 = new JPanel();
+		panelForeign.add(panel_16);
+
+		label_7 = new JLabel(" REFERENCES ");
+		panel_16.add(label_7);
+
+		txtRefTable = new JTextField();
+		txtRefTable.setEnabled(false);
+		txtRefTable.setEditable(false);
+		txtRefTable.setColumns(10);
+		TextPrompt tptxtRefTable = new TextPrompt("Referenced table name", txtRefTable);
+		tptxtRefTable.changeAlpha(0.5f);
+		panel_16.add(txtRefTable);
+
+		panel_17 = new JPanel();
+		panelForeign.add(panel_17);
+
+		label_8 = new JLabel("(");
+		panel_17.add(label_8);
+
+		txtColNames = new JTextField();
+		txtColNames.setEnabled(false);
+		txtColNames.setEditable(false);
+		txtColNames.setColumns(30);
+		TextPrompt tptxtColNames = new TextPrompt("Comma separated column names", txtColNames);
+		tptxtColNames.changeAlpha(0.5f);
+		panel_17.add(txtColNames);
+
+		label_9 = new JLabel(")");
+		panel_17.add(label_9);
+
+		panel_2 = new JPanel();
+		panelForeign.add(panel_2);
+
+		panel_18 = new JPanel();
+		panel_2.add(panel_18);
+
+		chkbxOnDelete = new JCheckBox("ON DELETE  ");
+		chkbxOnDelete.setEnabled(false);
+		panel_18.add(chkbxOnDelete);
+
+		comboOnDelete = new JComboBox();
+		comboOnDelete
+				.setModel(new DefaultComboBoxModel(new String[] { "NO ACTION", "RESTRICT", "CASCADE", "SET NULL" }));
+		panel_18.add(comboOnDelete);
+
+		panel_19 = new JPanel();
+		panel_2.add(panel_19);
+
+		chkbxOnUpdate = new JCheckBox("ON UPDATE ");
+		chkbxOnUpdate.setEnabled(false);
+		panel_19.add(chkbxOnUpdate);
+
+		comboOnUpdate = new JComboBox();
+		comboOnUpdate.setModel(new DefaultComboBoxModel(new String[] { "NO ACTION", "RESTRICT" }));
+		panel_19.add(comboOnUpdate);
+
+		separator_2 = new JSeparator();
+		separator_2.setMaximumSize(new Dimension(32767, 0));
+		getContentPane().add(separator_2);
+
+		panelCheck = new JPanel();
+		panelCheck.setPreferredSize(new Dimension(1000, 50));
+		panelCheck.setMinimumSize(new Dimension(1000, 50));
+		panelCheck.setMaximumSize(new Dimension(20000, 20000));
+		getContentPane().add(panelCheck);
 
 		chkbxCheck = new JCheckBox("Check");
-		GridBagConstraints gbc_chkbxCheck = new GridBagConstraints();
-		gbc_chkbxCheck.anchor = GridBagConstraints.NORTHWEST;
-		gbc_chkbxCheck.insets = new Insets(0, 0, 5, 5);
-		gbc_chkbxCheck.gridx = 0;
-		gbc_chkbxCheck.gridy = 6;
-		getContentPane().add(chkbxCheck, gbc_chkbxCheck);
+		chkbxCheck.setEnabled(false);
+		chkbxCheck.setVerticalAlignment(SwingConstants.TOP);
+		chkbxCheck.setHorizontalAlignment(SwingConstants.LEFT);
+		panelCheck.add(chkbxCheck);
 
-		textCheck = new JTextArea();
-		textCheck.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
-		textCheck.setWrapStyleWord(true);
-		GridBagConstraints gbc_textCheck = new GridBagConstraints();
-		gbc_textCheck.fill = GridBagConstraints.BOTH;
-		gbc_textCheck.insets = new Insets(0, 0, 5, 0);
-		gbc_textCheck.gridwidth = 5;
-		gbc_textCheck.gridx = 1;
-		gbc_textCheck.gridy = 6;
-		getContentPane().add(textCheck, gbc_textCheck);
+		panel_20 = new JPanel();
+		panelCheck.add(panel_20);
+
+		lblConstraintName = new JLabel("... CONSTRAINT   Name: ");
+		panel_20.add(lblConstraintName);
+
+		txtConstCheck = new JTextField();
+		txtConstCheck.setEnabled(false);
+		txtConstCheck.setEditable(false);
+		txtConstCheck.setColumns(10);
+		panel_20.add(txtConstCheck);
+
+		panel_21 = new JPanel();
+		panelCheck.add(panel_21);
+
+		label_11 = new JLabel("Conditions: ( ");
+		panel_21.add(label_11);
+
+		editorPaneConditions = new JEditorPane();
+		editorPaneConditions
+				.setToolTipText("Examples: (salary >= 10000), (BONUS > TAX), (MEAL IN ('B', 'L', 'D', 'S'))");
+		editorPaneConditions.setPreferredSize(new Dimension(500, 50));
+		editorPaneConditions.setMinimumSize(new Dimension(1000, 40));
+		editorPaneConditions.setMaximumSize(new Dimension(20000, 20000));
+		editorPaneConditions.setEnabled(false);
+		editorPaneConditions.setEditable(false);
+		editorPaneConditions.setBorder(new EtchedBorder(EtchedBorder.RAISED, null, null));
+		panel_21.add(editorPaneConditions);
+
+		label_12 = new JLabel(" ) ");
+		panel_21.add(label_12);
+
+		separator_3 = new JSeparator();
+		separator_3.setMaximumSize(new Dimension(32767, 0));
+		getContentPane().add(separator_3);
+
+		panelButtons = new JPanel();
+		panelButtons.setPreferredSize(new Dimension(1000, 10));
+		panelButtons.setMinimumSize(new Dimension(1000, 10));
+		panelButtons.setMaximumSize(new Dimension(20000, 10000));
+		getContentPane().add(panelButtons);
+		panelButtons.setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 5));
 
 		btnOK = new JButton("OK");
+		panelButtons.add(btnOK);
+		btnOK.setPreferredSize(new Dimension(90, 30));
+		btnOK.setMinimumSize(new Dimension(10, 10));
+		btnOK.setMaximumSize(new Dimension(100, 100));
+		btnOK.setAlignmentX(0.5f);
 		btnOK.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				result = 0;
 				setVisible(false);
-				return;
+				// return;
 			}
 		});
 		btnOK.setEnabled(false);
-		GridBagConstraints gbc_btnOK = new GridBagConstraints();
-		gbc_btnOK.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnOK.anchor = GridBagConstraints.NORTH;
-		gbc_btnOK.insets = new Insets(0, 0, 5, 5);
-		gbc_btnOK.gridwidth = 2;
-		gbc_btnOK.gridx = 3;
-		gbc_btnOK.gridy = 8;
-		getContentPane().add(btnOK, gbc_btnOK);
 
 		JButton btnCancel = new JButton("Cancel");
+		btnCancel.setPreferredSize(new Dimension(90, 30));
+		btnCancel.setMinimumSize(new Dimension(10, 10));
+		btnCancel.setMaximumSize(new Dimension(100, 100));
+		panelButtons.add(btnCancel);
+
+		horizontalStrut = Box.createHorizontalStrut(20);
+		horizontalStrut.setPreferredSize(new Dimension(80, 0));
+		horizontalStrut.setMinimumSize(new Dimension(40, 0));
+		horizontalStrut.setMaximumSize(new Dimension(100, 0));
+		panelButtons.add(horizontalStrut);
 		btnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				result = -1;
 				setVisible(false);
-				return;
+				// return;
 			}
 		});
-		GridBagConstraints gbc_btnCancel = new GridBagConstraints();
-		gbc_btnCancel.insets = new Insets(0, 0, 5, 0);
-		gbc_btnCancel.anchor = GridBagConstraints.NORTH;
-		gbc_btnCancel.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnCancel.gridx = 5;
-		gbc_btnCancel.gridy = 8;
-		getContentPane().add(btnCancel, gbc_btnCancel);
-		
-		
 	}
 
 	/**
@@ -354,7 +576,7 @@ public class AddColumnDlg extends JDialog {
 	}
 
 	public JCheckBox getChkbxNull() {
-		return chkbxNull;
+		return chkbxNotNull;
 	}
 
 	public JCheckBox getChkbxIndex() {
@@ -365,11 +587,155 @@ public class AddColumnDlg extends JDialog {
 		return chkbxCheck;
 	}
 
-	public JTextArea getTextCheck() {
-		return textCheck;
+	public JTextField getTxtDefValue() {
+		return textDefault;
 	}
 
-	public JTextField getTxtDefValue() {
-		return txtDefValue;
+	/**
+	 * @return the chckbxAutoinc
+	 */
+	public JCheckBox getChckbxAutoinc() {
+		return chkbxAutoinc;
 	}
+
+	/**
+	 * @return the chckbxCycle
+	 */
+	public JCheckBox getChckbxCycle() {
+		return chkbxCycle;
+	}
+
+	/**
+	 * @return the textIncrement
+	 */
+	public JTextField getTextIncrement() {
+		return txtIncrement;
+	}
+
+	/**
+	 * @return the buttonGroup
+	 */
+	public ButtonGroup getButtonGroup() {
+		return buttonGroup;
+	}
+
+	/**
+	 * @return the comboGenerated
+	 */
+	public JComboBox getComboGenerated() {
+		return comboGenerated;
+	}
+
+	/**
+	 * @return the textDefault
+	 */
+	public JTextField getTextDefault() {
+		return textDefault;
+	}
+
+	/**
+	 * @return the chkbxNotNull
+	 */
+	public JCheckBox getChkbxNotNull() {
+		return chkbxNotNull;
+	}
+
+	/**
+	 * @return the chkbxAutoinc
+	 */
+	public JCheckBox getChkbxAutoinc() {
+		return chkbxAutoinc;
+	}
+
+	/**
+	 * @return the txtInitValue
+	 */
+	public JTextField getTxtInitValue() {
+		return txtInitValue;
+	}
+
+	/**
+	 * @return the txtIncrement
+	 */
+	public JTextField getTxtIncrement() {
+		return txtIncrement;
+	}
+
+	/**
+	 * @return the chkbxCycle
+	 */
+	public JCheckBox getChkbxCycle() {
+		return chkbxCycle;
+	}
+
+	/**
+	 * @return the chkbxForeign
+	 */
+	public JCheckBox getChkbxForeign() {
+		return chkbxForeign;
+	}
+
+	/**
+	 * @return the txtConstName
+	 */
+	public JTextField getTxtConstName() {
+		return txtConstName;
+	}
+
+	/**
+	 * @return the txtRefTable
+	 */
+	public JTextField getTxtRefTable() {
+		return txtRefTable;
+	}
+
+	/**
+	 * @return the txtColNames
+	 */
+	public JTextField getTxtColNames() {
+		return txtColNames;
+	}
+
+	/**
+	 * @return the chkbxOnDelete
+	 */
+	public JCheckBox getChkbxOnDelete() {
+		return chkbxOnDelete;
+	}
+
+	/**
+	 * @return the comboOnDelete
+	 */
+	public JComboBox<MyColumnTypes> getComboOnDelete() {
+		return comboOnDelete;
+	}
+
+	/**
+	 * @return the chkbxOnUpdate
+	 */
+	public JCheckBox getChkbxOnUpdate() {
+		return chkbxOnUpdate;
+	}
+
+	/**
+	 * @return the comboOnUpdate
+	 */
+	public JComboBox<MyColumnTypes> getComboOnUpdate() {
+		return comboOnUpdate;
+	}
+
+	/**
+	 * @return the txtConstCheck
+	 */
+	public JTextField getTxtConstCheck() {
+		return txtConstCheck;
+	}
+
+	/**
+	 * @return the editorPaneConditions
+	 */
+	public JEditorPane getEditorPaneConditions() {
+		return editorPaneConditions;
+	}
+
 }

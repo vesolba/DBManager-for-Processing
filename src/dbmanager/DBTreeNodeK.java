@@ -20,10 +20,6 @@ public class DBTreeNodeK extends DefaultMutableTreeNode {
 		this.dataType = dataType;
 		this.dBaseName = dBaseName;
 		this.dTypeName = dTypeName;
-		jbInit();
-	}
-
-	private void jbInit() {
 	}
 
 	@Override

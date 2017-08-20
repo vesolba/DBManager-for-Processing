@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="DBManager/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derby.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyclient.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_cs.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_de_DE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_es.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_fr.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_hu.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_it.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_ja_JP.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_ko_KR.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_pl.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_pt_BR.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_ru.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_zh_CN.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyLocale_zh_TW.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbynet.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyoptionaltools.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbyrun.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_121/db/lib/derbytools.jar"/>
+	<classpathentry kind="lib" path="lib/pde.jar"/>
+	<classpathentry kind="lib" path="resources/jgoodies-common-1.8.0-sources.jar"/>
+	<classpathentry kind="lib" path="resources/jgoodies-common-1.8.0.jar"/>
+	<classpathentry kind="lib" path="resources/jgoodies-forms-1.8.0-sources.jar"/>
+	<classpathentry kind="lib" path="resources/jgoodies-forms-1.8.0.jar"/>
+	<classpathentry kind="lib" path="resources/miglayout15-swing.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -2,7 +2,6 @@ package dbmanager;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -10,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,10 +28,12 @@ public class MyTableModel extends AbstractTableModel {
 	/** Holds value of property nullColour. */
 	private Color nullColour = new Color(240, 240, 240);
 
+	ArrayList<Boolean> colsAutoincrement = new ArrayList<>();
 	ArrayList<Boolean> colsSearchable = new ArrayList<>();
 	ArrayList<String> colsNames = new ArrayList<>(); // Column names
 	ArrayList<Integer> colsSizes = new ArrayList<>();
 	ArrayList<ArrayList<Object>> data = new ArrayList<>();
+	ArrayList<ArrayList<Object>> data2Add = new ArrayList<>();
 	ArrayList<String> colsTypes = new ArrayList<>();
 	ArrayList<Class> colsClasses = new ArrayList<>();
 
@@ -41,8 +41,17 @@ public class MyTableModel extends AbstractTableModel {
 	ResultSetMetaData metadata;
 	ResultSet resultSet;
 
+	Connection conn = null;
+	String query = "";
+	String mode = "MODE_FILL";
+	String sourceTable = "";
+
 	public MyTableModel(Connection conn, String query, String mode) {
 		super();
+
+		this.conn = conn;
+		this.query = query;
+		this.mode = mode;
 
 		if (conn != null) {
 
@@ -50,18 +59,22 @@ public class MyTableModel extends AbstractTableModel {
 				statement = conn.createStatement();
 				resultSet = statement.executeQuery(query);
 
+				// Metadata several values.
+				sourceTable = resultSet.getMetaData().getTableName(1);
 				int c = resultSet.getMetaData().getColumnCount();
 				for (int i = 1; i <= c; i++) {
 					colsNames.add(resultSet.getMetaData().getColumnName(i));
 					colsSizes.add(resultSet.getMetaData().getPrecision(i));
+					colsAutoincrement.add(resultSet.getMetaData().isAutoIncrement(i));
 					colsSearchable.add(resultSet.getMetaData().isSearchable(i));
 					String columnTypeName = resultSet.getMetaData().getColumnTypeName(i);
 					colsTypes.add(columnTypeName);
 					int columnType = resultSet.getMetaData().getColumnType(i);
-					colsClasses.add(getColClass(columnType, columnTypeName));
+					colsClasses.add(DBManager.getColClass(columnType, columnTypeName));
 				}
 
 				if (mode.equals("MODE_FILL") && resultSet.next()) {
+
 					do {
 						ArrayList<Object> row = new ArrayList<>();
 						for (int i = 0; i < c; i++) {
@@ -113,47 +126,42 @@ public class MyTableModel extends AbstractTableModel {
 
 				} // (mode.equals("MODE_FILL") && resultSet.next())
 
-				else {
-					ArrayList<Object> row = new ArrayList<>();
-					for (int i = 0; i < c; i++) {
-
-						System.out.println(" 1 " + colsClasses.get(i));
-
-						if (colsClasses.get(i) == Clob.class) {
-							Clob defValue = conn.createClob();
-							defValue.setString(1, "");
-							row.add(defValue);
-						} else
-
-						if (colsClasses.get(i) == Blob.class) {
-							Blob defValue = conn.createBlob();
-							byte[] zeroByte = { 00 };
-							defValue.setBytes(1, zeroByte);
-							row.add(defValue);
-						} else
-
-						if (colsClasses.get(i) == Byte.class) {
-							byte[] defValue = { 00 };
-							row.add(defValue);
-						} else
-
-						if (colsClasses.get(i) == java.sql.Date.class || colsClasses.get(i) == java.sql.Time.class
-								|| colsClasses.get(i) == java.sql.Timestamp.class || colsClasses.get(i) == String.class
-								|| colsClasses.get(i) == java.sql.SQLXML.class) {
-							Object defValue = "";
-							row.add(defValue);
-						} else {
-							Object defValue = 0;
-							row.add(defValue);
-						}
-						// || colsClasses.get(i) == Integer.class;
-						// || colsClasses.get(i) == Long.class;
-						// || colsClasses.get(i) == Double.class;
-						// || colsClasses.get(i) == Double.class;
-						// ||colsClasses.get(i) == BigDecimal.class;
-					}
-					data.add(row);
-				}
+				// else { //There is not data or we doesn't want it.
+				// ArrayList<Object> row = new ArrayList<>();
+				// for (int i = 0; i < c; i++) {
+				//
+				// if (colsClasses.get(i) == Clob.class) {
+				// Clob defValue = conn.createClob();
+				// defValue.setString(1, "");
+				// row.add(defValue);
+				// } else
+				//
+				// if (colsClasses.get(i) == Blob.class) {
+				// Blob defValue = conn.createBlob();
+				// byte[] zeroByte = { 00 };
+				// defValue.setBytes(1, zeroByte);
+				// row.add(defValue);
+				// } else
+				//
+				// if (colsClasses.get(i) == Byte.class) {
+				// byte[] defValue = { 00 };
+				// row.add(defValue);
+				// } else
+				//
+				// if (colsClasses.get(i) == java.sql.Date.class || colsClasses.get(i) ==
+				// java.sql.Time.class
+				// || colsClasses.get(i) == java.sql.Timestamp.class || colsClasses.get(i) ==
+				// String.class
+				// || colsClasses.get(i) == java.sql.SQLXML.class) {
+				// Object defValue = "";
+				// row.add(defValue);
+				// } else {
+				// Object defValue = 0;
+				// row.add(defValue);
+				// }
+				// }
+				// data.add(row);
+				// }
 			} catch (SQLException | IOException ex) {
 				System.out.println("Could not connect to database");
 				ex.printStackTrace();
@@ -191,7 +199,11 @@ public class MyTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		return data.size();
+		if (mode.equals("MODE_NEW_ROW")) {
+			return data2Add.size();
+		} else {
+			return data.size();
+		}
 	}
 
 	@Override
@@ -201,23 +213,50 @@ public class MyTableModel extends AbstractTableModel {
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		ArrayList<Object> row = data.get(rowIndex);
+
+		if (rowIndex >= getRowCount() || columnIndex >= getColumnCount())
+			return null;
+
+		ArrayList<Object> row;
+
+		if (mode.equals("MODE_NEW_ROW")) {
+			row = data2Add.get(rowIndex);
+		} else {
+			row = data.get(rowIndex);
+		}
+
 		Object value = row.get(columnIndex);
 
-//		if (colsClasses.get(columnIndex) == Clob.class) {
-//			try {
-//				return ((Clob) value).getSubString(1, (int) ((Clob) value).length());
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//		} else if (colsClasses.get(columnIndex) == Blob.class) {
-//			try {
-//				return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//		} else 
-			return value;
+		if (colsClasses.get(columnIndex) == Clob.class) {
+			value = ((JDBCTableLob) value).getText();
+		} else if (colsClasses.get(columnIndex) == Blob.class) {
+			try {
+				return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
+			} catch (SQLException e) {
+					 e.printStackTrace();
+					 }if (colsClasses.get(columnIndex) == java.sql.SQLXML.class) {
+			try {
+				value = ((java.sql.SQLXML) value).getString();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			// if (colsClasses.get(columnIndex) == Clob.class) {
+			// try {
+			// return ((Clob) value).getSubString(1, (int) ((Clob) value).length());
+			// } catch (SQLException e) {
+			// e.printStackTrace();
+			// }
+			// } else if (colsClasses.get(columnIndex) == Blob.class) {
+			// try {
+			// return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
+			// } catch (SQLException e) {
+			// e.printStackTrace();
+			// }
+					 }
+		} // else
+		return value;
 	}
 
 	@Override
@@ -232,30 +271,79 @@ public class MyTableModel extends AbstractTableModel {
 
 	@Override
 	public boolean isCellEditable(int row, int col) {
-		// Note that the data/cell address is constant,
-		// no matter where the cell appears onscreen.
-		if (col < 2) {
-			return false;
-		} else {
-			return true;
-		}
+
+		return true;
 	}
 
 	@Override
 	public void setValueAt(Object value, int rowIndex, int columnIndex) {
-		ArrayList<Object> row = data.get(rowIndex);
-		row.set(columnIndex, (String) value);
-		// fireTableCellUpdated(rowIndex, columnIndex);
+
+		ArrayList<Object> row;
+
+		if (mode.equals("MODE_NEW_ROW")) {
+			row = data2Add.get(rowIndex);
+		} else {
+			row = data.get(rowIndex);
+		}
+
+		row.set(columnIndex, value);
+
 	}
 
-	@Override
-	public Class<? extends Object> getColumnClass(int c) {
-		return getValueAt(0, c).getClass();
+	public ArrayList<Object> addEmptyRow(Connection conn) {
+
+		int numCols = getColumnCount();
+
+		ArrayList<Object> row = new ArrayList<>();
+
+		try {
+
+			for (int i = 0; i < numCols; i++) {
+
+				if (colsClasses.get(i) == Clob.class) {
+					Clob defValue;
+					defValue = conn.createClob();
+
+					defValue.setString(1, "");
+					row.add(defValue);
+				} else
+
+				if (colsClasses.get(i) == Blob.class) {
+					Blob defValue = conn.createBlob();
+					byte[] zeroByte = { 00 };
+					defValue.setBytes(1, zeroByte);
+					row.add(defValue);
+				} else
+
+				if (colsClasses.get(i) == Byte.class) {
+					byte[] defValue = { 00 };
+					row.add(defValue);
+				} else
+
+				if (colsClasses.get(i) == java.sql.Date.class || colsClasses.get(i) == java.sql.Time.class
+						|| colsClasses.get(i) == java.sql.Timestamp.class || colsClasses.get(i) == String.class
+						|| colsClasses.get(i) == java.sql.SQLXML.class) {
+					Object defValue = "";
+					row.add(defValue);
+				} else {
+					Object defValue = 0;
+					row.add(defValue);
+				}
+			}
+
+			return row;
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return null;
+
 	}
 
 	public boolean deleteRow(int numRow) {
 		try {
-			System.out.println("Intro deleteRow");
 			resultSet.absolute(numRow);
 			resultSet.deleteRow();
 			resultSet.beforeFirst();
@@ -278,65 +366,70 @@ public class MyTableModel extends AbstractTableModel {
 
 	}
 
-	/**
-	 * Set the table meta data
-	 *
-	 * @param resultSet
-	 *            the result set from which to extract the meta data.
-	 *
-	 * @throws java.sql.SQLException
-	 */
-	public Class<?> getColClass(int columnType, String columnTypeName) {
-
-		switch (columnType) {
-		case Types.SMALLINT:
-		case Types.INTEGER:
-			return Integer.class;
-
-		case Types.BIGINT:
-			return Long.class;
-
-		case Types.FLOAT:
-		case Types.DOUBLE:
-			return Double.class;
-
-		case Types.REAL:
-			return Double.class;
-
-		case Types.DECIMAL:
-		case Types.NUMERIC:
-			return BigDecimal.class;
-
-		case Types.DATE:
-			return java.sql.Date.class;
-
-		case Types.TIME:
-			return java.sql.Time.class;
-
-		case Types.TIMESTAMP:
-			return java.sql.Timestamp.class;
-
-		case Types.CLOB:
-			return java.sql.Clob.class;
-
-		case Types.BLOB:
-			return java.sql.Blob.class;
-
-		case Types.BINARY:
-		case Types.VARBINARY:
-			return Byte.class;
-
-		case Types.CHAR:
-		case Types.VARCHAR:
-			return String.class;
-
-		case Types.SQLXML:
-			return java.sql.SQLXML.class;
-
-		default:
-			System.out.println("Error in columnType: " + columnType + " " + columnTypeName);
-			return String.class;
-		}
+	@Override
+	public Class<?> getColumnClass(int column) {
+		return colsClasses.get(column);
 	}
 
+	/**
+	 * @return the colsSearchable
+	 */
+	public ArrayList<Boolean> getColsSearchable() {
+		return colsSearchable;
+	}
+
+	public void insertNewData() {
+
+		int numRows = data2Add.size();
+		int numCols = getColumnCount();
+		String tableName = sourceTable;
+		int numRowsAdded = 0;
+		String quotePrefix = "";
+		String quoteSuffix = "";
+
+		for (int i = 0; i < numRows; i++) {
+			String order = "INSERT INTO " + tableName + "(";
+			String order2 = " VALUES (";
+
+			ArrayList<Object> row = data2Add.get(i);
+			boolean colsAdded = false;
+
+			for (int j = 0; j < numCols; j++) {
+				if (!colsAutoincrement.get(j)) {
+
+					if (!colsAdded) {
+						colsAdded = true;
+					} else {
+						order += ", ";
+						order2 += ", ";
+					}
+					order += colsNames.get(j);
+
+					quotePrefix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_PREFIX");
+					quoteSuffix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_SUFFIX");
+
+					if (quotePrefix != null) {
+						order2 += quotePrefix;
+					}
+					order2 += row.get(j);
+					if (quoteSuffix != null) {
+						order2 += quoteSuffix;
+					}
+				}
+			}
+
+			if (colsAdded) {
+				order += ")" + order2 + ")";
+
+				try {
+					statement = conn.createStatement();
+					int result = statement.executeUpdate(order);
+					numRowsAdded++;
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }
