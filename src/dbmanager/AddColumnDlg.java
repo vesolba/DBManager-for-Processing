@@ -1,19 +1,29 @@
 package dbmanager;
 
+<<<<<<< HEAD
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+=======
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+<<<<<<< HEAD
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+=======
+import javax.swing.ButtonGroup;
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -23,13 +33,31 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+<<<<<<< HEAD
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+=======
+import javax.swing.JRadioButton;
+import javax.swing.JTextArea;
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
+import javax.swing.JSeparator;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import java.awt.FlowLayout;
+import java.awt.Component;
+import javax.swing.Box;
+import java.awt.Font;
+import javax.swing.JSlider;
+import java.awt.GridLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JEditorPane;
 import javax.swing.border.TitledBorder;
+import javax.swing.border.BevelBorder;
+import javax.swing.JScrollPane;
 
 public class AddColumnDlg extends JDialog {
 
@@ -322,8 +350,12 @@ public class AddColumnDlg extends JDialog {
 		panel_9.add(label_2);
 
 		panel_1 = new JPanel();
+<<<<<<< HEAD
 		panel_1.setBorder(new TitledBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null), "Autoincrement",
 				TitledBorder.LEADING, TitledBorder.TOP, null, null));
+=======
+		panel_1.setBorder(new TitledBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null), "Autoincrement", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		panelAuto.add(panel_1);
 
 		panel_12 = new JPanel();
@@ -379,40 +411,59 @@ public class AddColumnDlg extends JDialog {
 		panel_15 = new JPanel();
 		panelForeign.add(panel_15);
 
+<<<<<<< HEAD
 		label_6 = new JLabel("... CONSTRAINT ");
+=======
+		label_6 = new JLabel("... CONSTRAINT   Name: ");
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		panel_15.add(label_6);
 
 		txtConstName = new JFormattedTextField();
 		txtConstName.setEnabled(false);
 		txtConstName.setEditable(false);
 		txtConstName.setColumns(10);
+<<<<<<< HEAD
 		TextPrompt tptxtConstName = new TextPrompt("Constraint Name (optional)", txtConstName);
 		tptxtConstName.changeAlpha(0.5f);
+=======
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		panel_15.add(txtConstName);
 
 		panel_16 = new JPanel();
 		panelForeign.add(panel_16);
 
+<<<<<<< HEAD
 		label_7 = new JLabel(" REFERENCES ");
+=======
+		label_7 = new JLabel("  REFERENCES  table: ");
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		panel_16.add(label_7);
 
 		txtRefTable = new JTextField();
 		txtRefTable.setEnabled(false);
 		txtRefTable.setEditable(false);
 		txtRefTable.setColumns(10);
+<<<<<<< HEAD
 		TextPrompt tptxtRefTable = new TextPrompt("Referenced table name", txtRefTable);
 		tptxtRefTable.changeAlpha(0.5f);
+=======
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		panel_16.add(txtRefTable);
 
 		panel_17 = new JPanel();
 		panelForeign.add(panel_17);
 
+<<<<<<< HEAD
 		label_8 = new JLabel("(");
+=======
+		label_8 = new JLabel("( Comma separated column names: ");
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		panel_17.add(label_8);
 
 		txtColNames = new JTextField();
 		txtColNames.setEnabled(false);
 		txtColNames.setEditable(false);
+<<<<<<< HEAD
 		txtColNames.setColumns(30);
 		TextPrompt tptxtColNames = new TextPrompt("Comma separated column names", txtColNames);
 		tptxtColNames.changeAlpha(0.5f);
@@ -421,6 +472,14 @@ public class AddColumnDlg extends JDialog {
 		label_9 = new JLabel(")");
 		panel_17.add(label_9);
 
+=======
+		txtColNames.setColumns(10);
+		panel_17.add(txtColNames);
+
+		label_9 = new JLabel(")  ");
+		panel_17.add(label_9);
+		
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		panel_2 = new JPanel();
 		panelForeign.add(panel_2);
 
@@ -645,6 +704,7 @@ public class AddColumnDlg extends JDialog {
 	 */
 	public JCheckBox getChkbxAutoinc() {
 		return chkbxAutoinc;
+<<<<<<< HEAD
 	}
 
 	/**
@@ -683,6 +743,46 @@ public class AddColumnDlg extends JDialog {
 	}
 
 	/**
+=======
+	}
+
+	/**
+	 * @return the txtInitValue
+	 */
+	public JTextField getTxtInitValue() {
+		return txtInitValue;
+	}
+
+	/**
+	 * @return the txtIncrement
+	 */
+	public JTextField getTxtIncrement() {
+		return txtIncrement;
+	}
+
+	/**
+	 * @return the chkbxCycle
+	 */
+	public JCheckBox getChkbxCycle() {
+		return chkbxCycle;
+	}
+
+	/**
+	 * @return the chkbxForeign
+	 */
+	public JCheckBox getChkbxForeign() {
+		return chkbxForeign;
+	}
+
+	/**
+	 * @return the txtConstName
+	 */
+	public JTextField getTxtConstName() {
+		return txtConstName;
+	}
+
+	/**
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 	 * @return the txtRefTable
 	 */
 	public JTextField getTxtRefTable() {

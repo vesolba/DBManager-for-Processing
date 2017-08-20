@@ -239,6 +239,7 @@ public class DBGUIFrame extends JFrame {
 		}
 
 		JMenuItem mntmExpandAll = new JMenuItem("Expand All");
+<<<<<<< HEAD
 		mntmExpandAll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -259,11 +260,17 @@ public class DBGUIFrame extends JFrame {
 				}
 			}
 		});
+=======
+		mnDBTree.add(mntmExpandAll);
+
+		JMenuItem mntmCollapseAll = new JMenuItem("Collapse All");
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		mnDBTree.add(mntmCollapseAll);
 
 		Component horizontalStrut_2 = Box.createHorizontalStrut(10);
 		menuBar.add(horizontalStrut_2);
 
+<<<<<<< HEAD
 		JMenu mnCreate = new JMenu(" Create ");
 		menuBar.add(mnCreate);
 
@@ -373,6 +380,48 @@ public class DBGUIFrame extends JFrame {
 		testPanel = new MyTypeInfoPanel();
 		tabbedPane.addTab("Info Panel", null, testPanel, null);
 
+=======
+		mntmExit.setHorizontalAlignment(SwingConstants.LEFT);
+		menuBar.add(mntmExit);
+
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(new BorderLayout(0, 0));
+
+		JSplitPane splitPane = new JSplitPane();
+		splitPane.setResizeWeight(0.3);
+		contentPane.add(splitPane, BorderLayout.CENTER);
+
+		JPanel leftPanel = new JPanel();
+		splitPane.setLeftComponent(leftPanel);
+
+		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.X_AXIS));
+
+		JScrollPane treeView = new JScrollPane(DBManager.dBtree);
+		treeView.setInheritsPopupMenu(true);
+		leftPanel.add(treeView);
+
+		JPanel rightPanel = new JPanel();
+		splitPane.setRightComponent(rightPanel);
+		rightPanel.setLayout(new BorderLayout(0, 0));
+
+		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		rightPanel.add(tabbedPane, BorderLayout.CENTER);
+
+		execSQLPanel = new ExecSQLPanel();
+		tabbedPane.addTab("Exec SQL", null, execSQLPanel, null);
+
+		JPanel panelBatch = new JPanel();
+		tabbedPane.addTab("Batch", null, panelBatch, null);
+
+		JPanel codeGenPanel = new JPanel();
+		tabbedPane.addTab("Code Gen.", null, codeGenPanel, null);
+
+		testPanel = new MyTypeInfoPanel();
+		tabbedPane.addTab("Info Panel", null, testPanel, null);
+
+>>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 	}
 
 	public static boolean checkServerMenu() {
