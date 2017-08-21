@@ -29,10 +29,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-<<<<<<< HEAD
-=======
-import javax.swing.tree.TreePath;
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 @SuppressWarnings("serial")
 public class DBCreationDialog extends JDialog {
@@ -70,10 +66,6 @@ public class DBCreationDialog extends JDialog {
 		this.initialPwd = initialPwd;
 		this.initialDescription = initialDescription;
 		this.initialDBLocation = initialDBLocation;
-<<<<<<< HEAD
-=======
-		this.treePath = treePath;
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		isDBCreation = command.equals("Create Database...");
 		isDBRegistration = command.equals("Register Database...");
 

@@ -227,7 +227,6 @@ public class MyTableModel extends AbstractTableModel {
 
 		Object value = row.get(columnIndex);
 
-<<<<<<< HEAD
 		if (colsClasses.get(columnIndex) == Clob.class) {
 			value = ((JDBCTableLob) value).getText();
 		} else if (colsClasses.get(columnIndex) == Blob.class) {
@@ -257,21 +256,6 @@ public class MyTableModel extends AbstractTableModel {
 			// }
 					 }
 		} // else
-=======
-		// if (colsClasses.get(columnIndex) == Clob.class) {
-		// try {
-		// return ((Clob) value).getSubString(1, (int) ((Clob) value).length());
-		// } catch (SQLException e) {
-		// e.printStackTrace();
-		// }
-		// } else if (colsClasses.get(columnIndex) == Blob.class) {
-		// try {
-		// return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
-		// } catch (SQLException e) {
-		// e.printStackTrace();
-		// }
-		// } else
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		return value;
 	}
 
@@ -316,11 +300,6 @@ public class MyTableModel extends AbstractTableModel {
 
 			for (int i = 0; i < numCols; i++) {
 
-<<<<<<< HEAD
-=======
-				System.out.println(i + " class " + colsClasses.get(i));
-
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 				if (colsClasses.get(i) == Clob.class) {
 					Clob defValue;
 					defValue = conn.createClob();
@@ -352,10 +331,6 @@ public class MyTableModel extends AbstractTableModel {
 				}
 			}
 
-<<<<<<< HEAD
-=======
-			System.out.println("addrow OK");
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 			return row;
 
 		} catch (SQLException e) {
@@ -369,10 +344,6 @@ public class MyTableModel extends AbstractTableModel {
 
 	public boolean deleteRow(int numRow) {
 		try {
-<<<<<<< HEAD
-=======
-			System.out.println("Intro deleteRow");
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 			resultSet.absolute(numRow);
 			resultSet.deleteRow();
 			resultSet.beforeFirst();
@@ -393,7 +364,6 @@ public class MyTableModel extends AbstractTableModel {
 
 		return true;
 
-<<<<<<< HEAD
 	}
 
 	@Override
@@ -401,15 +371,6 @@ public class MyTableModel extends AbstractTableModel {
 		return colsClasses.get(column);
 	}
 
-=======
-	}
-
-	@Override
-	public Class<?> getColumnClass(int column) {
-		return colsClasses.get(column);
-	}
-
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 	/**
 	 * @return the colsSearchable
 	 */
@@ -460,19 +421,10 @@ public class MyTableModel extends AbstractTableModel {
 			if (colsAdded) {
 				order += ")" + order2 + ")";
 
-<<<<<<< HEAD
-=======
-				System.out.println(order);
-
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 				try {
 					statement = conn.createStatement();
 					int result = statement.executeUpdate(order);
 					numRowsAdded++;
-<<<<<<< HEAD
-=======
-					System.out.println("Rows added = " + numRowsAdded);
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

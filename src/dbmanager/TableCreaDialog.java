@@ -14,18 +14,10 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-<<<<<<< HEAD
 import java.util.ArrayList;
 
 import javax.swing.Box;
 import javax.swing.JCheckBox;
-=======
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-
-import javax.swing.Box;
-import javax.swing.JButton;
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFormattedTextField;
@@ -37,32 +29,23 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
-<<<<<<< HEAD
 import javax.swing.JSplitPane;
-=======
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
-<<<<<<< HEAD
 import javax.swing.border.TitledBorder;
-=======
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
-<<<<<<< HEAD
 import javax.swing.BoxLayout;
 import javax.swing.JSeparator;
 import javax.swing.border.LineBorder;
 import javax.swing.UIManager;
-=======
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 public class TableCreaDialog extends JDialog {
 
@@ -79,7 +62,6 @@ public class TableCreaDialog extends JDialog {
 	public DBTreeNodeK currentNodeInfo;
 	private JSpinner spinTabCrea = null;
 
-<<<<<<< HEAD
 	// private static final SimpleDateFormat sdf = new
 	// SimpleDateFormat("yyMMddHHmmssSSS");
 	public String autoIncText = "";
@@ -98,11 +80,6 @@ public class TableCreaDialog extends JDialog {
 	private JTextField fTextForeign;
 	private JFormattedTextField fTextReferColumns;
 	private JFormattedTextField fTextReferTabName;
-=======
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssSSS");
-	public String autoIncText = "";
-	public String foreignKeyText = "";
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 	public TableCreaDialog() {
 
@@ -112,11 +89,7 @@ public class TableCreaDialog extends JDialog {
 	@SuppressWarnings("serial")
 	private void jbInit() {
 		getContentPane().setPreferredSize(new Dimension(500, 200));
-<<<<<<< HEAD
 		setPreferredSize(new Dimension(700, 600));
-=======
-		setPreferredSize(new Dimension(700, 400));
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		setMinimumSize(new Dimension(500, 200));
 		setMaximumSize(new Dimension(20000, 20000));
 		getContentPane().setMaximumSize(new Dimension(20000, 20000));
@@ -152,7 +125,6 @@ public class TableCreaDialog extends JDialog {
 			table.setFont(table.getFont().deriveFont(Float.parseFloat(spinTabCrea.getValue().toString())));
 			table.setRowHeight((int) Float.parseFloat(spinTabCrea.getValue().toString()) + 5);
 		}
-<<<<<<< HEAD
 
 		// }
 		table = new JTable() {
@@ -172,27 +144,6 @@ public class TableCreaDialog extends JDialog {
 		table.setPreferredScrollableViewportSize(new Dimension(300, 100));
 		table.setIntercellSpacing(new Dimension(10, 5));
 
-=======
-
-		// }
-		table = new JTable() {
-			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-				Component c = super.prepareRenderer(renderer, row, column);
-
-				// Alternate row color
-				if (!isRowSelected(row))
-					c.setBackground(row % 2 == 0 ? getBackground() : Color.LIGHT_GRAY);
-
-				return c;
-			}
-		};
-
-		table.setMinimumSize(new Dimension(100, 100));
-		table.setMaximumSize(new Dimension(2000, 2000));
-		table.setPreferredScrollableViewportSize(new Dimension(300, 200));
-		table.setIntercellSpacing(new Dimension(10, 5));
-
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -218,29 +169,10 @@ public class TableCreaDialog extends JDialog {
 		for (int i = 0; i < 25; i++) {
 			table.getColumnModel().getColumn(i).setMaxWidth(1000);
 			table.getColumnModel().getColumn(i).setMinWidth(10);
-<<<<<<< HEAD
 
 			int colWidth = Math.max(colsSizes[i], table.getModel().getColumnName(i).length());
 			table.getColumnModel().getColumn(i).setPreferredWidth(colWidth * 10);
 		}
-=======
-
-			int colWidth = Math.max(colsSizes[i], table.getModel().getColumnName(i).length());
-			table.getColumnModel().getColumn(i).setPreferredWidth(colWidth * 10);
-		}
-
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-		JScrollPane scrollPane = new JScrollPane(table);
-		scrollPane.setPreferredSize(new Dimension(400, 100));
-		scrollPane.setMaximumSize(new Dimension(20000, 20000));
-		getContentPane().add(scrollPane, BorderLayout.CENTER);
-		scrollPane.setAutoscrolls(true);
-		scrollPane.setViewportBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-
-		JPanel panel = new JPanel();
-		panel.setMaximumSize(new Dimension(10000, 1000));
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setBorder(UIManager.getBorder("MenuBar.border"));
@@ -249,7 +181,6 @@ public class TableCreaDialog extends JDialog {
 		JLabel lblNewLabel = new JLabel("   Table name: ");
 		menuBar.add(lblNewLabel);
 
-<<<<<<< HEAD
 		txtTablename = new JTextField();
 		txtTablename.setPreferredSize(new Dimension(200, 25));
 		txtTablename.setMinimumSize(new Dimension(100, 20));
@@ -268,57 +199,6 @@ public class TableCreaDialog extends JDialog {
 
 		JMenuItem mntmSave = new JMenuItem(" Save table  ");
 		mntmSave.addActionListener(new ActionListener() {
-=======
-		JPanel panelSaveCancel = new JPanel();
-		panel.add(panelSaveCancel);
-		GridBagLayout gbl_panelSaveCancel = new GridBagLayout();
-		gbl_panelSaveCancel.columnWidths = new int[] { 90, 0 };
-		gbl_panelSaveCancel.rowHeights = new int[] { 29, 5 };
-		gbl_panelSaveCancel.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_panelSaveCancel.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
-		panelSaveCancel.setLayout(gbl_panelSaveCancel);
-
-		JPanel panel_1 = new JPanel();
-		GridBagConstraints gbc_panel_1 = new GridBagConstraints();
-		gbc_panel_1.insets = new Insets(0, 0, 10, 50);
-		gbc_panel_1.anchor = GridBagConstraints.EAST;
-		gbc_panel_1.gridx = 0;
-		gbc_panel_1.gridy = 0;
-		panelSaveCancel.add(panel_1, gbc_panel_1);
-		GridBagLayout gbl_panel_1 = new GridBagLayout();
-		gbl_panel_1.columnWidths = new int[] { 90, 95, 0 };
-		gbl_panel_1.rowHeights = new int[] { 29, 0 };
-		gbl_panel_1.columnWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
-		gbl_panel_1.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
-		panel_1.setLayout(gbl_panel_1);
-
-		JButton btnSave = new JButton("Save");
-		GridBagConstraints gbc_btnSave = new GridBagConstraints();
-		gbc_btnSave.weightx = 1.0;
-		gbc_btnSave.anchor = GridBagConstraints.EAST;
-		gbc_btnSave.fill = GridBagConstraints.BOTH;
-		gbc_btnSave.insets = new Insets(0, 0, 0, 5);
-		gbc_btnSave.gridx = 0;
-		gbc_btnSave.gridy = 0;
-		panel_1.add(btnSave, gbc_btnSave);
-
-		JButton btnCancel = new JButton("Cancel");
-		GridBagConstraints gbc_btnCancel = new GridBagConstraints();
-		gbc_btnCancel.fill = GridBagConstraints.BOTH;
-		gbc_btnCancel.gridx = 1;
-		gbc_btnCancel.gridy = 0;
-		panel_1.add(btnCancel, gbc_btnCancel);
-		btnCancel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-				dispose();
-			}
-		});
-		btnCancel.setMinimumSize(new Dimension(79, 29));
-		btnCancel.setMaximumSize(new Dimension(79, 29));
-
-		btnSave.addActionListener(new ActionListener() {
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 			public void actionPerformed(ActionEvent arg0) {
 				// We are going to compound the create ddl sentence.
 				// First we Test if the table already exists
@@ -334,10 +214,6 @@ public class TableCreaDialog extends JDialog {
 						// We create the DDL sentence from the Add Column dialog table.
 						String sql = "CREATE TABLE " + tableName + " (";
 
-<<<<<<< HEAD
-=======
-						// ArrayList<String> priKeys = new ArrayList<String>();
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 						ArrayList<String> indices = new ArrayList<String>();
 						String columnName = "";
 						String columnType = "";
@@ -387,11 +263,7 @@ public class TableCreaDialog extends JDialog {
 								}
 							}
 
-<<<<<<< HEAD
 							// Column level Foreign keys
-=======
-							// Foreign keys
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 							if ((boolean) table.getModel().getValueAt(i, 5)) { // Foreign keys
 								foreignKeyText = " CONSTRAINT " + table.getModel().getValueAt(i, 16) + " REFERENCES "
 										+ table.getModel().getValueAt(i, 17) + " (" + table.getModel().getValueAt(i, 18)
@@ -416,7 +288,6 @@ public class TableCreaDialog extends JDialog {
 							}
 						}
 
-<<<<<<< HEAD
 						// Table level constraints
 
 						// Check
@@ -463,27 +334,11 @@ public class TableCreaDialog extends JDialog {
 							sql += " FOREIGN KEY (" + fTextForeign.getText() + ")" + " REFERENCES "
 									+ fTextReferTabName.getText() + "(" + fTextReferColumns.getText() + ")";
 						}
-=======
-						// if (!priKeys.isEmpty()) {
-						//
-						// sql += " PRIMARY KEY (" + priKeys.get(0);
-						// for (int i = 1; i < priKeys.size(); i++) {
-						// sql += ",\n" + priKeys.get(i);
-						// }
-						//
-						// sql += "))\n";
-						// }
-						// ;
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 						sql += ");";
 						System.out.println(sql);
 						stmt.executeUpdate(sql);
-<<<<<<< HEAD
 						JOptionPane.showMessageDialog(null,
-=======
-						JOptionPane.showMessageDialog(btnSave,
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 								"Table " + tableName + " has been created in the database " + currDBName);
 
 						// if (!uniques.isEmpty()) {
@@ -511,11 +366,7 @@ public class TableCreaDialog extends JDialog {
 
 							System.out.println(sql);
 							stmt.executeUpdate(sql);
-<<<<<<< HEAD
 							JOptionPane.showMessageDialog(null, "INDEX has been created on the table " + tableName);
-=======
-							JOptionPane.showMessageDialog(btnSave, "INDEX has been created on the table " + tableName);
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 							for (int i = 1; i < indices.size(); i++) {
 								sql = ", CREATE INDEX SQL"
@@ -523,12 +374,7 @@ public class TableCreaDialog extends JDialog {
 										+ " ON " + tableName + " (" + indices.get(i) + ")";
 								System.out.println(sql);
 								stmt.executeUpdate(sql);
-<<<<<<< HEAD
 								JOptionPane.showMessageDialog(null, "INDEX has been created on the table " + tableName);
-=======
-								JOptionPane.showMessageDialog(btnSave,
-										"INDEX has been created on the table " + tableName);
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 							}
 						}
 						setVisible(false);
@@ -562,7 +408,6 @@ public class TableCreaDialog extends JDialog {
 		});
 		mnTable.add(mntmNewMenuItem_2);
 
-<<<<<<< HEAD
 		Component horizontalStrut_1 = Box.createHorizontalStrut(20);
 		menuBar.add(horizontalStrut_1);
 
@@ -573,43 +418,6 @@ public class TableCreaDialog extends JDialog {
 		mnNewMenu.setBorder(UIManager.getBorder("Menu.border"));
 		menuBar.add(mnNewMenu);
 
-=======
-		pack();
-		setSize(791, 400);
-		setLocationRelativeTo(null);
-
-		JMenuBar menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
-
-		JLabel lblNewLabel = new JLabel("   Table name: ");
-		menuBar.add(lblNewLabel);
-
-		txtTablename = new JTextField();
-		txtTablename.setPreferredSize(new Dimension(200, 25));
-		txtTablename.setMinimumSize(new Dimension(100, 20));
-		txtTablename.setMaximumSize(new Dimension(400, 100));
-		menuBar.add(txtTablename);
-		txtTablename.setText("Untitled");
-		txtTablename.setColumns(10);
-
-		JMenu mnTable = new JMenu(" Table ");
-		mnTable.setHorizontalAlignment(SwingConstants.CENTER);
-		mnTable.setPreferredSize(new Dimension(60, 25));
-		mnTable.setMinimumSize(new Dimension(20, 20));
-		mnTable.setMaximumSize(new Dimension(100, 40));
-		menuBar.add(mnTable);
-
-		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Table level constraints");
-		mnTable.add(mntmNewMenuItem_2);
-
-		JMenu mnNewMenu = new JMenu("Column");
-		mnNewMenu.setPreferredSize(new Dimension(60, 25));
-		mnNewMenu.setMinimumSize(new Dimension(20, 20));
-		mnNewMenu.setMaximumSize(new Dimension(100, 40));
-		mnNewMenu.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
-		menuBar.add(mnNewMenu);
-
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		JMenuItem mntmAddColumn = new JMenuItem("Add column");
 		mntmAddColumn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -688,15 +496,11 @@ public class TableCreaDialog extends JDialog {
 		mntmDelColumn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				((DefaultTableModel) table.getModel()).removeRow(table.getSelectedRow());
-<<<<<<< HEAD
 				table.updateUI();
-=======
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 			}
 		});
 		mnNewMenu.add(mntmDelColumn);
 
-<<<<<<< HEAD
 		Component horizontalStrut = Box.createHorizontalStrut(20);
 		menuBar.add(horizontalStrut);
 
@@ -725,22 +529,11 @@ public class TableCreaDialog extends JDialog {
 				}
 			}
 		});
-=======
-		JMenu mnNewMenu_1 = new JMenu("Move rows");
-		mnNewMenu_1.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
-		menuBar.add(mnNewMenu_1);
-
-		JMenuItem mntmNewMenuItem = new JMenuItem("Move UP");
-		mnNewMenu_1.add(mntmNewMenuItem);
-
-		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Move DOWN");
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		mnNewMenu_1.add(mntmNewMenuItem_1);
 
 		Component horizontalGlue = Box.createHorizontalGlue();
 		menuBar.add(horizontalGlue);
 
-<<<<<<< HEAD
 		if (DBManager.propsDBM != null) {
 			String propTable1 = DBManager.propsDBM.getDBMProp("spinTabCrea");
 
@@ -951,24 +744,6 @@ public class TableCreaDialog extends JDialog {
 		panel_3.add(lblNewLabel_1);
 		lblNewLabel_1.setAlignmentY(Component.TOP_ALIGNMENT);
 		lblNewLabel_1.setHorizontalTextPosition(SwingConstants.LEFT);
-=======
-		spinTabCrea = new JSpinner();
-		spinTabCrea.setPreferredSize(new Dimension(40, 25));
-		spinTabCrea.setMinimumSize(new Dimension(20, 20));
-		spinTabCrea.setMaximumSize(new Dimension(40, 40));
-		menuBar.add(spinTabCrea);
-		spinTabCrea.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent arg0) {
-				if (table != null) {
-					table.setFont(table.getFont().deriveFont(Float.parseFloat(spinTabCrea.getValue().toString())));
-					table.setRowHeight((int) Float.parseFloat(spinTabCrea.getValue().toString()) + 5);
-					DBManager.propsDBM.setDBMProp("spinTabCrea", spinTabCrea.getValue().toString());
-					DBManager.propsDBM.saveProperties();
-				}
-			}
-		});
-		spinTabCrea.setModel(new SpinnerNumberModel(14, 1, 100, 1));
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 	}
 
 	public static void loadComboCols(ResultSet rset, MyColumnTypes tipo) throws SQLException {
