@@ -160,11 +160,6 @@ public class MyTypeInfoPanel extends JPanel {
 			while (rset.next()) {
 				Object[] tipo = new Object[18];
 				tipo[0] = rset.getString("TYPE_NAME");
-<<<<<<< HEAD
-=======
-				System.out.println(tipo[0]);
-
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 				tipo[1] = rset.getInt("DATA_TYPE");
 				tipo[2] = rset.getInt("PRECISION");
 				tipo[3] = rset.getString("LITERAL_PREFIX");

@@ -46,16 +46,8 @@ public class DBFactory {
 		case "Register Database...":
 
 			try {
-<<<<<<< HEAD
 				DBCreationDialog dialog = new DBCreationDialog("", "", "", null, DBManager.derbySystemHome, actCommand);
 				// DB Name, User, Pwd, Description, DB Location (File Location), Action command
-=======
-				DBCreationDialog dialog = new DBCreationDialog("", "", "", null, DBManager.derbySystemHome, treePath,
-						actCommand);
-				// DB Name, User, Pwd, Description, DB Location (File Location), Path in dBtree,
-				// Action command
-				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 				dialog.getTxtDBLocation().setText(DBManager.derbySystemHome);
 				dialog.setLocationRelativeTo(null);
 
@@ -232,21 +224,13 @@ public class DBFactory {
 			if (returnVal2 == JFileChooser.APPROVE_OPTION) {
 
 				File filePath = chooser2.getSelectedFile();
-<<<<<<< HEAD
 //				System.out.println("File: " + filePath.getName());
-=======
-				System.out.println("File: " + filePath.getName());
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 				try {
 					BufferedReader in = new BufferedReader(new FileReader(filePath));
 					frame.getExecSQLPanel().getTextPaneInSQL().read(in, filePath);
 					in.close();
-<<<<<<< HEAD
 //					System.out.println(frame.getExecSQLPanel().getTextPaneInSQL().getText());
-=======
-					System.out.println(frame.getExecSQLPanel().getTextPaneInSQL().getText());
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 				} catch (IOException ex) {
 					System.err.println("Open plaintext error: " + ex);
 				}

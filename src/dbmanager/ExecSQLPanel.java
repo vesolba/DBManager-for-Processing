@@ -498,12 +498,8 @@ public class ExecSQLPanel extends JPanel {
 			ex.printStackTrace();
 		}
 
-<<<<<<< HEAD
 		if ("SELECT ".equalsIgnoreCase(redQuery.trim().substring(0, 7))
 				|| "VALUES ".equalsIgnoreCase(redQuery.trim().substring(0, 7))) {
-=======
-		if ("SELECT ".equalsIgnoreCase(redQuery.trim().substring(0, 7))) {
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 			lastSelect = redQuery;
 			MyTableModel tModel = new MyTableModel(conn, redQuery.trim(), mode);
@@ -562,12 +558,7 @@ public class ExecSQLPanel extends JPanel {
 					}
 				}
 
-<<<<<<< HEAD
 				DBManager.dBtree.updateUI();
-=======
-				// ((DefaultTreeModel) DBManager.dBtree.getModel()).reload();
-				DBManager.dBtree.repaint();
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 				textPaneInSQL.setText("");
 
 			}

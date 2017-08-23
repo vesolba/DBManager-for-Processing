@@ -247,6 +247,12 @@ public class DBManager<propsDBM> implements Tool {
 						dBtree.setCursor(Cursor.getDefaultCursor());
 					} else {
 						dBtree.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+						DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
+						DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
+						
+//						if (nodeInfo.getCategory().equals("COLUMN")) {
+							dBtree.setToolTipText(nodeInfo.getFullTypeDesc());
+//						}
 					}
 				}
 			});
@@ -276,11 +282,6 @@ public class DBManager<propsDBM> implements Tool {
 						ActionListener menuListener = new ActionListener() {
 							public void actionPerformed(ActionEvent event) {
 								dBfactory = new DBFactory(event, dBtree.getSelectionPath(), frame);
-<<<<<<< HEAD
-=======
-								// To refresh the tree, rebuilds the tree
-								// model. But first we save its expansion state.
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 								final TreeExpansionUtil expander = new TreeExpansionUtil(dBtree);
 
@@ -342,12 +343,7 @@ public class DBManager<propsDBM> implements Tool {
 							if (!nodeInfo.getdBaseName().equals(DBConnect.DBMSYSTABLE)) { // Take care not delete sys
 								if (nodeInfo.getText().equals("Tables") || nodeInfo.getText().equals("Columns")
 										|| nodeInfo.getText().equals("Indices")) {
-									// menuItem.addActionListener(menuListener);
-<<<<<<< HEAD
-									dBtree.setToolTipText(nodeInfo.getDataType() + " ");
-=======
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
-								}
+									}
 
 								if (nodeInfo.getText().equals("Tables")) {
 									popup.add(menuItem = new JMenuItem("Create Table..."));
@@ -430,7 +426,7 @@ public class DBManager<propsDBM> implements Tool {
 	public static DefaultMutableTreeNode getTreeModel() {
 
 		DBTreeNodeK nodeInfo = new DBTreeNodeK("root", "Databases", pathToDBSettings, "DBASE", DBConnect.DBMSYSTABLE,
-				DBConnect.DBMSYSTABLE);
+				DBConnect.DBMSYSTABLE, "");
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(nodeInfo);
 
 		WelcomeDlg dialog = null;
@@ -507,11 +503,7 @@ public class DBManager<propsDBM> implements Tool {
 				DBConnect.createSysDB(conn, pathToDBManager);
 			} else {
 
-<<<<<<< HEAD
 //				System.out.println("SysTable exists detected." + rs.toString());
-=======
-				System.out.println("SysTable exists detected." + rs.toString());
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 
 			}
 
@@ -522,9 +514,6 @@ public class DBManager<propsDBM> implements Tool {
 		}
 
 		try {
-			// Statement stmt =
-			// conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-			// ResultSet.CONCUR_UPDATABLE);
 			stmt = conn.createStatement();
 			String sql = "SELECT * from DBLIST";
 			ResultSet rs = stmt.executeQuery(sql);
@@ -541,13 +530,13 @@ public class DBManager<propsDBM> implements Tool {
 				String pathToDBase = rs.getString("FILEPATH");
 				String dataType = "DBASE";
 				String dBaseName = dBName;
-				nodeInfo = new DBTreeNodeK(redDBMS, dBName, pathToDBase, dataType, dBaseName, dBName);
+				nodeInfo = new DBTreeNodeK(redDBMS, dBName, pathToDBase, dataType, dBaseName, dBName, "");
 
 				DefaultMutableTreeNode auxNode = new DefaultMutableTreeNode(nodeInfo);
 				partialHead.add(auxNode);
 
 				// We create dummy data to manage lazy reading
-				DBTreeNodeK dummyTablesHead = new DBTreeNodeK("DUMMY", "Tables", "", "", "", dBaseName);
+				DBTreeNodeK dummyTablesHead = new DBTreeNodeK("DUMMY", "Tables", "", "", "", dBaseName, "");
 				// DBTreeNodeK dummyViewsHead = new DBTreeNodeK("DUMMY", "Views", "", "", "",
 				// dBaseName);
 				// DBTreeNodeK dummyProcsHead = new DBTreeNodeK("DUMMY", "Procedures", "", "",
@@ -692,19 +681,11 @@ public class DBManager<propsDBM> implements Tool {
 
 	public static Object dataTypeInfo(String colType, String colInfo) {
 
-<<<<<<< HEAD
 //		System.out.println(" row " + colType + " column " + colInfo + "  " + rowSearch.get(colInfo) + "  "
 //				+ colSearch.get(colInfo));
 		return hiddenTypesTable[rowSearch.get(colType)][colSearch.get(colInfo)];
 	}
 
-=======
-		System.out.println(" row " + colType + " column " + colInfo + "  " + rowSearch.get(colInfo) + "  " + colSearch.get(colInfo));
-		return hiddenTypesTable[rowSearch.get(colType)][colSearch.get(colInfo)];
-	}
-	
-	
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 	/**
 	 * Obtains the column class statically.
 	 *
@@ -713,14 +694,8 @@ public class DBManager<propsDBM> implements Tool {
 	 *
 	 * @param columnTypeName,
 	 *            Name of the column type.
-<<<<<<< HEAD
 	 * @ @return Class<?>.
 	 * 
-=======
-	 *            @
-	 * @return Class<?>.           
-	 *            
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 	 */
 	public static Class<?> getColClass(int columnType, String columnTypeName) {
 
@@ -765,21 +740,13 @@ public class DBManager<propsDBM> implements Tool {
 		case Types.CHAR:
 		case Types.VARCHAR:
 			return String.class;
-<<<<<<< HEAD
 
-=======
-			
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		case Types.BOOLEAN:
 			return Boolean.class;
 
 		case Types.SQLXML:
 			return java.sql.SQLXML.class;
-<<<<<<< HEAD
 
-=======
-			
->>>>>>> 52852d7381e2f8b2cd6e07db2bfe7789238d6c5f
 		default:
 			System.out.println("Error in columnType: " + columnType + " " + columnTypeName);
 			return Object.class;
