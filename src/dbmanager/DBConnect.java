@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import javax.swing.JOptionPane;
@@ -114,16 +115,8 @@ public class DBConnect {
 		DefaultMutableTreeNode partialCO = null;
 
 		try {
-			DBManager.conn = connect(!serverIsOn, pathLocation + "/" + nodeText, "", null, false);
+			DBManager.conn = connect(true, pathLocation + "/" + nodeText, "", null, false);
 		} catch (Exception ex) {
-
-			// If we can not connect and the server is off, lets try with server on.
-			// if (!serverIsOn) {
-			// try {
-			// inicServer();
-			// DBManager.conn = connect(!serverIsOn, pathLocation + "/" + nodeText, "",
-			// null, false);
-			// } catch (Exception ey) {
 
 			if (ex instanceof SQLException) {
 
@@ -165,7 +158,7 @@ public class DBConnect {
 			ResultSet rs = dbmd.getTables(null, null, "%", types);
 			node.removeAllChildren();
 			DBTreeNodeK partialTablesHead = new DBTreeNodeK("HEAD", "Tables", pathLocation, "TABLE", nodeText,
-					childTableName);
+					childTableName, "");
 			DefaultMutableTreeNode partialTH = new DefaultMutableTreeNode(partialTablesHead);
 			node.add(partialTH);
 
@@ -174,37 +167,68 @@ public class DBConnect {
 				childTableName = rs.getString("TABLE_NAME");
 
 				DBTreeNodeK childNodeInfo = new DBTreeNodeK("TABLE", childTableName, pathLocation, "TABLE", nodeText,
-						childTableName);
+						childTableName, "");
 
 				DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(childNodeInfo, true);
 				partialTH.add(childNode);
 
 				DBTreeNodeK partialColumnsHead = new DBTreeNodeK("HEAD", "Columns", pathLocation, "TABLE", nodeText,
-						childTableName);
+						childTableName, "");
 				partialCO = new DefaultMutableTreeNode(partialColumnsHead);
 				childNode.add(partialCO);
 
 				// Load columns
+
 				ResultSet rsColumns = dbmd.getColumns(null, null, childTableName, null);
+
 				while (rsColumns.next()) {
 					String childColName = rsColumns.getString("COLUMN_NAME");
+					String columnTypeName = rsColumns.getString("TYPE_NAME");
+					int dataType = rsColumns.getInt("DATA_TYPE");
+
+					Object createParams = DBManager.dataTypeInfo(columnTypeName, "CREATE_PARAMS");
+					String typeDescr = columnTypeName;
+
+					if (createParams != null && ((createParams.toString()).contains("length")
+							|| (createParams.toString()).contains("precision"))) {
+
+						int columnSize = rsColumns.getInt("COLUMN_SIZE");
+						if (dataType == -3 || dataType == -4) {
+							typeDescr.replaceFirst("()", "(" + columnSize + ")");
+							if (createParams.toString().contains("scale")) {
+								int decimalDigits = rsColumns.getInt("DECIMAL_DIGITS");
+								typeDescr.replaceFirst(")", ", " + decimalDigits // Scale
+										+ ")");
+							}
+						} else {
+							typeDescr += "(" + columnSize;
+							if (createParams.toString().contains("scale")) {
+								int decimalDigits = rsColumns.getInt("DECIMAL_DIGITS");
+								typeDescr += ", " + decimalDigits; // Scale
+							}
+							typeDescr += ")";
+						}
+					}
+
 					DBTreeNodeK gChildNodeInfo = new DBTreeNodeK("COLUMN", childColName, pathLocation, "TABLE",
-							nodeText, childTableName);
+							nodeText, childTableName, typeDescr);
+
 					DefaultMutableTreeNode gChildNode = new DefaultMutableTreeNode(gChildNodeInfo, true);
 					partialCO.add(gChildNode);
+
 				}
 
 				rsColumns.close();
 
 				if (partialCO.getChildCount() == 0) {
-					partialCO.add(new DefaultMutableTreeNode(
-							new DBTreeNodeK("DUMMY", "W/O Columns", pathLocation, "TABLE", nodeText, childTableName)));
+					partialCO.add(new DefaultMutableTreeNode(new DBTreeNodeK("DUMMY", "W/O Columns", pathLocation,
+							"TABLE", nodeText, childTableName, "")));
 				} else {
 
 					// Load indices
 
 					DBTreeNodeK partialIndicesHead = new DBTreeNodeK("HEAD", "Indices", pathLocation, "TABLE", nodeText,
-							childTableName);
+							childTableName, "");
 					DefaultMutableTreeNode partialIH = new DefaultMutableTreeNode(partialIndicesHead);
 					partialCO.add(partialIH);
 
@@ -274,7 +298,7 @@ public class DBConnect {
 							prevIndexName = indexName;
 
 							indexNodeInfo = new DBTreeNodeK("INDEX", indexName, pathLocation, "TABLE", nodeText,
-									childTableName);
+									childTableName, "Index");
 							indexNode = new DefaultMutableTreeNode(indexNodeInfo, true);
 							partialIH.add(indexNode);
 						}
@@ -283,14 +307,14 @@ public class DBConnect {
 						String asc_or_desc = rsIndices.getString("ASC_OR_DESC"); // To be denoted by icon
 						String idxColStr = indexedColumn + (asc_or_desc.equals("D") ? " DESC" : " ASC");
 						DBTreeNodeK idxColNodeInfo = new DBTreeNodeK("INDEXEDCOLUMN", idxColStr, pathLocation, "TABLE",
-								nodeText, childTableName);
+								nodeText, childTableName, "COLUMN");
 						DefaultMutableTreeNode idxColNode = new DefaultMutableTreeNode(idxColNodeInfo);
 						indexNode.add(idxColNode);
 					}
 
 					if (partialIH.getChildCount() == 0) {
 						partialIH.add(new DefaultMutableTreeNode(new DBTreeNodeK("DUMMY", "W/O Indices", pathLocation,
-								"TABLE", nodeText, childTableName)));
+								"TABLE", nodeText, childTableName, "")));
 						partialIndicesHead.setCategory("DUMMY");
 					}
 				}
@@ -307,7 +331,9 @@ public class DBConnect {
 			rs.close();
 			DBManager.conn.close();
 
-		} catch (SQLException e) {
+		} catch (
+
+		SQLException e) {
 			e.printStackTrace();
 		}
 	}
