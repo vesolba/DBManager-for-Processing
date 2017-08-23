@@ -441,7 +441,7 @@ public class DBCreationDialog extends JDialog {
 
 									model.insertNodeInto(new DefaultMutableTreeNode(
 											new DBTreeNodeK("Java DB", txtDBName.getText(), txtDBLocation.getText(),
-													"DBASE", txtDBName.getText(), txtDBName.getText())),
+													"DBASE", txtDBName.getText(), txtDBName.getText(), "")),
 											root, 0);
 									DBManager.dBtree.updateUI();
 								}

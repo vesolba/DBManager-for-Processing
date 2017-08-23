@@ -247,6 +247,12 @@ public class DBManager<propsDBM> implements Tool {
 						dBtree.setCursor(Cursor.getDefaultCursor());
 					} else {
 						dBtree.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+						DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
+						DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
+						
+//						if (nodeInfo.getCategory().equals("COLUMN")) {
+							dBtree.setToolTipText(nodeInfo.getFullTypeDesc());
+//						}
 					}
 				}
 			});
@@ -337,9 +343,7 @@ public class DBManager<propsDBM> implements Tool {
 							if (!nodeInfo.getdBaseName().equals(DBConnect.DBMSYSTABLE)) { // Take care not delete sys
 								if (nodeInfo.getText().equals("Tables") || nodeInfo.getText().equals("Columns")
 										|| nodeInfo.getText().equals("Indices")) {
-									// menuItem.addActionListener(menuListener);
-									dBtree.setToolTipText(nodeInfo.getDataType() + " ");
-								}
+									}
 
 								if (nodeInfo.getText().equals("Tables")) {
 									popup.add(menuItem = new JMenuItem("Create Table..."));
@@ -422,7 +426,7 @@ public class DBManager<propsDBM> implements Tool {
 	public static DefaultMutableTreeNode getTreeModel() {
 
 		DBTreeNodeK nodeInfo = new DBTreeNodeK("root", "Databases", pathToDBSettings, "DBASE", DBConnect.DBMSYSTABLE,
-				DBConnect.DBMSYSTABLE);
+				DBConnect.DBMSYSTABLE, "");
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(nodeInfo);
 
 		WelcomeDlg dialog = null;
@@ -510,9 +514,6 @@ public class DBManager<propsDBM> implements Tool {
 		}
 
 		try {
-			// Statement stmt =
-			// conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-			// ResultSet.CONCUR_UPDATABLE);
 			stmt = conn.createStatement();
 			String sql = "SELECT * from DBLIST";
 			ResultSet rs = stmt.executeQuery(sql);
@@ -529,13 +530,13 @@ public class DBManager<propsDBM> implements Tool {
 				String pathToDBase = rs.getString("FILEPATH");
 				String dataType = "DBASE";
 				String dBaseName = dBName;
-				nodeInfo = new DBTreeNodeK(redDBMS, dBName, pathToDBase, dataType, dBaseName, dBName);
+				nodeInfo = new DBTreeNodeK(redDBMS, dBName, pathToDBase, dataType, dBaseName, dBName, "");
 
 				DefaultMutableTreeNode auxNode = new DefaultMutableTreeNode(nodeInfo);
 				partialHead.add(auxNode);
 
 				// We create dummy data to manage lazy reading
-				DBTreeNodeK dummyTablesHead = new DBTreeNodeK("DUMMY", "Tables", "", "", "", dBaseName);
+				DBTreeNodeK dummyTablesHead = new DBTreeNodeK("DUMMY", "Tables", "", "", "", dBaseName, "");
 				// DBTreeNodeK dummyViewsHead = new DBTreeNodeK("DUMMY", "Views", "", "", "",
 				// dBaseName);
 				// DBTreeNodeK dummyProcsHead = new DBTreeNodeK("DUMMY", "Procedures", "", "",

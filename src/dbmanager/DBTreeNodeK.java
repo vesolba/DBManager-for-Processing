@@ -10,9 +10,10 @@ public class DBTreeNodeK extends DefaultMutableTreeNode {
 	private String dataType = ""; // Data type of dTypeName
 	private String dBaseName = ""; // Database of the node
 	private String dTypeName = ""; // Name of dataType
+	private String fullTypeDesc = ""; // When category is COLUMN, column type + length
 
 	public DBTreeNodeK(String category, String nodeText, String path, String dataType, String dBaseName,
-			String dTypeName) {
+			String dTypeName, String fullTypeDesc) {
 
 		this.category = category;
 		this.nodeText = nodeText;
@@ -20,6 +21,7 @@ public class DBTreeNodeK extends DefaultMutableTreeNode {
 		this.dataType = dataType;
 		this.dBaseName = dBaseName;
 		this.dTypeName = dTypeName;
+		this.fullTypeDesc = fullTypeDesc;
 	}
 
 	@Override
@@ -140,6 +142,20 @@ public class DBTreeNodeK extends DefaultMutableTreeNode {
 	 */
 	public void setdTypeName(String dTypeName) {
 		this.dTypeName = dTypeName;
+	}
+
+	/**
+	 * @return the fullTypeDesc
+	 */
+	public String getFullTypeDesc() {
+		return fullTypeDesc;
+	}
+
+	/**
+	 * @param fullTypeDesc the fullTypeDesc to set
+	 */
+	public void setFullTypeDesc(String fullTypeDesc) {
+		this.fullTypeDesc = fullTypeDesc;
 	}
 
 }
