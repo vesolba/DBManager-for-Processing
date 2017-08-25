@@ -7,7 +7,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.Connection;
+import java.util.Enumeration;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,17 +23,15 @@ import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextPane;
+import javax.swing.JTree;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
-import javax.swing.DropMode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 @SuppressWarnings("serial")
 public class DBGUIFrame extends JFrame {
@@ -242,10 +240,12 @@ public class DBGUIFrame extends JFrame {
 		mntmExpandAll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
-				int numRows = DBManager.dBtree.getRowCount();
-				for (int i = 0; i < numRows; i++) {
-					DBManager.dBtree.expandRow(i);
-				}
+				expandAll(DBManager.dBtree, true);
+				DBManager.dBtree.updateUI();
+				// int numRows = DBManager.dBtree.getRowCount();
+				// for (int i = 0; i < numRows; i++) {
+				// DBManager.dBtree.expandRow(i);
+				// }
 			}
 		});
 		mnDBTree.add(mntmExpandAll);
@@ -253,10 +253,13 @@ public class DBGUIFrame extends JFrame {
 		JMenuItem mntmCollapseAll = new JMenuItem("Collapse All");
 		mntmCollapseAll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				int numRows = DBManager.dBtree.getRowCount();
-				for (int i = 0; i < numRows; i++) {
-					DBManager.dBtree.collapseRow(i);
-				}
+
+				expandAll(DBManager.dBtree, false);
+				DBManager.dBtree.updateUI();
+				// int numRows = DBManager.dBtree.getRowCount();
+				// for (int i = 0; i < numRows; i++) {
+				// DBManager.dBtree.collapseRow(i);
+				// }
 			}
 		});
 		mnDBTree.add(mntmCollapseAll);
@@ -416,4 +419,31 @@ public class DBGUIFrame extends JFrame {
 		return testPanel;
 	}
 
+	// If expand is true, expands all nodes in the tree.
+	// Otherwise, collapses all nodes in the tree.
+	public static void expandAll(JTree tree, boolean expand) {
+		TreeNode root = (TreeNode) tree.getModel().getRoot();
+
+		// Traverse tree from root
+		expandAll(tree, new TreePath(root), expand);
+	}
+
+	private static void expandAll(JTree tree, TreePath parent, boolean expand) {
+		// Traverse children
+		TreeNode node = (TreeNode) parent.getLastPathComponent();
+		if (node.getChildCount() >= 0) {
+			for (Enumeration e = node.children(); e.hasMoreElements();) {
+				TreeNode n = (TreeNode) e.nextElement();
+				TreePath path = parent.pathByAddingChild(n);
+				expandAll(tree, path, expand);
+			}
+		}
+
+		// Expansion or collapse must be done bottom-up
+		if (expand) {
+			tree.expandPath(parent);
+		} else {
+			tree.collapsePath(parent);
+		}
+	}
 }

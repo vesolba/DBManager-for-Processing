@@ -105,7 +105,7 @@ public class TableCreaDialog extends JDialog {
 		setTitle("Database " + currDBName + " Table Creation");
 
 		try {
-			conn = DBConnect.connect(!DBConnect.serverIsOn, currDBPath + "/" + currDBName, "", null, false);
+			conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
 		} catch (Exception ex) {
 
 			System.out.println("The database " + currDBPath + "/" + currDBName + " is not available.");
@@ -114,7 +114,6 @@ public class TableCreaDialog extends JDialog {
 		}
 
 		setIconImage(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/data/DBM4P3-32.png")));
-		setModal(true);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		getContentPane().getLayout();
 
@@ -186,8 +185,9 @@ public class TableCreaDialog extends JDialog {
 		txtTablename.setMinimumSize(new Dimension(100, 20));
 		txtTablename.setMaximumSize(new Dimension(400, 100));
 		menuBar.add(txtTablename);
-		txtTablename.setText("Untitled");
 		txtTablename.setColumns(10);
+		TextPrompt tptxtTablename = new TextPrompt("Write a name", txtTablename);
+		tptxtTablename.changeAlpha(0.5f);
 
 		JMenu mnTable = new JMenu(" Table      ");
 		mnTable.setBorder(UIManager.getBorder("Menu.border"));
@@ -423,26 +423,35 @@ public class TableCreaDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				try {
 
+					String currDBPath = currentNodeInfo.getPathLocation();
+					String currDBName = currentNodeInfo.getdBaseName();
+
+					try {
+						conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
+					} catch (Exception ex) {
+
+						System.out.println("The database " + currDBPath + "/" + currDBName + " is not available.");
+						ex.printStackTrace();
+
+					}
 					// Data for the data type combo
 					dbmd = conn.getMetaData();
+
 					ResultSet rset = dbmd.getTypeInfo();
 
 					colDialog = new AddColumnDlg();
-					colDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
 					myComboModel = new MyComboModel();
 					loadComboCols(rset, tipo);
 					colDialog.getComboType().setModel(myComboModel);
 					rset.close();
-
 					colDialog.pack();
 					Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 					colDialog.setSize(screenSize.width * 2 / 4, screenSize.height * 2 / 3);
-					colDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 					colDialog.setLocationRelativeTo(null);
 					colDialog.getComboType().setSelectedIndex(0);
 					colDialog.getComboType().setEnabled(true);
 					colDialog.setVisible(true);
-
 				} catch (Exception ex) {
 					colDialog.setEnabled(false);
 					ex.printStackTrace();

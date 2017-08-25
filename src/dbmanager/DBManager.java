@@ -42,6 +42,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,6 +61,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -283,9 +285,8 @@ public class DBManager<propsDBM> implements Tool {
 							public void actionPerformed(ActionEvent event) {
 								dBfactory = new DBFactory(event, dBtree.getSelectionPath(), frame);
 
-								final TreeExpansionUtil expander = new TreeExpansionUtil(dBtree);
-
-								final String state = expander.getExpansionState();
+//								final TreeExpansionUtil expander = new TreeExpansionUtil(dBtree);
+//								final String state = expander.getExpansionState();
 
 								// System.out.println(state);
 
@@ -294,7 +295,7 @@ public class DBManager<propsDBM> implements Tool {
 								dBtree.updateUI();
 
 								// Recover the expansion state
-								expander.setExpansionState(state);
+//								expander.setExpansionState(state);
 							}
 						};
 
@@ -304,6 +305,10 @@ public class DBManager<propsDBM> implements Tool {
 						DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
 						JMenuItem menuItem;
 
+						popup.add(menuItem = new JMenuItem("Expand all"));
+						menuItem.addActionListener(menuListener);
+						popup.add(menuItem = new JMenuItem("Collapse all"));
+						menuItem.addActionListener(menuListener);
 						popup.add(menuItem = new JMenuItem("Copy name"));
 						menuItem.addActionListener(menuListener);
 						popup.addSeparator();
@@ -694,7 +699,6 @@ public class DBManager<propsDBM> implements Tool {
 	 *
 	 * @param columnTypeName,
 	 *            Name of the column type.
-	 * @ @return Class<?>.
 	 * 
 	 */
 	public static Class<?> getColClass(int columnType, String columnTypeName) {
@@ -751,5 +755,5 @@ public class DBManager<propsDBM> implements Tool {
 			System.out.println("Error in columnType: " + columnType + " " + columnTypeName);
 			return Object.class;
 		}
-	}
+	}	
 }

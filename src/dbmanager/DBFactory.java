@@ -35,8 +35,17 @@ public class DBFactory {
 		DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
 
 		switch (actCommand) {
+		case "Expand all":
+			DBGUIFrame.expandAll(DBManager.dBtree, true);
+			DBManager.dBtree.updateUI();
+			break;
+			
+		case "Collapse all":
+			DBGUIFrame.expandAll(DBManager.dBtree, false);
+			DBManager.dBtree.updateUI();
+			break;
+			
 		case "Copy name": // Copy the node name in the clipboard
-
 			StringSelection stringSelection = new StringSelection(nodeInfo.getText());
 			Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
 			clpbrd.setContents(stringSelection, null);
@@ -224,13 +233,13 @@ public class DBFactory {
 			if (returnVal2 == JFileChooser.APPROVE_OPTION) {
 
 				File filePath = chooser2.getSelectedFile();
-//				System.out.println("File: " + filePath.getName());
+				// System.out.println("File: " + filePath.getName());
 
 				try {
 					BufferedReader in = new BufferedReader(new FileReader(filePath));
 					frame.getExecSQLPanel().getTextPaneInSQL().read(in, filePath);
 					in.close();
-//					System.out.println(frame.getExecSQLPanel().getTextPaneInSQL().getText());
+					// System.out.println(frame.getExecSQLPanel().getTextPaneInSQL().getText());
 				} catch (IOException ex) {
 					System.err.println("Open plaintext error: " + ex);
 				}
