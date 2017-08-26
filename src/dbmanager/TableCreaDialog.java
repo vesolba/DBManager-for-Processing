@@ -205,10 +205,21 @@ public class TableCreaDialog extends JDialog {
 				String tableName = txtTablename.getText();
 				ResultSet rs;
 				try {
+
+					String currDBPath = currentNodeInfo.getPathLocation();
+					String currDBName = currentNodeInfo.getdBaseName();
+
+					conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
+
+					// Data for the data type combo
+					dbmd = conn.getMetaData();
+
 					rs = dbmd.getTables(null, null, tableName, null);
+
 					if (rs.next()) {
 						System.out.println("the table already exists.");
 					} else {
+
 						stmt = conn.createStatement();
 
 						// We create the DDL sentence from the Add Column dialog table.
@@ -219,30 +230,36 @@ public class TableCreaDialog extends JDialog {
 						String columnType = "";
 
 						int tableNumRows = table.getModel().getRowCount();
+
 						for (int i = 0; i < tableNumRows; i++) {
 							columnName = (String) table.getModel().getValueAt(i, 7);
 							columnType = (String) table.getModel().getValueAt(i, 8).toString();
 							int colSize = (int) table.getModel().getValueAt(i, 9); // Size
 							int colScale = (int) table.getModel().getValueAt(i, 10);
 							int dataType = (int) DBManager.dataTypeInfo(columnType, "DATA_TYPE");
-							String params = DBManager.dataTypeInfo(columnType, "CREATE_PARAMS").toString();
+							Object objParams = DBManager.dataTypeInfo(columnType, "CREATE_PARAMS");
 
-							if (params.contains("length") || params.contains("precision")) {
-								if (dataType == -3 || dataType == -4) {
-									columnType.replaceFirst("()", "(" + colSize + ")");
-									if (params.contains("scale")) {
-										columnType.replaceFirst(")", ", " + (int) table.getModel().getValueAt(i, 10) // Scale
-												+ ")");
-									}
+							if (objParams != null) {
+								String params = objParams.toString();
+								if (params.contains("length") || params.contains("precision")) {
+									if (dataType == -3 || dataType == -4) {
+										columnType.replaceFirst("()", "(" + colSize + ")");
+										if (params.contains("scale")) {
+											columnType.replaceFirst(")", ", " + (int) table.getModel().getValueAt(i, 10) // Scale
+													+ ")");
+										}
 
-								} else {
-									columnType += "(" + colSize;
-									if (params.contains("scale")) {
-										columnType += ", " + (int) table.getModel().getValueAt(i, 10); // Scale
+									} else {
+										columnType += "(" + colSize;
+										if (params.contains("scale")) {
+											columnType += ", " + (int) table.getModel().getValueAt(i, 10); // Scale
+										}
+										columnType += ")";
 									}
-									columnType += ")";
 								}
 							}
+
+							System.out.println("llama 4: " + columnType);
 
 							String defValue = (String) table.getModel().getValueAt(i, 11); // Default value
 
@@ -258,7 +275,7 @@ public class TableCreaDialog extends JDialog {
 								int incrVal = Integer.parseInt(table.getModel().getValueAt(i, 14).toString());
 
 								if (incrVal != 0) {
-									autoIncText += "(START WITH " + inicVal + " INCREMENT BY " + incrVal
+									autoIncText += "(START WITH " + inicVal + ", INCREMENT BY " + incrVal
 											+ (((boolean) table.getModel().getValueAt(i, 15)) ? ", cycle)" : ")");
 								}
 							}
@@ -277,11 +294,11 @@ public class TableCreaDialog extends JDialog {
 									+ (((boolean) table.getModel().getValueAt(i, 0)) ? " PRIMARY KEY "
 											: ((boolean) table.getModel().getValueAt(i, 1)) ? " UNIQUE " : "")
 									+ (((boolean) table.getModel().getValueAt(i, 4)) // Autoincrement
-											? sql += autoIncText
+											? autoIncText
 											: "")
 									+ (((boolean) table.getModel().getValueAt(i, 5)) // Foreign key
-											? sql += foreignKeyText
-											: ";");
+											? foreignKeyText
+											: "");
 
 							if (i < tableNumRows - 1) {
 								sql += ", ";
@@ -426,14 +443,8 @@ public class TableCreaDialog extends JDialog {
 					String currDBPath = currentNodeInfo.getPathLocation();
 					String currDBName = currentNodeInfo.getdBaseName();
 
-					try {
-						conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
-					} catch (Exception ex) {
+					conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
 
-						System.out.println("The database " + currDBPath + "/" + currDBName + " is not available.");
-						ex.printStackTrace();
-
-					}
 					// Data for the data type combo
 					dbmd = conn.getMetaData();
 

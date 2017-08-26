@@ -36,6 +36,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import java.awt.Dialog.ModalExclusionType;
+import java.awt.Dialog.ModalityType;
 
 public class AddColumnDlg extends JDialog {
 
@@ -48,7 +50,7 @@ public class AddColumnDlg extends JDialog {
 	public int result = -1;
 	private JCheckBox chkbxPrimKey;
 	private JCheckBox chkbxUnique;
-	private JCheckBox chkbxNotNull;
+	private JCheckBox chkbxNull;
 	private JCheckBox chkbxIndex;
 	private final ButtonGroup buttonGroup = new ButtonGroup();
 	private JLabel label;
@@ -116,6 +118,9 @@ public class AddColumnDlg extends JDialog {
 	}
 
 	private void jbInit() {
+		setModalityType(ModalityType.APPLICATION_MODAL);
+		setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
+		setModal(true);
 
 		setFont(new Font("Tahoma", Font.PLAIN, 14));
 
@@ -133,7 +138,7 @@ public class AddColumnDlg extends JDialog {
 		panel_3 = new JPanel();
 		panelUpper.add(panel_3);
 
-		JLabel lblName = new JLabel("Name: ");
+		JLabel lblName = new JLabel("Column name: ");
 		panel_3.add(lblName);
 		lblName.setHorizontalAlignment(SwingConstants.RIGHT);
 
@@ -184,9 +189,10 @@ public class AddColumnDlg extends JDialog {
 			public void actionPerformed(ActionEvent arg0) {
 				String parameters = ((MyColumnTypes) comboType.getSelectedItem()).CREATE_PARAMS;
 
-				textSize.setEnabled(false);
-				textScale.setEnabled(false);
-				if (parameters != null && !parameters.equals("")) {
+				if (parameters == null || parameters.equals("")) {
+					textSize.setEnabled(false);
+					textScale.setEnabled(false);
+				} else {
 					if (parameters.contains("length") || parameters.contains("precision")) {
 						textSize.setEnabled(true);
 					} else {
@@ -199,14 +205,24 @@ public class AddColumnDlg extends JDialog {
 					}
 				}
 
-				// if (comboType.getSelectedItem().toString().equals("CLOB")) {
-				// getTextDefault().setText("EMPTY_CLOB()");
+				boolean autoinc = ((MyColumnTypes) comboType.getSelectedItem()).AUTO_INCREMENT;
+				chkbxAutoinc.setEnabled(autoinc);
 
+				int searchable = ((MyColumnTypes) comboType.getSelectedItem()).SEARCHABLE;
+				chkbxPrimKey.setEnabled(searchable > 1);
+				chkbxUnique.setEnabled(searchable > 1);
+				chkbxIndex.setEnabled(searchable > 1);
+
+				int nullable = ((MyColumnTypes) comboType.getSelectedItem()).NULLABLE;
+				chkbxNull.setEnabled(nullable == 1);
+
+				// if (comboType.getSelectedItem().toString().equals("INCLOB")) {
+				// getTextDefault().setText("EMPTY_CLOB()");
+				//
 				// }
 
 			}
 		});
-		comboType.setEditable(true);
 
 		panel = new JPanel();
 		panelUpper.add(panel);
@@ -262,8 +278,8 @@ public class AddColumnDlg extends JDialog {
 					chkbxUnique.setSelected(true);
 					chkbxUnique.setEnabled(true);
 
-					chkbxNotNull.setSelected(false);
-					chkbxNotNull.setEnabled(true);
+					chkbxNull.setSelected(false);
+					chkbxNull.setEnabled(true);
 
 					chkbxIndex.setSelected(true);
 					chkbxIndex.setEnabled(false);
@@ -286,6 +302,8 @@ public class AddColumnDlg extends JDialog {
 				if (chkbxUnique.isSelected()) {
 					chkbxIndex.setSelected(true);
 					chkbxIndex.setEnabled(false);
+					chkbxNull.setSelected(false);
+					chkbxNull.setEnabled(false);
 				} else {
 					chkbxIndex.setEnabled(true);
 				}
@@ -299,20 +317,20 @@ public class AddColumnDlg extends JDialog {
 		chkbxUnique.setLocation(new Point(20, 0));
 		chkbxUnique.setMargin(new Insets(0, 40, 0, 0));
 
-		chkbxNotNull = new JCheckBox("Null");
-		chkbxNotNull.setEnabled(false);
-		panel_8.add(chkbxNotNull);
-		chkbxNotNull.addActionListener(new ActionListener() {
+		chkbxNull = new JCheckBox("Null");
+		chkbxNull.setEnabled(false);
+		panel_8.add(chkbxNull);
+		chkbxNull.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (chkbxNotNull.isSelected()) {
+				if (chkbxNull.isSelected()) {
 					chkbxPrimKey.setSelected(false);
 				}
 			}
 		});
-		chkbxNotNull.setIconTextGap(10);
-		chkbxNotNull.setLocation(new Point(20, 0));
-		chkbxNotNull.setMargin(new Insets(0, 40, 0, 0));
-		chkbxNotNull.setSelected(true);
+		chkbxNull.setIconTextGap(10);
+		chkbxNull.setLocation(new Point(20, 0));
+		chkbxNull.setMargin(new Insets(0, 40, 0, 0));
+		chkbxNull.setSelected(true);
 
 		chkbxIndex = new JCheckBox("Index");
 		chkbxIndex.setEnabled(false);
@@ -333,6 +351,7 @@ public class AddColumnDlg extends JDialog {
 		getContentPane().add(panelAuto);
 
 		chkbxAutoinc = new JCheckBox("Identity Generation");
+		chkbxAutoinc.setEnabled(false);
 		chkbxAutoinc.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				if (comboGenerated != null) {
@@ -482,7 +501,7 @@ public class AddColumnDlg extends JDialog {
 		txtColNames = new JTextField();
 		txtColNames.setEditable(false);
 		txtColNames.setColumns(30);
-		TextPrompt tptxtColNames = new TextPrompt("Comma separated column names", txtColNames);
+		TextPrompt tptxtColNames = new TextPrompt("Comma separated referenced column names", txtColNames);
 		tptxtColNames.changeAlpha(0.5f);
 		panel_17.add(txtColNames);
 
@@ -512,6 +531,7 @@ public class AddColumnDlg extends JDialog {
 		panel_18.add(chkbxOnDelete);
 
 		comboOnDelete = new JComboBox();
+		comboOnDelete.setEnabled(false);
 		comboOnDelete
 				.setModel(new DefaultComboBoxModel(new String[] { "NO ACTION", "RESTRICT", "CASCADE", "SET NULL" }));
 		panel_18.add(comboOnDelete);
@@ -570,13 +590,15 @@ public class AddColumnDlg extends JDialog {
 		panel_20 = new JPanel();
 		panelCheck.add(panel_20);
 
-		lblConstraintName = new JLabel("... CONSTRAINT   Name: ");
+		lblConstraintName = new JLabel("... CONSTRAINT ");
 		panel_20.add(lblConstraintName);
 
 		txtConstCheck = new JTextField();
 		txtConstCheck.setEnabled(false);
 		txtConstCheck.setColumns(10);
 		panel_20.add(txtConstCheck);
+		TextPrompt tptxtConstCheck = new TextPrompt("Constraint name", txtConstCheck);
+		tptxtConstCheck.changeAlpha(0.5f);
 
 		panel_21 = new JPanel();
 		panelCheck.add(panel_21);
@@ -593,6 +615,9 @@ public class AddColumnDlg extends JDialog {
 		editorPaneConditions.setEnabled(false);
 		editorPaneConditions.setBorder(new EtchedBorder(EtchedBorder.RAISED, null, null));
 		panel_21.add(editorPaneConditions);
+		TextPrompt tpeditorPaneConditions = new TextPrompt(
+				"Examples: (salary >= 10000), (BONUS > TAX), (MEAL IN ('B', 'L', 'D', 'S'))", editorPaneConditions);
+		tpeditorPaneConditions.changeAlpha(0.5f);
 
 		label_12 = new JLabel(" ) ");
 		panel_21.add(label_12);
@@ -678,7 +703,7 @@ public class AddColumnDlg extends JDialog {
 	}
 
 	public JCheckBox getChkbxNull() {
-		return chkbxNotNull;
+		return chkbxNull;
 	}
 
 	public JCheckBox getChkbxIndex() {
@@ -739,7 +764,7 @@ public class AddColumnDlg extends JDialog {
 	 * @return the chkbxNotNull
 	 */
 	public JCheckBox getChkbxNotNull() {
-		return chkbxNotNull;
+		return chkbxNull;
 	}
 
 	/**
