@@ -55,7 +55,6 @@ public class TableCreaDialog extends JDialog {
 	private Connection conn = null;
 	private DatabaseMetaData dbmd = null;
 	private Statement stmt = null;
-	private MyColumnTypes tipo;
 	public static MyComboModel myComboModel;
 	public AddColumnDlg colDialog;
 	public DefaultMutableTreeNode currentNode;
@@ -149,23 +148,23 @@ public class TableCreaDialog extends JDialog {
 
 		table.setModel(new DefaultTableModel(new Object[][] {},
 				new String[] { "Key", "Unique", "Null", "Index", "Autoincrement", "Foreign Key", "Check", "Column name",
-						"Data type", "Size", "Scale", "Default value", "Generated", "Start with", "Incr. by", "Cycle",
+						"Data type", "Size", "Scale", "Default value", "Generated", "Start with", "Incr. by",
 						"Const. name", "Ref. table", "Column names", "On del.", "On delete", "On upd.", "On update",
 						"Cons.Check name ", "Check conditions" }) {
 			Class[] colsClasses = new Class[] { Boolean.class, Boolean.class, Boolean.class, Boolean.class,
 					Boolean.class, Boolean.class, Boolean.class, String.class, Object.class, Integer.class,
-					Integer.class, String.class, String.class, Integer.class, Integer.class, Boolean.class,
-					String.class, String.class, String.class, Boolean.class, String.class, Boolean.class, String.class,
-					String.class, String.class };
+					Integer.class, String.class, String.class, Integer.class, Integer.class, String.class, String.class,
+					String.class, Boolean.class, String.class, Boolean.class, String.class, String.class,
+					String.class };
 
 			public Class getColumnClass(int columnIndex) {
 				return colsClasses[columnIndex];
 			}
 		});
 
-		int[] colsSizes = { 7, 7, 7, 7, 7, 7, 7, 30, 20, 10, 10, 10, 20, 10, 10, 7, 30, 20, 30, 7, 20, 7, 20, 20, 100 };
+		int[] colsSizes = { 7, 7, 7, 7, 7, 7, 7, 30, 20, 10, 10, 10, 20, 10, 10, 30, 20, 30, 7, 20, 7, 20, 20, 100 };
 
-		for (int i = 0; i < 25; i++) {
+		for (int i = 0; i < 24; i++) {
 			table.getColumnModel().getColumn(i).setMaxWidth(1000);
 			table.getColumnModel().getColumn(i).setMinWidth(10);
 
@@ -223,7 +222,7 @@ public class TableCreaDialog extends JDialog {
 						stmt = conn.createStatement();
 
 						// We create the DDL sentence from the Add Column dialog table.
-						String sql = "CREATE TABLE " + tableName + " (";
+						String sql = "CREATE TABLE APP." + tableName + " (";
 
 						ArrayList<String> indices = new ArrayList<String>();
 						String columnName = "";
@@ -258,8 +257,6 @@ public class TableCreaDialog extends JDialog {
 									}
 								}
 							}
-
-							System.out.println("llama 4: " + columnType);
 
 							String defValue = (String) table.getModel().getValueAt(i, 11); // Default value
 
@@ -352,7 +349,7 @@ public class TableCreaDialog extends JDialog {
 									+ fTextReferTabName.getText() + "(" + fTextReferColumns.getText() + ")";
 						}
 
-						sql += ");";
+						sql += ")";
 						System.out.println(sql);
 						stmt.executeUpdate(sql);
 						JOptionPane.showMessageDialog(null,
@@ -361,7 +358,7 @@ public class TableCreaDialog extends JDialog {
 						// if (!uniques.isEmpty()) {
 						//
 						// Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-						// sql = "CREATE UNIQUE INDEX SQL" + sdf.format(timestamp) + " ON " + tableName
+						// sql = "CREATE UNIQUE INDEX ON " + tableName
 						// + " ("
 						// + uniques.get(0);
 						//
@@ -377,18 +374,14 @@ public class TableCreaDialog extends JDialog {
 
 						if (!indices.isEmpty()) {
 							// Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-							sql = "CREATE INDEX SQL"
-									// + sdf.format(timestamp)
-									+ " ON " + tableName + " (" + indices.get(0) + ")";
+							sql = "CREATE INDEX ON " + tableName + " (" + indices.get(0) + ")";
 
 							System.out.println(sql);
 							stmt.executeUpdate(sql);
 							JOptionPane.showMessageDialog(null, "INDEX has been created on the table " + tableName);
 
 							for (int i = 1; i < indices.size(); i++) {
-								sql = ", CREATE INDEX SQL"
-										// + sdf.format(timestamp)
-										+ " ON " + tableName + " (" + indices.get(i) + ")";
+								sql = ", CREATE INDEX ON " + tableName + " (" + indices.get(i) + ")";
 								System.out.println(sql);
 								stmt.executeUpdate(sql);
 								JOptionPane.showMessageDialog(null, "INDEX has been created on the table " + tableName);
@@ -452,8 +445,7 @@ public class TableCreaDialog extends JDialog {
 
 					colDialog = new AddColumnDlg();
 
-					myComboModel = new MyComboModel();
-					loadComboCols(rset, tipo);
+					myComboModel = DBFactory.loadComboCols(rset);
 					colDialog.getComboType().setModel(myComboModel);
 					rset.close();
 					colDialog.pack();
@@ -471,7 +463,7 @@ public class TableCreaDialog extends JDialog {
 				// Return from the column dialog
 				if (colDialog.result == 0) {
 
-					Object[] fila = new Object[25];
+					Object[] fila = new Object[24];
 					fila[0] = colDialog.getChkbxPrimKey().isSelected();
 					fila[1] = colDialog.getChkbxUnique().isSelected();
 					fila[2] = colDialog.getChkbxNull().isSelected();
@@ -489,18 +481,17 @@ public class TableCreaDialog extends JDialog {
 					fila[12] = colDialog.getComboGenerated().getSelectedItem();
 					fila[13] = colDialog.getTxtInitValue().getText();
 					fila[14] = colDialog.getTextIncrement().getText();
-					fila[15] = colDialog.getChckbxCycle().isSelected();
 
-					fila[16] = colDialog.getTxtConstName().getText();
-					fila[17] = colDialog.getTxtRefTable().getText();
-					fila[18] = colDialog.getTxtColNames().getText();
-					fila[19] = colDialog.getChkbxOnDelete().isSelected();
-					fila[20] = colDialog.getComboOnDelete().getSelectedItem();
-					fila[21] = colDialog.getChkbxOnUpdate().isSelected();
-					fila[22] = colDialog.getComboOnUpdate().getSelectedItem();
+					fila[15] = colDialog.getTxtConstName().getText();
+					fila[16] = colDialog.getTxtRefTable().getText();
+					fila[17] = colDialog.getTxtColNames().getText();
+					fila[18] = colDialog.getChkbxOnDelete().isSelected();
+					fila[19] = colDialog.getComboOnDelete().getSelectedItem();
+					fila[20] = colDialog.getChkbxOnUpdate().isSelected();
+					fila[21] = colDialog.getComboOnUpdate().getSelectedItem();
 
-					fila[23] = colDialog.getTxtConstCheck().getText();
-					fila[24] = colDialog.getEditorPaneConditions().getText();
+					fila[22] = colDialog.getTxtConstCheck().getText();
+					fila[23] = colDialog.getEditorPaneConditions().getText();
 
 					((DefaultTableModel) table.getModel()).addRow(fila);
 					table.updateUI();
@@ -765,31 +756,4 @@ public class TableCreaDialog extends JDialog {
 		lblNewLabel_1.setAlignmentY(Component.TOP_ALIGNMENT);
 		lblNewLabel_1.setHorizontalTextPosition(SwingConstants.LEFT);
 	}
-
-	public static void loadComboCols(ResultSet rset, MyColumnTypes tipo) throws SQLException {
-
-		while (rset.next()) {
-			tipo = new MyColumnTypes();
-			tipo.TYPE_NAME = rset.getString("TYPE_NAME");
-			tipo.DATA_TYPE = rset.getInt("DATA_TYPE");
-			tipo.PRECISION = rset.getInt("PRECISION");
-			tipo.LITERAL_PREFIX = rset.getString("LITERAL_PREFIX");
-			tipo.LITERAL_SUFFIX = rset.getString("LITERAL_SUFFIX");
-			tipo.CREATE_PARAMS = rset.getString("CREATE_PARAMS");
-			tipo.NULLABLE = rset.getShort("NULLABLE");
-			tipo.CASE_SENSITIVE = rset.getBoolean("CASE_SENSITIVE");
-			tipo.SEARCHABLE = rset.getShort("SEARCHABLE");
-			tipo.UNSIGNED_ATTRIBUTE = rset.getBoolean("UNSIGNED_ATTRIBUTE");
-			tipo.FIXED_PREC_SCALE = rset.getBoolean("FIXED_PREC_SCALE");
-			tipo.AUTO_INCREMENT = rset.getBoolean("AUTO_INCREMENT");
-			tipo.LOCAL_TYPE_NAME = rset.getString("LOCAL_TYPE_NAME");
-			tipo.MINIMUM_SCALE = rset.getShort("MINIMUM_SCALE");
-			tipo.MAXIMUM_SCALE = rset.getShort("MAXIMUM_SCALE");
-			tipo.SQL_DATA_TYPE = rset.getInt("SQL_DATA_TYPE");
-			tipo.SQL_DATETIME_SUB = rset.getInt("SQL_DATETIME_SUB");
-			tipo.NUM_PREC_RADIX = rset.getInt("NUM_PREC_RADIX");
-			TableCreaDialog.myComboModel.insertItem(tipo);
-		}
-	}
-
 }

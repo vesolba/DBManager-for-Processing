@@ -296,6 +296,7 @@ public class ExecSQLPanel extends JPanel {
 					tableSQLResult.setRowHeight((int) Float.parseFloat(spinTable.getValue().toString()) + 5);
 					DBManager.propsDBM.setDBMProp("spinTable", spinTable.getValue().toString());
 					DBManager.propsDBM.saveProperties();
+					tableSQLResult.updateUI();
 				}
 			});
 			spinTable.setToolTipText("Table Font Size");
@@ -308,6 +309,7 @@ public class ExecSQLPanel extends JPanel {
 				tableSQLResult.setFont(
 						tableSQLResult.getFont().deriveFont(Float.parseFloat(spinTable.getValue().toString())));
 				tableSQLResult.setRowHeight((int) Float.parseFloat(spinTable.getValue().toString()) + 5);
+				tableSQLResult.updateUI();
 			}
 		}
 		JScrollPane scrollPane = new JScrollPane(tableSQLResult);
@@ -370,6 +372,8 @@ public class ExecSQLPanel extends JPanel {
 					executeSQL(lastSelect, "MODE_FILL"); // To refresh JTable
 
 				}
+
+				tableSQLResult.updateUI();
 			}
 		});
 
@@ -521,8 +525,9 @@ public class ExecSQLPanel extends JPanel {
 
 			} else {
 				tableSQLResult.setModel(tModel);
-				tableSQLResult.updateUI();
 			}
+
+			tableSQLResult.updateUI();
 
 		} else {
 			if (redQuery != null && !redQuery.equals("")) {

@@ -1,6 +1,5 @@
 package dbmanager;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -11,15 +10,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -33,18 +32,21 @@ public class DBFactory {
 		String actCommand = event.getActionCommand().toString();
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
 		DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
+		Connection conn = null;
+		DatabaseMetaData dbmd = null;
+		Statement stmt = null;
 
 		switch (actCommand) {
 		case "Expand all":
 			DBGUIFrame.expandAll(DBManager.dBtree, true);
-			DBManager.dBtree.updateUI();
+			// DBManager.dBtree.updateUI();
 			break;
-			
+
 		case "Collapse all":
 			DBGUIFrame.expandAll(DBManager.dBtree, false);
-			DBManager.dBtree.updateUI();
+			// DBManager.dBtree.updateUI();
 			break;
-			
+
 		case "Copy name": // Copy the node name in the clipboard
 			StringSelection stringSelection = new StringSelection(nodeInfo.getText());
 			Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -128,30 +130,16 @@ public class DBFactory {
 
 			if (response == JOptionPane.YES_OPTION) {
 
-				Connection conn = null;
+				conn = null;
 
 				try {
-					conn = DBConnect.connect(!DBConnect.serverIsOn,
-							nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(), "", null, false);
+					conn = DBConnect.connect(true, nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(), "", null,
+							false);
 				} catch (Exception ex) {
-					// If we can not connect and the server is off, we repeat the try with server
-					// on.
-					if (!DBConnect.serverIsOn) {
-						try {
-							DBConnect.inicServer();
-							DBGUIFrame.getMnServer().setForeground(Color.GREEN);
-							conn = DBConnect.connect(!DBConnect.serverIsOn,
-									nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(), "", null, false);
-						} catch (Exception ey) {
-							JOptionPane.showConfirmDialog(null, "The database " + nodeInfo.getPathLocation() + "/"
-									+ nodeInfo.getdBaseName() + " is not available.");
-							ex.printStackTrace();
-						}
-					} else {
-						JOptionPane.showMessageDialog(null, "The database " + nodeInfo.getPathLocation() + "/"
-								+ nodeInfo.getdBaseName() + " is not available.");
-						ex.printStackTrace();
-					}
+					JOptionPane.showMessageDialog(null, "The database " + nodeInfo.getPathLocation() + "/"
+							+ nodeInfo.getdBaseName() + " is not available.");
+					ex.printStackTrace();
+
 				}
 
 				if (conn != null) {
@@ -161,6 +149,7 @@ public class DBFactory {
 						int result = statement.executeUpdate(sql);
 						JOptionPane.showMessageDialog(null, "Table " + table2Manage
 								+ " has been droped from the database " + nodeInfo.getdBaseName());
+
 					} catch (Exception h) {
 						JOptionPane.showMessageDialog(null,
 								"It was not possible to delete " + table2Manage + " table.");
@@ -246,8 +235,133 @@ public class DBFactory {
 			}
 
 			break;
+
 		case "Add column...":
+			AddColumnDlg colDialog = new AddColumnDlg();
+			MyComboModel myComboModel = null;
+			node = (DefaultMutableTreeNode) DBManager.dBtree.getLastSelectedPathComponent();
+			nodeInfo = ((DBTreeNodeK) node.getUserObject());
+			String tableName = nodeInfo.getText();
+			String currDBPath = nodeInfo.getPathLocation();
+			String currDBName = nodeInfo.getdBaseName();
+			ArrayList<String> indices = new ArrayList<String>();
+			String columnType = "";
+			String columnName = "";
+
+			try {
+				conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
+
+				// Data for the data type combo
+				dbmd = conn.getMetaData();
+
+				ResultSet rset = dbmd.getTypeInfo();
+
+				myComboModel = loadComboCols(rset);
+				colDialog.getComboType().setModel(myComboModel);
+				rset.close();
+				colDialog.pack();
+				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+				colDialog.setSize(screenSize.width * 2 / 4, screenSize.height * 2 / 3);
+				colDialog.setLocationRelativeTo(null);
+				colDialog.getComboType().setSelectedIndex(0);
+				colDialog.getComboType().setEnabled(true);
+				colDialog.setVisible(true);
+			} catch (Exception ex) {
+				colDialog.setEnabled(false);
+				ex.printStackTrace();
+			}
+
+			// Return from the column dialog
+			if (colDialog.result == 0) {
+				String autoIncText = "";
+				String foreignKeyText = "";
+
+				// We create the DDL sentence from the Add Column dialog.
+				String sql = "ALTER TABLE APP." + tableName + " ADD COLUMN " + colDialog.getTextName().getText() + " ";
+
+				columnType = colDialog.getComboType().getSelectedItem().toString();
+
+				int colSize = (int) colDialog.getTextSize().getValue(); // Size
+				int colScale = (int) colDialog.getTextScale().getValue(); // Scale
+				int dataType = (int) DBManager.dataTypeInfo(columnType, "DATA_TYPE");
+				Object objParams = DBManager.dataTypeInfo(columnType, "CREATE_PARAMS");
+
+				if (objParams != null) {
+					String params = objParams.toString();
+					if (params.contains("length") || params.contains("precision")) {
+						if (dataType == -3 || dataType == -4) {
+							columnType.replaceFirst("()", "(" + colSize + ")");
+							if (params.contains("scale")) {
+								columnType.replaceFirst(")", ", " + colScale // Scale
+										+ ")");
+							}
+
+						} else {
+							columnType += "(" + colSize;
+							if (params.contains("scale")) {
+								columnType += ", " + colScale; // Scale
+							}
+							columnType += ")";
+						}
+					}
+				}
+
+				String defValue = colDialog.getTxtDefValue().getText(); // Default value
+
+				if (colDialog.getChkbxIndex().isSelected())
+					indices.add(columnName);
+
+				// Autoincrement
+				if (colDialog.getChckbxAutoinc().isSelected() && autoIncText.equals("")) {
+					autoIncText = " GENERATED " + colDialog.getComboGenerated().getSelectedItem(); // by default/always
+					autoIncText += " AS IDENTITY ";
+
+					int inicVal = Integer.parseInt(colDialog.getTxtInitValue().getText());
+					int incrVal = Integer.parseInt(colDialog.getTextIncrement().getText());
+
+					if (incrVal != 0) {
+						autoIncText += "(START WITH " + inicVal + ", INCREMENT BY " + incrVal + ")";
+					}
+				}
+
+				// Column level Foreign keys
+				if (colDialog.getChkbxForeign().isSelected()) { // Foreign keys
+					foreignKeyText = " CONSTRAINT " + colDialog.getTxtConstName().getText() + " REFERENCES "
+							+ colDialog.getTxtRefTable().getText() + " (" + colDialog.getTxtColNames().getText() + ")"
+							+ ((colDialog.getChkbxOnDelete().isSelected())
+									? (" ON DELETE " + colDialog.getComboOnDelete().getSelectedItem().toString())
+									: "")
+							+ ((colDialog.getChkbxOnUpdate().isSelected())
+									? (" ON UPDATE " + colDialog.getComboOnUpdate().getSelectedItem().toString())
+									: "");
+
+				}
+				
+				sql += columnType + ((defValue.equals("")) ? "" : (" DEFAULT " + defValue)) // Default
+						+ ((colDialog.getChkbxNull().isSelected()) ? "" : " not NULL")
+						+ ((colDialog.getChkbxPrimKey().isSelected()) ? " PRIMARY KEY "
+								: (colDialog.getChkbxUnique().isSelected()) ? " UNIQUE " : "")
+						+ ((colDialog.getChckbxAutoinc().isSelected()) // Autoincrement
+								? autoIncText
+								: "")
+						+ ((colDialog.getChkbxForeign().isSelected()) // Foreign key
+								? foreignKeyText
+								: "");
+
+				// sql += ")";
+				System.out.println(sql);
+				try {
+					stmt = conn.createStatement();
+					stmt.executeUpdate(sql);
+					JOptionPane.showMessageDialog(null,
+							"Table " + tableName + " has been created in the database " + currDBName);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			break;
+
 		case "Manage data...":
 			table2Manage = nodeInfo.getText();
 			frame.getExecSQLPanel().getTextEditingElement().setText(table2Manage);
@@ -264,10 +378,11 @@ public class DBFactory {
 			break;
 		default:
 
-			DBManager.dBtree.repaint();
+			// DBManager.dBtree.repaint();
 
 		}
 
+		DBManager.dBtree.updateUI();
 	}
 
 	/**
@@ -404,6 +519,37 @@ public class DBFactory {
 			sqle.printStackTrace();
 			sqle = sqle.getNextException();
 		}
+	}
+
+	public static MyComboModel loadComboCols(ResultSet rset) throws SQLException {
+
+		MyComboModel myComboModel = new MyComboModel();
+		MyColumnTypes tipo;
+
+		while (rset.next()) {
+			tipo = new MyColumnTypes();
+			tipo.TYPE_NAME = rset.getString("TYPE_NAME");
+			tipo.DATA_TYPE = rset.getInt("DATA_TYPE");
+			tipo.PRECISION = rset.getInt("PRECISION");
+			tipo.LITERAL_PREFIX = rset.getString("LITERAL_PREFIX");
+			tipo.LITERAL_SUFFIX = rset.getString("LITERAL_SUFFIX");
+			tipo.CREATE_PARAMS = rset.getString("CREATE_PARAMS");
+			tipo.NULLABLE = rset.getShort("NULLABLE");
+			tipo.CASE_SENSITIVE = rset.getBoolean("CASE_SENSITIVE");
+			tipo.SEARCHABLE = rset.getShort("SEARCHABLE");
+			tipo.UNSIGNED_ATTRIBUTE = rset.getBoolean("UNSIGNED_ATTRIBUTE");
+			tipo.FIXED_PREC_SCALE = rset.getBoolean("FIXED_PREC_SCALE");
+			tipo.AUTO_INCREMENT = rset.getBoolean("AUTO_INCREMENT");
+			tipo.LOCAL_TYPE_NAME = rset.getString("LOCAL_TYPE_NAME");
+			tipo.MINIMUM_SCALE = rset.getShort("MINIMUM_SCALE");
+			tipo.MAXIMUM_SCALE = rset.getShort("MAXIMUM_SCALE");
+			tipo.SQL_DATA_TYPE = rset.getInt("SQL_DATA_TYPE");
+			tipo.SQL_DATETIME_SUB = rset.getInt("SQL_DATETIME_SUB");
+			tipo.NUM_PREC_RADIX = rset.getInt("NUM_PREC_RADIX");
+			myComboModel.insertItem(tipo);
+		}
+
+		return myComboModel;
 	}
 
 }

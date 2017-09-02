@@ -76,8 +76,6 @@ public class AddColumnDlg extends JDialog {
 	private JPanel panel_13;
 	private JLabel label_4;
 	private JFormattedTextField txtIncrement;
-	private JPanel panel_14;
-	private JCheckBox chkbxCycle;
 	private JLabel label_5;
 	private JCheckBox chkbxForeign;
 	private JPanel panel_15;
@@ -359,12 +357,10 @@ public class AddColumnDlg extends JDialog {
 						comboGenerated.setEnabled(true);
 						txtInitValue.setEnabled(true);
 						txtIncrement.setEnabled(true);
-						chkbxCycle.setEnabled(true);
 					} else {
 						comboGenerated.setEnabled(false);
 						txtInitValue.setEnabled(false);
 						txtIncrement.setEnabled(false);
-						chkbxCycle.setEnabled(false);
 					}
 				}
 			}
@@ -416,15 +412,8 @@ public class AddColumnDlg extends JDialog {
 		txtIncrement.setColumns(10);
 		panel_13.add(txtIncrement);
 
-		panel_14 = new JPanel();
-		panel_1.add(panel_14);
-
-		chkbxCycle = new JCheckBox(", CYCLE");
-		chkbxCycle.setEnabled(false);
-		panel_14.add(chkbxCycle);
-
 		label_5 = new JLabel(")");
-		panel_14.add(label_5);
+		panel_13.add(label_5);
 
 		separator_1 = new JSeparator();
 		separator_1.setMaximumSize(new Dimension(32767, 0));
@@ -726,13 +715,6 @@ public class AddColumnDlg extends JDialog {
 	}
 
 	/**
-	 * @return the chckbxCycle
-	 */
-	public JCheckBox getChckbxCycle() {
-		return chkbxCycle;
-	}
-
-	/**
 	 * @return the textIncrement
 	 */
 	public JTextField getTextIncrement() {
@@ -786,13 +768,6 @@ public class AddColumnDlg extends JDialog {
 	 */
 	public JTextField getTxtIncrement() {
 		return txtIncrement;
-	}
-
-	/**
-	 * @return the chkbxCycle
-	 */
-	public JCheckBox getChkbxCycle() {
-		return chkbxCycle;
 	}
 
 	/**

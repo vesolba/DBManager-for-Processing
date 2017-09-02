@@ -251,10 +251,10 @@ public class DBManager<propsDBM> implements Tool {
 						dBtree.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 						DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
 						DBTreeNodeK nodeInfo = (DBTreeNodeK) node.getUserObject();
-						
-//						if (nodeInfo.getCategory().equals("COLUMN")) {
-							dBtree.setToolTipText(nodeInfo.getFullTypeDesc());
-//						}
+
+						// if (nodeInfo.getCategory().equals("COLUMN")) {
+						dBtree.setToolTipText(nodeInfo.getFullTypeDesc());
+						// }
 					}
 				}
 			});
@@ -285,8 +285,8 @@ public class DBManager<propsDBM> implements Tool {
 							public void actionPerformed(ActionEvent event) {
 								dBfactory = new DBFactory(event, dBtree.getSelectionPath(), frame);
 
-//								final TreeExpansionUtil expander = new TreeExpansionUtil(dBtree);
-//								final String state = expander.getExpansionState();
+								// final TreeExpansionUtil expander = new TreeExpansionUtil(dBtree);
+								// final String state = expander.getExpansionState();
 
 								// System.out.println(state);
 
@@ -295,7 +295,7 @@ public class DBManager<propsDBM> implements Tool {
 								dBtree.updateUI();
 
 								// Recover the expansion state
-//								expander.setExpansionState(state);
+								// expander.setExpansionState(state);
 							}
 						};
 
@@ -348,12 +348,16 @@ public class DBManager<propsDBM> implements Tool {
 							if (!nodeInfo.getdBaseName().equals(DBConnect.DBMSYSTABLE)) { // Take care not delete sys
 								if (nodeInfo.getText().equals("Tables") || nodeInfo.getText().equals("Columns")
 										|| nodeInfo.getText().equals("Indices")) {
-									}
+								}
 
 								if (nodeInfo.getText().equals("Tables")) {
 									popup.add(menuItem = new JMenuItem("Create Table..."));
 									menuItem.addActionListener(menuListener);
 									popup.add(menuItem = new JMenuItem("Recreate Table..."));
+									menuItem.addActionListener(menuListener);
+								}
+								if (nodeInfo.getText().equals("Columns")) {
+									popup.add(menuItem = new JMenuItem("Add column..."));
 									menuItem.addActionListener(menuListener);
 								}
 							}
@@ -508,7 +512,7 @@ public class DBManager<propsDBM> implements Tool {
 				DBConnect.createSysDB(conn, pathToDBManager);
 			} else {
 
-//				System.out.println("SysTable exists detected." + rs.toString());
+				// System.out.println("SysTable exists detected." + rs.toString());
 
 			}
 
@@ -686,8 +690,9 @@ public class DBManager<propsDBM> implements Tool {
 
 	public static Object dataTypeInfo(String colType, String colInfo) {
 
-//		System.out.println(" row " + colType + " column " + colInfo + "  " + rowSearch.get(colInfo) + "  "
-//				+ colSearch.get(colInfo));
+		// System.out.println(" row " + colType + " column " + colInfo + " " +
+		// rowSearch.get(colInfo) + " "
+		// + colSearch.get(colInfo));
 		return hiddenTypesTable[rowSearch.get(colType)][colSearch.get(colInfo)];
 	}
 
@@ -755,5 +760,5 @@ public class DBManager<propsDBM> implements Tool {
 			System.out.println("Error in columnType: " + columnType + " " + columnTypeName);
 			return Object.class;
 		}
-	}	
+	}
 }
