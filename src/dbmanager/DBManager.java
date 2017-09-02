@@ -290,9 +290,9 @@ public class DBManager<propsDBM> implements Tool {
 
 								// System.out.println(state);
 
-								treeDataModel = new DefaultTreeModel(getTreeModel());
-								dBtree.setModel(treeDataModel);
-								dBtree.updateUI();
+//								treeDataModel = new DefaultTreeModel(getTreeModel());
+//								dBtree.setModel(treeDataModel);
+//								dBtree.updateUI();
 
 								// Recover the expansion state
 								// expander.setExpansionState(state);
@@ -400,7 +400,9 @@ public class DBManager<propsDBM> implements Tool {
 								menuItem.addActionListener(menuListener);
 
 							}
-							popup.add(menuItem = new JMenuItem("Refresh"));
+							break;
+						case "COLUMN":
+							popup.add(menuItem = new JMenuItem("Delete column"));
 							menuItem.addActionListener(menuListener);
 							break;
 						default:

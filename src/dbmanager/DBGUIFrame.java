@@ -419,6 +419,19 @@ public class DBGUIFrame extends JFrame {
 		return testPanel;
 	}
 
+	public static void expandAll() {
+
+		expandAll(DBManager.dBtree, true);
+	}
+
+	public static void collapseAll(JTree tree) {
+		int row = tree.getRowCount() - 1;
+		while (row >= 0) {
+			tree.collapseRow(row);
+			row--;
+		}
+	}
+
 	// If expand is true, expands all nodes in the tree.
 	// Otherwise, collapses all nodes in the tree.
 	public static void expandAll(JTree tree, boolean expand) {

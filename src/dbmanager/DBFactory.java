@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -38,13 +39,14 @@ public class DBFactory {
 
 		switch (actCommand) {
 		case "Expand all":
-			DBGUIFrame.expandAll(DBManager.dBtree, true);
+			DBGUIFrame.expandAll();
 			// DBManager.dBtree.updateUI();
 			break;
 
 		case "Collapse all":
-			DBGUIFrame.expandAll(DBManager.dBtree, false);
-			// DBManager.dBtree.updateUI();
+			System.out.println("Entra 2");
+			DBGUIFrame.collapseAll(DBManager.dBtree);
+			DBManager.dBtree.updateUI();
 			break;
 
 		case "Copy name": // Copy the node name in the clipboard
@@ -149,6 +151,15 @@ public class DBFactory {
 						int result = statement.executeUpdate(sql);
 						JOptionPane.showMessageDialog(null, "Table " + table2Manage
 								+ " has been droped from the database " + nodeInfo.getdBaseName());
+
+						final TreeExpansionUtil expander = new TreeExpansionUtil(DBManager.dBtree);
+						final String state = expander.getExpansionState();
+
+						System.out.println(state);
+						DBManager.dBtree.setModel(new DefaultTreeModel(DBManager.getTreeModel()));
+						// Recover the expansion state
+						expander.setExpansionState(state);
+						DBManager.dBtree.updateUI();
 
 					} catch (Exception h) {
 						JOptionPane.showMessageDialog(null,
@@ -336,7 +347,7 @@ public class DBFactory {
 									: "");
 
 				}
-				
+
 				sql += columnType + ((defValue.equals("")) ? "" : (" DEFAULT " + defValue)) // Default
 						+ ((colDialog.getChkbxNull().isSelected()) ? "" : " not NULL")
 						+ ((colDialog.getChkbxPrimKey().isSelected()) ? " PRIMARY KEY "
@@ -361,7 +372,77 @@ public class DBFactory {
 				}
 			}
 			break;
+		case "Delete column":
+			String columName = nodeInfo.getNodeText();
+			String colTableName = nodeInfo.getdTypeName();
+			String colDBName = nodeInfo.getdBaseName();
 
+			System.out.println("getText: " + nodeInfo.getText() + "\n Category: " + nodeInfo.getCategory()
+					+ "\n NodeText: " + nodeInfo.getNodeText() + "\n DataType: " + nodeInfo.getDataType()
+					+ "\n dBaseName: " + nodeInfo.getdBaseName() + "\n dTypeName: " + nodeInfo.getdTypeName()
+					+ "\n FullTypeDesc: " + nodeInfo.getFullTypeDesc());
+
+			// etText: ALTERINSERT Columna
+			// Category: COLUMN
+			// NodeText: ALTERINSERT Columna
+			// DataType: TABLE
+			// dBaseName: Things Base de datos
+			// dTypeName: TESTABLE Tabla
+			// FullTypeDesc: LONG VARCHAR tipo columna
+
+			JDialog.setDefaultLookAndFeelDecorated(true);
+			response = JOptionPane.showConfirmDialog(null,
+					"You are going to delete the column " + columName + "\n from the table " + colTableName
+							+ " in the database " + colDBName + "\n Do you want to continue?",
+					"Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+			if (response == JOptionPane.YES_OPTION) {
+
+				conn = null;
+
+				try {
+					conn = DBConnect.connect(true, nodeInfo.getPathLocation() + "/" + colDBName, "", null, false);
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null,
+							"The database " + nodeInfo.getPathLocation() + "/" + colDBName + " is not available.");
+					ex.printStackTrace();
+				}
+
+				if (conn != null) {
+					try {
+						String sql = "ALTER TABLE " + colTableName + " DROP " + columName;
+						Statement statement = conn.createStatement();
+						int result = statement.executeUpdate(sql);
+//						JOptionPane.showMessageDialog(null, "Table " + colTableName
+//								+ " has been droped from the database " + nodeInfo.getdBaseName());
+
+						final TreeExpansionUtil expander = new TreeExpansionUtil(DBManager.dBtree);
+						final String state = expander.getExpansionState();
+
+						System.out.println(state);
+						DBManager.dBtree.setModel(new DefaultTreeModel(DBManager.getTreeModel()));
+						// Recover the expansion state
+						expander.setExpansionState(state);
+						DBManager.dBtree.updateUI();
+
+					} catch (Exception h) {
+						JOptionPane.showMessageDialog(null,
+								"It was not possible to delete the column.");
+						h.printStackTrace();
+					} finally {
+						try {
+							if (conn != null && !conn.isClosed()) {
+								conn.close();
+							}
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+
+				}
+			}
+
+			break;
 		case "Manage data...":
 			table2Manage = nodeInfo.getText();
 			frame.getExecSQLPanel().getTextEditingElement().setText(table2Manage);
@@ -372,7 +453,7 @@ public class DBFactory {
 			break;
 		case "Refresh":
 			// ((DefaultTreeModel) DBManager.dBtree.getModel()).reload();
-			DBManager.dBtree.repaint();
+			// DBManager.dBtree.repaint();
 			break;
 		case "Properties":
 			break;
@@ -552,4 +633,18 @@ public class DBFactory {
 		return myComboModel;
 	}
 
+	public static void expandAll(JTree tree, TreePath path) {
+		int actRow = tree.getRowForPath(path);
+		for (int i = 0; i < tree.getRowCount(); i++) {
+			tree.expandRow(i);
+		}
+	}
+
+	public static void collapseAll(JTree tree) {
+		int row = tree.getRowCount() - 1;
+		while (row >= 0) {
+			tree.collapseRow(row);
+			row--;
+		}
+	}
 }
