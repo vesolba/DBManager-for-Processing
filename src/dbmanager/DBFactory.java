@@ -453,7 +453,14 @@ public class DBFactory {
 			break;
 		case "Refresh":
 			// ((DefaultTreeModel) DBManager.dBtree.getModel()).reload();
-			// DBManager.dBtree.repaint();
+			final TreeExpansionUtil expander = new TreeExpansionUtil(DBManager.dBtree);
+			final String state = expander.getExpansionState();
+
+			System.out.println(state);
+			DBManager.dBtree.setModel(new DefaultTreeModel(DBManager.getTreeModel()));
+			// Recover the expansion state
+			expander.setExpansionState(state);
+			DBManager.dBtree.updateUI();
 			break;
 		case "Properties":
 			break;

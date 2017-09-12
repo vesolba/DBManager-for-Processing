@@ -17,9 +17,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import javax.swing.Box;
-import javax.swing.JCheckBox;
+import javax.swing.BoxLayout;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -28,6 +27,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
@@ -35,6 +35,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -42,13 +43,13 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.BoxLayout;
-import javax.swing.JSeparator;
-import javax.swing.border.LineBorder;
-import javax.swing.UIManager;
 
 public class TableCreaDialog extends JDialog {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JTextField txtTablename;
 	private JTable table;
 
@@ -272,8 +273,7 @@ public class TableCreaDialog extends JDialog {
 								int incrVal = Integer.parseInt(table.getModel().getValueAt(i, 14).toString());
 
 								if (incrVal != 0) {
-									autoIncText += "(START WITH " + inicVal + ", INCREMENT BY " + incrVal
-											+ (((boolean) table.getModel().getValueAt(i, 15)) ? ", cycle)" : ")");
+									autoIncText += "(START WITH " + inicVal + ", INCREMENT BY " + incrVal + ")";
 								}
 							}
 

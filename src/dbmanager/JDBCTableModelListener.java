@@ -4,7 +4,7 @@ package dbmanager;
  * JDBCTableModelListener.java
  */
 
-/**
+/** 
  * The listener interface the JDBCTableModel uses to notify interested
  * parties that a row has been retrieved from the database.
  * <p>

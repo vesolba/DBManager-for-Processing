@@ -1,8 +1,5 @@
 package dbmanager;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class MyColumnTypes {
 
 	public String TYPE_NAME; // => Type name
@@ -32,14 +29,14 @@ public class MyColumnTypes {
 	public int NUM_PREC_RADIX; // => usually 2 or 10
 
 	public MyColumnTypes() {
-	
+
 		TYPE_NAME = ""; // => Type name
 		DATA_TYPE = 0;// => SQL data type from java.sql.Types
 		PRECISION = 0; // => maximum precision
 		LITERAL_PREFIX = ""; // => prefix used to quote a literal (may be null)
 		LITERAL_SUFFIX = ""; // => suffix used to quote a literal (may be null)
 		CREATE_PARAMS = ""; // => parameters used in creating the type (may be null)
-		short NULLABLE = 0; // => can you use NULL for this type.
+		NULLABLE = 0; // => can you use NULL for this type.
 		// typeNoNulls - does not allow NULL values
 		// typeNullable - allows NULL values
 		// typeNullableUnknown - nullability unknown
@@ -69,7 +66,7 @@ public class MyColumnTypes {
 		LITERAL_PREFIX = ""; // => prefix used to quote a literal (may be null)
 		LITERAL_SUFFIX = ""; // => suffix used to quote a literal (may be null)
 		CREATE_PARAMS = ""; // => parameters used in creating the type (may be null)
-		short NULLABLE = 0; // => can you use NULL for this type.
+		NULLABLE = 0; // => can you use NULL for this type.
 		// typeNoNulls - does not allow NULL values
 		// typeNullable - allows NULL values
 		// typeNullableUnknown - nullability unknown

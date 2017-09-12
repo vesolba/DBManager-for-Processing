@@ -1,6 +1,5 @@
 package dbmanager;
 
-import java.util.List;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;

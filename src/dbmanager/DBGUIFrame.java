@@ -30,6 +30,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
@@ -115,6 +116,15 @@ public class DBGUIFrame extends JFrame {
 		mntmMenuRefresh.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				checkServerMenu();
+				final TreeExpansionUtil expander = new TreeExpansionUtil(DBManager.dBtree);
+				final String state = expander.getExpansionState();
+
+				System.out.println(state);
+				DBManager.dBtree.setModel(new DefaultTreeModel(DBManager.getTreeModel()));
+				// Recover the expansion state
+				expander.setExpansionState(state);
+				DBManager.dBtree.updateUI();
+
 			}
 		});
 		mnServer.add(mntmMenuRefresh);
@@ -324,7 +334,7 @@ public class DBGUIFrame extends JFrame {
 					dialog.setSize(screenSize.width * 2 / 3, screenSize.height * 2 / 3);
 					dialog.setLocationRelativeTo(null);
 					dialog.setVisible(true);
-
+					DBManager.dBtree.updateUI();
 				} catch (Exception h) {
 					h.printStackTrace();
 				}

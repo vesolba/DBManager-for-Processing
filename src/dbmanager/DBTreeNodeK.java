@@ -4,6 +4,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 public class DBTreeNodeK extends DefaultMutableTreeNode {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String category = ""; // Defines the type of node
 	private String nodeText = ""; // Displayed text/name of the node
 	private String pathLocation = ""; // File path to database

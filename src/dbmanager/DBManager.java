@@ -42,9 +42,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.swing.JDialog;
 import javax.swing.JMenuItem;
@@ -61,7 +61,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -203,15 +202,22 @@ public class DBManager<propsDBM> implements Tool {
 						JTree auxTree = (JTree) event.getSource();
 						DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) auxTree
 								.getLastSelectedPathComponent();
-						if (selectedNode != null) {
+						if (selectedNode == null) {
+							frame.getExecSQLPanel().getTextPaneInSQL().setEnabled(false);
+							frame.getExecSQLPanel().getBtnInsertRow().setEnabled(false);
+							frame.getExecSQLPanel().getBtnDeleteRow().setEnabled(false);
+							frame.getExecSQLPanel().getBtnSaveChanges().setEnabled(false);
+						} else {
 							DBTreeNodeK nodeInfo = (DBTreeNodeK) selectedNode.getUserObject();
 							ExecSQLPanel.getTxtSelected()
 									.setText(nodeInfo.getPathLocation() + '/' + nodeInfo.getdBaseName());
+							frame.getExecSQLPanel().getTextPaneInSQL().setEnabled(true);
 							if (nodeInfo.getCategory().equals("TABLE")) {
-
 								String table2Manage = nodeInfo.getText();
 								frame.getExecSQLPanel().getTextEditingElement().setText(table2Manage);
 								frame.getExecSQLPanel().executeSQL("SELECT * FROM " + table2Manage, "MODE_FILL");
+								frame.getExecSQLPanel().getBtnInsertRow().setEnabled(true);
+								frame.getExecSQLPanel().getBtnDeleteRow().setEnabled(true);
 							}
 						}
 					}
@@ -290,9 +296,9 @@ public class DBManager<propsDBM> implements Tool {
 
 								// System.out.println(state);
 
-//								treeDataModel = new DefaultTreeModel(getTreeModel());
-//								dBtree.setModel(treeDataModel);
-//								dBtree.updateUI();
+								// treeDataModel = new DefaultTreeModel(getTreeModel());
+								// dBtree.setModel(treeDataModel);
+								// dBtree.updateUI();
 
 								// Recover the expansion state
 								// expander.setExpansionState(state);
@@ -600,6 +606,10 @@ public class DBManager<propsDBM> implements Tool {
 		return (root);
 	}
 
+	public static boolean isInteger (String str) {
+		return Pattern.matches("^\\d*$", str);
+	}
+	
 	public static boolean isNumeric(String str) {
 		return (str.matches("[+-]?\\d*(\\.\\d+)?") && str.equals("") == false);
 	}

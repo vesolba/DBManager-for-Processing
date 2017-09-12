@@ -11,9 +11,9 @@ import java.sql.*;
 public class JDBCTableLob {
     /**
      * The maximum number of CLOB characters to display in a result set JTable
-     * before showing elipses (...)
+     * before showing ellipses (...)
      */
-    private static final int CLOB_SIZE = 100;
+    private static final int CLOB_SIZE = 100; 
 
     /**
      * The type of Large Object

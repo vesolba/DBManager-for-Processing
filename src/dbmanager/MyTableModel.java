@@ -1,10 +1,17 @@
 package dbmanager;
 
 import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Writer;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -233,28 +240,29 @@ public class MyTableModel extends AbstractTableModel {
 			try {
 				return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
 			} catch (SQLException e) {
-					 e.printStackTrace();
-					 }if (colsClasses.get(columnIndex) == java.sql.SQLXML.class) {
-			try {
-				value = ((java.sql.SQLXML) value).getString();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			if (colsClasses.get(columnIndex) == java.sql.SQLXML.class) {
+				try {
+					value = ((java.sql.SQLXML) value).getString();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
-			// if (colsClasses.get(columnIndex) == Clob.class) {
-			// try {
-			// return ((Clob) value).getSubString(1, (int) ((Clob) value).length());
-			// } catch (SQLException e) {
-			// e.printStackTrace();
-			// }
-			// } else if (colsClasses.get(columnIndex) == Blob.class) {
-			// try {
-			// return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
-			// } catch (SQLException e) {
-			// e.printStackTrace();
-			// }
-					 }
+				// if (colsClasses.get(columnIndex) == Clob.class) {
+				// try {
+				// return ((Clob) value).getSubString(1, (int) ((Clob) value).length());
+				// } catch (SQLException e) {
+				// e.printStackTrace();
+				// }
+				// } else if (colsClasses.get(columnIndex) == Blob.class) {
+				// try {
+				// return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
+				// } catch (SQLException e) {
+				// e.printStackTrace();
+				// }
+			}
 		} // else
 		return value;
 	}
@@ -392,44 +400,159 @@ public class MyTableModel extends AbstractTableModel {
 			String order2 = " VALUES (";
 
 			ArrayList<Object> row = data2Add.get(i);
-			boolean colsAdded = false;
 
 			for (int j = 0; j < numCols; j++) {
 				if (!colsAutoincrement.get(j)) {
 
-					if (!colsAdded) {
-						colsAdded = true;
-					} else {
-						order += ", ";
-						order2 += ", ";
-					}
-					order += colsNames.get(j);
+					order += colsNames.get(j) + ((j < numCols - 1) ? "," : "");
 
 					quotePrefix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_PREFIX");
 					quoteSuffix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_SUFFIX");
 
-					if (quotePrefix != null) {
+					if (quotePrefix != null)
 						order2 += quotePrefix;
-					}
 					order2 += row.get(j);
-					if (quoteSuffix != null) {
+					if (quoteSuffix != null)
 						order2 += quoteSuffix;
-					}
+					order2 += "?" + ((j < numCols - 1) ? "," : "");
 				}
 			}
 
-			if (colsAdded) {
-				order += ")" + order2 + ")";
+			order += ")" + order2 + ")";
 
-				try {
-					statement = conn.createStatement();
-					int result = statement.executeUpdate(order);
-					numRowsAdded++;
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			try {
+				statement = conn.createStatement();
+				int result = statement.executeUpdate(order);
+				numRowsAdded++;
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
+
+	public void insertNewRow(ArrayList<Object> row2Add) {
+
+		int numCols = getColumnCount();
+		String tableName = sourceTable;
+		String quotePrefix = "";
+		String quoteSuffix = "";
+
+		String order = "INSERT INTO " + tableName + " (";
+		String order2 = " VALUES (";
+
+		for (int j = 0; j < numCols; j++) {
+			if (!colsAutoincrement.get(j)) {
+
+				order += colsNames.get(j) + ((j < numCols - 1) ? "," : "");
+
+				quotePrefix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_PREFIX");
+				quoteSuffix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_SUFFIX");
+
+				if (quotePrefix != null) {
+					order2 += quotePrefix;
+				}
+
+				order2 += "?";
+
+				if (quoteSuffix != null) {
+					order2 += quoteSuffix;
+				}
+
+				order2 += ((j < numCols - 1) ? "," : "");
+			}
+		}
+
+		order += ")";
+		order2 += ")";
+
+		System.out.println(order + order2);
+
+		PreparedStatement ps = null;
+		;
+		try {
+			ps = conn.prepareStatement(order + order2);
+
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		for (int j = 0; j < numCols; j++) {
+			if (!colsAutoincrement.get(j)) {
+				if (colsClasses.get(j) == java.sql.Clob.class) {
+					String file2Load = row2Add.get(j).toString();
+					try {
+						conn.setAutoCommit(false);
+						Clob myClob = conn.createClob();
+						Writer clobWriter = myClob.setCharacterStream(1);
+						String str = readFile(file2Load, clobWriter);
+						System.out.println("Wrote the following: " + clobWriter.toString());
+						System.out.println("Length of Clob: " + myClob.length());
+						ps.setClob(j, myClob);
+
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else {
+					if (colsClasses.get(j) == java.sql.Blob.class) {
+						try {
+							conn.setAutoCommit(false);
+							File file2Load = new File(row2Add.get(j).toString());
+							Blob blob = conn.createBlob();
+							ObjectOutputStream oos;
+							oos = new ObjectOutputStream(blob.setBinaryStream(1));
+							oos.writeObject(file2Load);
+							ps.setBlob(j, blob);
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} else {
+						try {
+							ps.setObject(j, row2Add.get(j));
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+		
+		try {
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private String readFile(String fileName, Writer writerArg) throws FileNotFoundException, IOException {
+
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String nextLine = "";
+		StringBuffer sb = new StringBuffer();
+		while ((nextLine = br.readLine()) != null) {
+			System.out.println("Writing: " + nextLine);
+			writerArg.write(nextLine);
+			sb.append(nextLine);
+		}
+		// Convert the content into to a string
+		String clobData = sb.toString();
+
+		// Return the data.
+		return clobData;
+	}
+
 }

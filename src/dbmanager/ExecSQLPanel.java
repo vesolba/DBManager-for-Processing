@@ -42,6 +42,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.tree.DefaultTreeModel;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.event.CaretEvent;
 
 @SuppressWarnings("serial")
 public class ExecSQLPanel extends JPanel {
@@ -58,6 +65,10 @@ public class ExecSQLPanel extends JPanel {
 	private String propFont = "";
 
 	public static String SENTENCES_DELIMITER = ";";
+	private JButton btnSaveChanges;
+	private JButton btnInsertRow;
+	private JButton btnDeleteRow;
+	private JButton btnExecSQL;
 
 	public ExecSQLPanel() {
 		jbInit();
@@ -84,6 +95,7 @@ public class ExecSQLPanel extends JPanel {
 		menuBar_1.add(lblWriteSQL);
 
 		txtSelected = new JTextPane();
+		txtSelected.setEditable(false);
 		menuBar_1.add(txtSelected);
 
 		Component horizontalGlue = Box.createHorizontalGlue();
@@ -179,6 +191,26 @@ public class ExecSQLPanel extends JPanel {
 			}
 		});
 		textPaneInSQL = new JTextPane();
+		textPaneInSQL.addCaretListener(new CaretListener() {
+			public void caretUpdate(CaretEvent arg0) {
+				if (textPaneInSQL.getText().trim().equals("")) {
+					getBtnExecSQL().setEnabled(false);
+				} else {
+					getBtnExecSQL().setEnabled(true);
+				}
+			}
+		});
+		textPaneInSQL.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				if (textPaneInSQL.getText().trim().equals("")) {
+					getBtnExecSQL().setEnabled(false);
+				} else {
+					getBtnExecSQL().setEnabled(true);
+				}
+			}
+		});
+		textPaneInSQL.setEnabled(false);
 		textPaneInSQL.setDropMode(DropMode.INSERT);
 		if (DBManager.propsDBM != null) {
 			propFont = DBManager.propsDBM.getDBMProp("fontsize01");
@@ -233,11 +265,24 @@ public class ExecSQLPanel extends JPanel {
 		Box horizontalBox = Box.createHorizontalBox();
 		upperPanel.add(horizontalBox, BorderLayout.SOUTH);
 
-		JButton btnExecSQL = new JButton(" Execute ");
+		btnExecSQL = new JButton(" Execute ");
+		btnExecSQL.setEnabled(false);
 		btnExecSQL.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 		btnExecSQL.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				executeSQL(textPaneInSQL.getText(), "MODE_FILL");
+				if (!textPaneInSQL.getText().equals("")) {
+
+					executeSQL(textPaneInSQL.getText(), "MODE_FILL");
+
+					final TreeExpansionUtil expander = new TreeExpansionUtil(DBManager.dBtree);
+					final String state = expander.getExpansionState();
+
+					System.out.println(state);
+					DBManager.dBtree.setModel(new DefaultTreeModel(DBManager.getTreeModel()));
+					// Recover the expansion state
+					expander.setExpansionState(state);
+					DBManager.dBtree.updateUI();
+				}
 			}
 		});
 
@@ -250,6 +295,7 @@ public class ExecSQLPanel extends JPanel {
 		horizontalBox.add(lblLastMessage);
 
 		txtLastMessage = new JTextField();
+		txtLastMessage.setEditable(false);
 		horizontalBox.add(txtLastMessage);
 		txtLastMessage.setColumns(10);
 
@@ -313,6 +359,7 @@ public class ExecSQLPanel extends JPanel {
 			}
 		}
 		JScrollPane scrollPane = new JScrollPane(tableSQLResult);
+		scrollPane.setEnabled(false);
 		scrollPane.setAutoscrolls(true);
 		scrollPane.setViewportBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		lowPanel.add(scrollPane, BorderLayout.CENTER);
@@ -323,7 +370,8 @@ public class ExecSQLPanel extends JPanel {
 		editTableToolsBar.setMaximumSize(new Dimension(1000, 50));
 		lowPanel.add(editTableToolsBar, BorderLayout.SOUTH);
 
-		JButton btnDeleteRow = new JButton(" Delete Row ");
+		btnDeleteRow = new JButton(" Delete Row ");
+		btnDeleteRow.setEnabled(false);
 		btnDeleteRow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -385,9 +433,10 @@ public class ExecSQLPanel extends JPanel {
 		btnDeleteRow.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 		editTableToolsBar.add(btnDeleteRow);
 
-		JButton btnInsertRow = new JButton(" Insert Rows");
+		btnInsertRow = new JButton(" Insert Row");
+		btnInsertRow.setEnabled(false);
 		btnInsertRow.setMinimumSize(new Dimension(200, 0));
-		btnInsertRow.setActionCommand(" Insert Rows");
+		btnInsertRow.setActionCommand(" Insert Row");
 		btnInsertRow.setPreferredSize(new Dimension(100, 23));
 		btnInsertRow.setMaximumSize(new Dimension(1000, 30));
 		btnInsertRow.addActionListener(new ActionListener() {
@@ -400,7 +449,8 @@ public class ExecSQLPanel extends JPanel {
 		btnInsertRow.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 		editTableToolsBar.add(btnInsertRow);
 
-		JButton btnSaveChanges = new JButton("Save changes");
+		btnSaveChanges = new JButton("Save changes");
+		btnSaveChanges.setEnabled(false);
 		btnSaveChanges.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -422,6 +472,7 @@ public class ExecSQLPanel extends JPanel {
 		editTableToolsBar.add(lblNewLabel);
 
 		textEditingElement = new JTextField();
+		textEditingElement.setEnabled(false);
 		textEditingElement.setMinimumSize(new Dimension(20, 20));
 		textEditingElement.setMaximumSize(new Dimension(1000, 50));
 		editTableToolsBar.add(textEditingElement);
@@ -516,6 +567,7 @@ public class ExecSQLPanel extends JPanel {
 					dialog.pack();
 					dialog.setSize(screenSize.width * 1 / 3, screenSize.height * 1 / 3);
 					dialog.setLocationRelativeTo(null);
+					dialog.setTitle("Insert row in table " + textEditingElement.getText());
 					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 					dialog.setVisible(true);
 
@@ -568,6 +620,34 @@ public class ExecSQLPanel extends JPanel {
 
 			}
 		}
+	}
+
+	/**
+	 * @return the btnSaveChanges
+	 */
+	public JButton getBtnSaveChanges() {
+		return btnSaveChanges;
+	}
+
+	/**
+	 * @return the btnInsertRow
+	 */
+	public JButton getBtnInsertRow() {
+		return btnInsertRow;
+	}
+
+	/**
+	 * @return the btnDeleteRow
+	 */
+	public JButton getBtnDeleteRow() {
+		return btnDeleteRow;
+	}
+
+	/**
+	 * @return the btnExecSQL
+	 */
+	public JButton getBtnExecSQL() {
+		return btnExecSQL;
 	}
 
 	// @Override

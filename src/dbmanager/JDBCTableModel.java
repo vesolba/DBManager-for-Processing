@@ -31,6 +31,10 @@ import javax.swing.table.AbstractTableModel;
  * @author gm310509
  */
 public class JDBCTableModel extends AbstractTableModel {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/** The content (resultset) retrieved from the database */
 	ArrayList<Object[]> contents = new ArrayList<Object[]>();
 	/**

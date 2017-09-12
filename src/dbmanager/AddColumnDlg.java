@@ -9,6 +9,10 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -30,17 +34,15 @@ import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import java.awt.Dialog.ModalExclusionType;
-import java.awt.Dialog.ModalityType;
+import javax.swing.event.ChangeListener;
 
 public class AddColumnDlg extends JDialog {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JFormattedTextField textName;
 	private JFormattedTextField textSize;
 	private JTextField textDefault;
@@ -102,7 +104,7 @@ public class AddColumnDlg extends JDialog {
 	private JLabel label_11;
 	private JEditorPane editorPaneConditions;
 	private JLabel label_12;
-	private JComboBox comboGenerated;
+	private JComboBox<String> comboGenerated;
 	private JSeparator separator;
 	private JSeparator separator_1;
 	private JSeparator separator_2;
@@ -158,7 +160,8 @@ public class AddColumnDlg extends JDialog {
 		textName.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent arg0) {
-				if (textName.getText().isEmpty()) {
+				if ((textName.getText().trim()).equals("")) {
+					textName.setText("");
 					comboType.setEnabled(false);
 
 				} else {
@@ -181,7 +184,6 @@ public class AddColumnDlg extends JDialog {
 		comboType.setPreferredSize(new Dimension(200, 20));
 		comboType.setMaximumSize(new Dimension(1000, 1000));
 		panel_4.add(comboType);
-		comboType.setAutoscrolls(true);
 
 		comboType.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -213,11 +215,6 @@ public class AddColumnDlg extends JDialog {
 
 				int nullable = ((MyColumnTypes) comboType.getSelectedItem()).NULLABLE;
 				chkbxNull.setEnabled(nullable == 1);
-
-				// if (comboType.getSelectedItem().toString().equals("INCLOB")) {
-				// getTextDefault().setText("EMPTY_CLOB()");
-				//
-				// }
 
 			}
 		});
@@ -373,9 +370,9 @@ public class AddColumnDlg extends JDialog {
 		label_1 = new JLabel("    ... GENERATED ");
 		panel_9.add(label_1);
 
-		comboGenerated = new JComboBox();
+		comboGenerated = new JComboBox<String>();
 		comboGenerated.setEnabled(false);
-		comboGenerated.setModel(new DefaultComboBoxModel(new String[] { "BY DEFAULT", "ALWAYS" }));
+		comboGenerated.setModel(new DefaultComboBoxModel<String>(new String[] { "BY DEFAULT", "ALWAYS" }));
 		comboGenerated.setMaximumRowCount(20);
 
 		panel_9.add(comboGenerated);
@@ -519,7 +516,7 @@ public class AddColumnDlg extends JDialog {
 		chkbxOnDelete.setEnabled(false);
 		panel_18.add(chkbxOnDelete);
 
-		comboOnDelete = new JComboBox();
+		comboOnDelete = new JComboBox<MyColumnTypes>();
 		comboOnDelete.setEnabled(false);
 		comboOnDelete
 				.setModel(new DefaultComboBoxModel(new String[] { "NO ACTION", "RESTRICT", "CASCADE", "SET NULL" }));

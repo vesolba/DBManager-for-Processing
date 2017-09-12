@@ -19,7 +19,12 @@ import javax.swing.table.DefaultTableCellRenderer;
  */
 public class JDBCTableCellRenderer extends DefaultTableCellRenderer {
     
-    /** Creates a new instance of JDBCTableCellRenderer */
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/** Creates a new instance of JDBCTableCellRenderer */
     public JDBCTableCellRenderer () {
     }
 
