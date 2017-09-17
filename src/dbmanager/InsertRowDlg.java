@@ -10,7 +10,10 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.StringReader;
 import java.sql.Connection;
+import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 
@@ -28,6 +31,14 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.border.BevelBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 public class InsertRowDlg extends JDialog {
 
@@ -72,12 +83,14 @@ public class InsertRowDlg extends JDialog {
 			label.setAlignmentX(Component.RIGHT_ALIGNMENT);
 			label.setSize(getPreferredSize());
 
-			switch (tModel.colsTypes.get(i)) {
+			switch (tModel.typeNames.get(i)) {
 			case "SMALLINT":
+			case "BIGINT":
+				// Long.class;
 			case "INTEGER":
 				// Integer.class;
 				colValue = new JFormattedTextField(NumberFormat.getIntegerInstance());
-				colValue.setToolTipText(tModel.colsTypes.get(i));
+				colValue.setToolTipText(tModel.typeNames.get(i));
 				colValue.setColumns(20);
 
 				dynamicPanel = new JPanel();
@@ -86,45 +99,68 @@ public class InsertRowDlg extends JDialog {
 				panel.add(dynamicPanel);
 
 				break;
-			// case "BIGINT":
-			// // Long.class;
-			//
-			// break;
-			// case "FLOAT":
-			// case "DOUBLE":
-			// // Double.class;
-			//
-			// break;
-			// case "REAL":
-			// // Double.class;
-			//
-			// break;
-			// case "DECIMAL":
-			// case "NUMERIC":
-			// // BigDecimal.class;
-			//
-			// break;
-			// case "DATE":
-			// // java.sql.Date.class;
-			//
-			// break;
-			// case "TIME":
-			// // java.sql.Time.class;
-			//
-			// break;
-			// case "TIMESTAMP":
-			// // java.sql.Timestamp.class;
-			//
-			// break;
-			case "CLOB":
-			case "BLOB":
 
-				colValue = new JTextField();
-				colValue.setToolTipText(tModel.colsTypes.get(i));
+			case "FLOAT":
+			case "DOUBLE":
+				// Double.class;
+			case "REAL":
+				// Double.clas
+			case "DECIMAL":
+			case "NUMERIC":
+				// BigDecimal.class;
+				colValue = new JFormattedTextField(NumberFormat.getNumberInstance());
+				colValue.setToolTipText(tModel.typeNames.get(i));
 				colValue.setColumns(20);
 
+				dynamicPanel = new JPanel();
+				dynamicPanel.add(label);
+				dynamicPanel.add(colValue);
+				panel.add(dynamicPanel);
+				break;
+
+			case "DATE":
+				// java.sql.Date.class;
+				colValue = new JFormattedTextField(DateFormat.getDateInstance());
+				colValue.setToolTipText(tModel.typeNames.get(i));
+				colValue.setColumns(20);
+
+				dynamicPanel = new JPanel();
+				dynamicPanel.add(label);
+				dynamicPanel.add(colValue);
+				panel.add(dynamicPanel);
+				break;
+
+			case "TIME":
+				// java.sql.Time.class;
+				colValue = new JFormattedTextField(DateFormat.getTimeInstance());
+				colValue.setToolTipText(tModel.typeNames.get(i));
+				colValue.setColumns(20);
+
+				dynamicPanel = new JPanel();
+				dynamicPanel.add(label);
+				dynamicPanel.add(colValue);
+				panel.add(dynamicPanel);
+				break;
+			case "TIMESTAMP":
+				// java.sql.Timestamp.class;
+				colValue = new JFormattedTextField(DateFormat.getDateTimeInstance());
+				colValue.setToolTipText(tModel.typeNames.get(i));
+				colValue.setColumns(20);
+
+				dynamicPanel = new JPanel();
+				dynamicPanel.add(label);
+				dynamicPanel.add(colValue);
+				panel.add(dynamicPanel);
+				break;
+			case "CLOB":
+			case "BLOB":
 				// java.sql.Clob.class;
 				// java.sql.Blob.class;
+
+				colValue = new JTextField();
+				colValue.setToolTipText(tModel.typeNames.get(i));
+				colValue.setColumns(20);
+
 				btnBrowse = new JButton("Browse...");
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
@@ -146,31 +182,59 @@ public class InsertRowDlg extends JDialog {
 				});
 
 				break;
-			// case "BINARY":
-			// case "VARBINARY":
-			// // Byte.class;
-			//
-			// break;
-			// case "CHAR":
-			// case "VARCHAR":
-			// // String.class;
-			//
-			// break;
+
+			case "CHAR":
+			case "VARCHAR":
+				// String.class;
+				colValue = new JTextField();
+				colValue.setToolTipText(tModel.typeNames.get(i));
+				colValue.setColumns(20);
+
+				dynamicPanel = new JPanel();
+				dynamicPanel.add(label);
+				dynamicPanel.add(colValue);
+				panel.add(dynamicPanel);
+				break;
+
 			case "BOOLEAN":
 				// Boolean.class;
 				checkBox = new JCheckBox(tModel.getColumnName(i));
-				checkBox.setToolTipText(tModel.colsTypes.get(i));
+				checkBox.setToolTipText(tModel.typeNames.get(i));
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(checkBox);
 
 				break;
-			// case "SQLXML":
-			// // java.sql.SQLXML.class;
-			//
-			// break;
+
+			case "XML":
+				// java.sql.XML.class;
+				colValue = new JTextField();
+				colValue.setToolTipText(tModel.typeNames.get(i));
+
+				btnBrowse = new JButton("Browse...");
+				dynamicPanel = new JPanel();
+				dynamicPanel.add(label);
+				dynamicPanel.add(colValue);
+				dynamicPanel.add(btnBrowse);
+				btnBrowse.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						JFileChooser chooser = new JFileChooser();
+						chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+						chooser.setCurrentDirectory(new java.io.File("."));
+						chooser.setFileFilter(new FileNameExtensionFilter("xml files (*.xml)", "xml"));
+						int returnVal = chooser.showOpenDialog(null);
+						if (returnVal == JFileChooser.APPROVE_OPTION) {
+							// System.out.println("You chose to open this file:
+							// " + chooser.getSelectedFile().getName());
+							colValue.setText(chooser.getSelectedFile().getName());
+						}
+					}
+				});
+				break;
+
 			default:
 				colValue = new JTextField("", 30);
-				colValue.setToolTipText(tModel.colsTypes.get(i));
+				colValue.setToolTipText(tModel.typeNames.get(i));
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
 				dynamicPanel.add(colValue);
@@ -205,9 +269,58 @@ public class InsertRowDlg extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 
 				for (int i = 0; i < tModel.getColumnCount(); i++) {
-					if (tModel.colsClasses.get(i) == boolean.class) {
+					switch (tModel.typeNames.get(i)) {
+					case "BOOLEAN":
 						row2Add.add(checkBox.isSelected());
-					} else {
+						break;
+
+					case "XML":
+						String fileName = colValue.getText();
+						try {
+							javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory
+									.newInstance();
+							factory.setNamespaceAware(true);
+							DocumentBuilder builder = factory.newDocumentBuilder();
+							Document doc = builder.parse(fileName);
+
+							String convertedDoc = JDBCUtilities.convertDocumentToString(doc);
+
+							String textToAdd = "xmlparse(document cast (" + new StringReader(convertedDoc)
+									+ " as clob) preserve whitespace)";
+
+							System.out.println("Adding XML file " + fileName);
+						} catch (ParserConfigurationException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (SAXException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (TransformerConfigurationException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (TransformerException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+
+						// String insertRowQuery = "insert into RSS_FEEDS (RSS_NAME, RSS_FEED_XML)
+						// values"
+						// + " (?, xmlparse(document cast (? as clob) preserve whitespace))";
+						//
+						// insertRow = con.prepareStatement(insertRowQuery);
+						// insertRow.setString(1, titleString);
+						// String convertedDoc = JDBCTutorialUtilities.convertDocumentToString(doc);
+						// insertRow.setClob(2, new StringReader(convertedDoc));
+						//
+						// System.out.println("Running executeUpdate()");
+						// insertRow.executeUpdate();
+
+						break;
+
+					default:
 						row2Add.add(colValue);
 					}
 				}

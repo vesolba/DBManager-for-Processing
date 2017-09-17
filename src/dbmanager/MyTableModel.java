@@ -11,12 +11,15 @@ import java.io.Writer;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,7 +44,7 @@ public class MyTableModel extends AbstractTableModel {
 	ArrayList<Integer> colsSizes = new ArrayList<>();
 	ArrayList<ArrayList<Object>> data = new ArrayList<>();
 	ArrayList<ArrayList<Object>> data2Add = new ArrayList<>();
-	ArrayList<String> colsTypes = new ArrayList<>();
+	ArrayList<String> typeNames = new ArrayList<>();
 	ArrayList<Class> colsClasses = new ArrayList<>();
 
 	Statement statement;
@@ -53,31 +56,76 @@ public class MyTableModel extends AbstractTableModel {
 	String mode = "MODE_FILL";
 	String sourceTable = "";
 
-	public MyTableModel(Connection conn, String query, String mode) {
+	public MyTableModel(Connection conn, String query, String tableToUse, String mode) {
 		super();
 
+		sourceTable = tableToUse;
 		this.conn = conn;
 		this.query = query;
 		this.mode = mode;
 
 		if (conn != null) {
+			String typeName = "";
+			int columnType = 0;
 
 			try {
+				if (query.contains("*")) {
+					DatabaseMetaData dmd = conn.getMetaData();
+					ResultSet columns = dmd.getColumns(null, null, tableToUse, null);
+					String colName = "";
+					String columnsToUse = "";
+					String finalQuery = "";
+
+					while (columns.next()) {
+						colName = columns.getString("COLUMN_NAME");
+						typeName = columns.getString("TYPE_NAME");
+//						columnType = columns.getInt("COLUMN_TYPE");
+						colsNames.add(colName);
+						typeNames.add(typeName);
+						System.out.println(colName + " " + typeName);
+//						ResultSet procColumns = dmd.getProcedureColumns(null, null, null, colName);
+//						colsSizes.add(procColumns.getInt("PRECISION"));
+//						colsAutoincrement.add(columns.getBoolean("AUTO_INCREMENT"));
+//						colsSearchable.add(columns.getBoolean("SEARCHABLE"));
+//						colsClasses.add(DBManager.getColClass(columnType, typeName));
+					}
+
+					for (int i = 0; i < colsNames.size(); i++) {
+
+						if (typeNames.get(i).equals("XML")) {
+							columnsToUse += " xmlserialize (" + colsNames.get(i) + " as clob) ";
+						} else {
+							columnsToUse += colsNames.get(i);
+						}
+						columnsToUse += (i < colsNames.size() - 1) ? ", " : "";
+					}
+
+					int asterixPosition = query.indexOf("*");
+					finalQuery = query.substring(0, asterixPosition) + columnsToUse
+							+ query.substring(asterixPosition + 1);
+
+					System.out.println(finalQuery);
+
+					query = finalQuery;
+				}
+
 				statement = conn.createStatement();
+
 				resultSet = statement.executeQuery(query);
 
-				// Metadata several values.
-				sourceTable = resultSet.getMetaData().getTableName(1);
+				System.out.println(" resultset ");
+				
+				// Metadata for several values.
 				int c = resultSet.getMetaData().getColumnCount();
 				for (int i = 1; i <= c; i++) {
-					colsNames.add(resultSet.getMetaData().getColumnName(i));
+//					colsNames.add(resultSet.getMetaData().getColumnName(i));
 					colsSizes.add(resultSet.getMetaData().getPrecision(i));
 					colsAutoincrement.add(resultSet.getMetaData().isAutoIncrement(i));
 					colsSearchable.add(resultSet.getMetaData().isSearchable(i));
-					String columnTypeName = resultSet.getMetaData().getColumnTypeName(i);
-					colsTypes.add(columnTypeName);
-					int columnType = resultSet.getMetaData().getColumnType(i);
-					colsClasses.add(DBManager.getColClass(columnType, columnTypeName));
+//					String columnTypeName = resultSet.getMetaData().getColumnTypeName(i);
+//					typeNames.add(columnTypeName);
+					columnType = resultSet.getMetaData().getColumnType(i);
+					colsClasses.add(DBManager.getColClass(columnType, typeName));
 				}
 
 				if (mode.equals("MODE_FILL") && resultSet.next()) {
@@ -386,50 +434,52 @@ public class MyTableModel extends AbstractTableModel {
 		return colsSearchable;
 	}
 
-	public void insertNewData() {
-
-		int numRows = data2Add.size();
-		int numCols = getColumnCount();
-		String tableName = sourceTable;
-		int numRowsAdded = 0;
-		String quotePrefix = "";
-		String quoteSuffix = "";
-
-		for (int i = 0; i < numRows; i++) {
-			String order = "INSERT INTO " + tableName + "(";
-			String order2 = " VALUES (";
-
-			ArrayList<Object> row = data2Add.get(i);
-
-			for (int j = 0; j < numCols; j++) {
-				if (!colsAutoincrement.get(j)) {
-
-					order += colsNames.get(j) + ((j < numCols - 1) ? "," : "");
-
-					quotePrefix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_PREFIX");
-					quoteSuffix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_SUFFIX");
-
-					if (quotePrefix != null)
-						order2 += quotePrefix;
-					order2 += row.get(j);
-					if (quoteSuffix != null)
-						order2 += quoteSuffix;
-					order2 += "?" + ((j < numCols - 1) ? "," : "");
-				}
-			}
-
-			order += ")" + order2 + ")";
-
-			try {
-				statement = conn.createStatement();
-				int result = statement.executeUpdate(order);
-				numRowsAdded++;
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+	// public void insertNewData() {
+	//
+	// int numRows = data2Add.size();
+	// int numCols = getColumnCount();
+	// String tableName = sourceTable;
+	// int numRowsAdded = 0;
+	// String quotePrefix = "";
+	// String quoteSuffix = "";
+	//
+	// for (int i = 0; i < numRows; i++) {
+	// String order = "INSERT INTO " + tableName + "(";
+	// String order2 = " VALUES (";
+	//
+	// ArrayList<Object> row = data2Add.get(i);
+	//
+	// for (int j = 0; j < numCols; j++) {
+	// if (!colsAutoincrement.get(j)) {
+	//
+	// order += colsNames.get(j) + ((j < numCols - 1) ? "," : "");
+	//
+	// quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j),
+	// "LITERAL_PREFIX");
+	// quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j),
+	// "LITERAL_SUFFIX");
+	//
+	// if (quotePrefix != null)
+	// order2 += quotePrefix;
+	// order2 += row.get(j);
+	// if (quoteSuffix != null)
+	// order2 += quoteSuffix;
+	// order2 += "?" + ((j < numCols - 1) ? "," : "");
+	// }
+	// }
+	//
+	// order += ")" + order2 + ")";
+	//
+	// try {
+	// statement = conn.createStatement();
+	// int result = statement.executeUpdate(order);
+	// numRowsAdded++;
+	// } catch (SQLException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	// }
+	// }
 
 	public void insertNewRow(ArrayList<Object> row2Add) {
 
@@ -446,18 +496,18 @@ public class MyTableModel extends AbstractTableModel {
 
 				order += colsNames.get(j) + ((j < numCols - 1) ? "," : "");
 
-				quotePrefix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_PREFIX");
-				quoteSuffix = (String) DBManager.dataTypeInfo(colsTypes.get(j), "LITERAL_SUFFIX");
+				quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_PREFIX");
+				quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_SUFFIX");
 
-				if (quotePrefix != null) {
-					order2 += quotePrefix;
-				}
+				// if (quotePrefix != null) {
+				// order2 += quotePrefix;
+				// }
 
 				order2 += "?";
 
-				if (quoteSuffix != null) {
-					order2 += quoteSuffix;
-				}
+				// if (quoteSuffix != null) {
+				// order2 += quoteSuffix;
+				// }
 
 				order2 += ((j < numCols - 1) ? "," : "");
 			}
@@ -469,7 +519,8 @@ public class MyTableModel extends AbstractTableModel {
 		System.out.println(order + order2);
 
 		PreparedStatement ps = null;
-		;
+		SQLXML rssData = null;
+
 		try {
 			ps = conn.prepareStatement(order + order2);
 
@@ -483,13 +534,13 @@ public class MyTableModel extends AbstractTableModel {
 				if (colsClasses.get(j) == java.sql.Clob.class) {
 					String file2Load = row2Add.get(j).toString();
 					try {
-						conn.setAutoCommit(false);
+						// conn.setAutoCommit(false);
 						Clob myClob = conn.createClob();
 						Writer clobWriter = myClob.setCharacterStream(1);
 						String str = readFile(file2Load, clobWriter);
 						System.out.println("Wrote the following: " + clobWriter.toString());
 						System.out.println("Length of Clob: " + myClob.length());
-						ps.setClob(j, myClob);
+						ps.setClob(j + 1, myClob);
 
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
@@ -504,13 +555,13 @@ public class MyTableModel extends AbstractTableModel {
 				} else {
 					if (colsClasses.get(j) == java.sql.Blob.class) {
 						try {
-							conn.setAutoCommit(false);
+							// conn.setAutoCommit(false);
 							File file2Load = new File(row2Add.get(j).toString());
 							Blob blob = conn.createBlob();
 							ObjectOutputStream oos;
 							oos = new ObjectOutputStream(blob.setBinaryStream(1));
 							oos.writeObject(file2Load);
-							ps.setBlob(j, blob);
+							ps.setBlob(j + 1, blob);
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -519,17 +570,31 @@ public class MyTableModel extends AbstractTableModel {
 							e.printStackTrace();
 						}
 					} else {
-						try {
-							ps.setObject(j, row2Add.get(j));
-						} catch (SQLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						if (colsClasses.get(j) == java.sql.SQLXML.class) {
+							try {
+								// conn.setAutoCommit(false);
+								File file2Load = new File(row2Add.get(j).toString());
+								rssData = conn.createSQLXML();
+								ps.setSQLXML(j + 1, rssData);
+
+							} catch (SQLException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						} else {
+
+							try {
+								ps.setObject(j + 1, row2Add.get(j));
+							} catch (SQLException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 					}
 				}
 			}
 		}
-		
+
 		try {
 			ps.executeUpdate();
 		} catch (SQLException e) {

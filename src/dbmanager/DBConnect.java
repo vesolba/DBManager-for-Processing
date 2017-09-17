@@ -4,8 +4,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -25,24 +25,23 @@ public class DBConnect {
 			server.ping(); // if ping fails throws an exception
 			serverIsOn = true;
 			DBGUIFrame.checkServerMenu();
+
+//			String mySysInfo = server.getSysinfo();
+//			System.out.println("\bSysInfo\n" + mySysInfo);
+//
+//			String myRuntimeInfo = server.getRuntimeInfo();
+//			System.out.println("\bRunTimeInfo\n" + myRuntimeInfo);
+//
+//			System.out.println("\bProperties\n");
+//			Properties p = server.getCurrentProperties();
+//			p.list(System.out);
+//			System.out.println(" derby.drda.host = " + System.getProperty("derby.drda.host"));
 			return true;
 		} catch (Exception f) {
 			serverIsOn = false;
 			DBGUIFrame.checkServerMenu();
 			return false;
 		}
-
-		// String mySysInfo = server.getSysinfo();
-		// System.out.println("\bSysInfo\n" + mySysInfo);
-		//
-		// String myRuntimeInfo = server.getRuntimeInfo();
-		// System.out.println("\bRunTimeInfo\n" + myRuntimeInfo);
-
-		// System.out.println("\bProperties\n");
-		// Properties p = server.getCurrentProperties();
-		// p.list(System.out);
-		// System.out.println(" derby.drda.host = " +
-		// System.getProperty("derby.drda.host"));
 	}
 
 	public static void stopServer() {

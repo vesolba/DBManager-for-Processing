@@ -115,6 +115,7 @@ public class ExecSQLPanel extends JPanel {
 				textPaneInSQL.setText(mntmSELECTgral.getText());
 			}
 		});
+
 		mnQuery.add(mntmSELECTgral);
 
 		JMenuItem mntmFullSelect = new JMenuItem("Full Select");
@@ -302,7 +303,7 @@ public class ExecSQLPanel extends JPanel {
 		JPanel lowPanel = new JPanel();
 		splPanExecSQL.setRightComponent(lowPanel);
 		lowPanel.setLayout(new BorderLayout(0, 0));
-		MyTableModel tModel = new MyTableModel(null, lastSelect, lastSelect);
+		MyTableModel tModel = new MyTableModel(null, lastSelect, "", lastSelect);
 
 		tableSQLResult = new JTable(tModel) {
 			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -398,8 +399,8 @@ public class ExecSQLPanel extends JPanel {
 						Object redValue = model.getValueAt(rowSel, i);
 
 						text2Delete += model.getColumnName(i) + " = ";
-						String quotePrefix = (String) DBManager.dataTypeInfo(model.colsTypes.get(i), "LITERAL_PREFIX");
-						String quoteSuffix = (String) DBManager.dataTypeInfo(model.colsTypes.get(i), "LITERAL_SUFFIX");
+						String quotePrefix = (String) DBManager.dataTypeInfo(model.typeNames.get(i), "LITERAL_PREFIX");
+						String quoteSuffix = (String) DBManager.dataTypeInfo(model.typeNames.get(i), "LITERAL_SUFFIX");
 						if (quotePrefix != null)
 							text2Delete += quotePrefix;
 						text2Delete += redValue;
@@ -557,7 +558,7 @@ public class ExecSQLPanel extends JPanel {
 				|| "VALUES ".equalsIgnoreCase(redQuery.trim().substring(0, 7))) {
 
 			lastSelect = redQuery;
-			MyTableModel tModel = new MyTableModel(conn, redQuery.trim(), mode);
+			MyTableModel tModel = new MyTableModel(conn, redQuery.trim(), textEditingElement.getText(), mode);
 
 			if (mode.equals("MODE_NEW_ROW")) {
 				try {
