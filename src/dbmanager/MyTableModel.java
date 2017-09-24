@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.StringReader;
 import java.io.Writer;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -16,21 +17,30 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.SQLXML;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 
-@SuppressWarnings("serial")
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 public class MyTableModel extends AbstractTableModel {
 
 	/** The content (resultset) retrieved from the database */
 	// ArrayList<Object[]> contents = new ArrayList<Object[]>();
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/** Holds value of property lobPath. */
 	private String lobPath = System.getProperty("java.io.tmpdir");
 	/** Text to be displayed for null values */
@@ -54,7 +64,7 @@ public class MyTableModel extends AbstractTableModel {
 	Connection conn = null;
 	String query = "";
 	String mode = "MODE_FILL";
-	String sourceTable = "";
+	private String sourceTable = "";
 
 	public MyTableModel(Connection conn, String query, String tableToUse, String mode) {
 		super();
@@ -67,9 +77,11 @@ public class MyTableModel extends AbstractTableModel {
 		if (conn != null) {
 			String typeName = "";
 			int columnType = 0;
+			boolean fromAsterisk = false;
 
 			try {
-				if (query.contains("*")) {
+				if (query.contains("*")) { //May be it has hidden XML reads
+					fromAsterisk = true;
 					DatabaseMetaData dmd = conn.getMetaData();
 					ResultSet columns = dmd.getColumns(null, null, tableToUse, null);
 					String colName = "";
@@ -79,15 +91,8 @@ public class MyTableModel extends AbstractTableModel {
 					while (columns.next()) {
 						colName = columns.getString("COLUMN_NAME");
 						typeName = columns.getString("TYPE_NAME");
-//						columnType = columns.getInt("COLUMN_TYPE");
 						colsNames.add(colName);
 						typeNames.add(typeName);
-						System.out.println(colName + " " + typeName);
-//						ResultSet procColumns = dmd.getProcedureColumns(null, null, null, colName);
-//						colsSizes.add(procColumns.getInt("PRECISION"));
-//						colsAutoincrement.add(columns.getBoolean("AUTO_INCREMENT"));
-//						colsSearchable.add(columns.getBoolean("SEARCHABLE"));
-//						colsClasses.add(DBManager.getColClass(columnType, typeName));
 					}
 
 					for (int i = 0; i < colsNames.size(); i++) {
@@ -97,33 +102,35 @@ public class MyTableModel extends AbstractTableModel {
 						} else {
 							columnsToUse += colsNames.get(i);
 						}
-						columnsToUse += (i < colsNames.size() - 1) ? ", " : "";
+						columnsToUse += (i < (colsNames.size() - 1)) ? ", " : "";
 					}
 
 					int asterixPosition = query.indexOf("*");
 					finalQuery = query.substring(0, asterixPosition) + columnsToUse
 							+ query.substring(asterixPosition + 1);
-
+					//colsNames.clear();
+					typeNames.clear();
 					System.out.println(finalQuery);
-
 					query = finalQuery;
 				}
-
+				
 				statement = conn.createStatement();
-
 				resultSet = statement.executeQuery(query);
 
-				System.out.println(" resultset ");
-				
 				// Metadata for several values.
 				int c = resultSet.getMetaData().getColumnCount();
 				for (int i = 1; i <= c; i++) {
-//					colsNames.add(resultSet.getMetaData().getColumnName(i));
+					
+					System.out.println(resultSet.getMetaData().getColumnName(i));
+					
+					if(!fromAsterisk) 
+						colsNames.add(resultSet.getMetaData().getColumnName(i));
 					colsSizes.add(resultSet.getMetaData().getPrecision(i));
 					colsAutoincrement.add(resultSet.getMetaData().isAutoIncrement(i));
 					colsSearchable.add(resultSet.getMetaData().isSearchable(i));
-//					String columnTypeName = resultSet.getMetaData().getColumnTypeName(i);
-//					typeNames.add(columnTypeName);
+					String columnTypeName = resultSet.getMetaData().getColumnTypeName(i);
+//					if(!fromAsterisk) 
+						typeNames.add(columnTypeName);
 					columnType = resultSet.getMetaData().getColumnType(i);
 					colsClasses.add(DBManager.getColClass(columnType, typeName));
 				}
@@ -134,7 +141,12 @@ public class MyTableModel extends AbstractTableModel {
 						ArrayList<Object> row = new ArrayList<>();
 						for (int i = 0; i < c; i++) {
 							Object redObj = null;
-							if (colsClasses.get(i) == Clob.class) {
+
+							System.out.println("typeNames" + i + ": " + typeNames.get(i));
+							System.out.println("colsclasses" + i + ": " + colsClasses.get(i));
+							
+							if (typeNames.get(i).equals("CLOB")) {
+//								if (colsClasses.get(i) == java.sql.Clob.class) {
 
 								Clob clobValue = resultSet.getClob(i + 1);
 
@@ -144,14 +156,16 @@ public class MyTableModel extends AbstractTableModel {
 								}
 
 							} else {
-								if (colsClasses.get(i) == Blob.class) {
+								if (typeNames.get(i).equals("BLOB")) {
+//								if (colsClasses.get(i) == java.sql.Blob.class) {
+								
 									Blob blobValue = resultSet.getBlob(i + 1);
 									if (blobValue != null) {
 										JDBCTableLob lobValue = new JDBCTableLob(blobValue, lobPath);
 										redObj = lobValue;
 									}
 								} else {
-									if (colsClasses.get(i) == Byte.class) {
+									if (colsClasses.get(i) == java.lang.Byte.class) {
 										redObj = resultSet.getObject(i + 1);
 										if (redObj instanceof byte[]) {
 											byte[] bytes = (byte[]) redObj;
@@ -162,7 +176,8 @@ public class MyTableModel extends AbstractTableModel {
 											redObj = sb.toString();
 										}
 									} else {
-										if (colsClasses.get(i) == java.sql.SQLXML.class) {
+										if (typeNames.get(i).equals("XML")) {			
+									//	if (colsClasses.get(i) == java.sql.SQLXML.class) {
 											java.sql.SQLXML sqlXMLValue = resultSet.getSQLXML(i + 1);
 											redObj = sqlXMLValue.toString();
 										} else {
@@ -282,9 +297,9 @@ public class MyTableModel extends AbstractTableModel {
 
 		Object value = row.get(columnIndex);
 
-		if (colsClasses.get(columnIndex) == Clob.class) {
+		if (colsClasses.get(columnIndex) == java.sql.Clob.class) {
 			value = ((JDBCTableLob) value).getText();
-		} else if (colsClasses.get(columnIndex) == Blob.class) {
+		} else if (colsClasses.get(columnIndex) == java.sql.Blob.class) {
 			try {
 				return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
 			} catch (SQLException e) {
@@ -492,34 +507,28 @@ public class MyTableModel extends AbstractTableModel {
 		String order2 = " VALUES (";
 
 		for (int j = 0; j < numCols; j++) {
+
 			if (!colsAutoincrement.get(j)) {
 
-				order += colsNames.get(j) + ((j < numCols - 1) ? "," : "");
+				order += colsNames.get(j) + (((j < numCols - 1) && !colsAutoincrement.get(j + 1)) ? ", " : " ");
 
-				quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_PREFIX");
-				quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_SUFFIX");
+				if (typeNames.get(j).equals("XML")) {
+					order2 += " xmlparse (document cast (? as clob) preserve whitespace)";
 
-				// if (quotePrefix != null) {
-				// order2 += quotePrefix;
-				// }
+					// XMLPARSE(DOCUMENT ' <name> Derby </name>' PRESERVE
+					// WHITESPACE));
+				} else {
+					order2 += "?";
+				}
 
-				order2 += "?";
-
-				// if (quoteSuffix != null) {
-				// order2 += quoteSuffix;
-				// }
-
-				order2 += ((j < numCols - 1) ? "," : "");
+				order2 += (((j < numCols - 1) && !colsAutoincrement.get(j + 1)) ? ", " : " ");
 			}
 		}
 
 		order += ")";
 		order2 += ")";
 
-		System.out.println(order + order2);
-
 		PreparedStatement ps = null;
-		SQLXML rssData = null;
 
 		try {
 			ps = conn.prepareStatement(order + order2);
@@ -529,23 +538,54 @@ public class MyTableModel extends AbstractTableModel {
 			e1.printStackTrace();
 		}
 
+		int numUsedParameters = 0;
+
 		for (int j = 0; j < numCols; j++) {
-			if (!colsAutoincrement.get(j)) {
-				if (colsClasses.get(j) == java.sql.Clob.class) {
-					String file2Load = row2Add.get(j).toString();
+
+			System.out.println("colsClasses.get(j): " + colsClasses.get(j));
+			System.out.println("typeName.get(j): " + typeNames.get(j));
+
+			// + " " + typeNames.get(j).equals("XML"));
+
+			if (colsClasses.get(j) == java.sql.Clob.class && !typeNames.get(j).equals("XML")) {
+
+				String file2Load = row2Add.get(j).toString();
+
+				try {
+					// conn.setAutoCommit(false);
+					Clob myClob = conn.createClob();
+					Writer clobWriter = myClob.setCharacterStream(1);
+					String str = readFile(file2Load, clobWriter);
+					System.out.println("Wrote the following: " + clobWriter.toString());
+					System.out.println("Length of Clob: " + myClob.length());
+					if (!colsAutoincrement.get(j)) {
+						ps.setClob(++numUsedParameters, myClob);
+					}
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			} else {
+
+				if (colsClasses.get(j) == java.sql.Blob.class) {
 					try {
 						// conn.setAutoCommit(false);
-						Clob myClob = conn.createClob();
-						Writer clobWriter = myClob.setCharacterStream(1);
-						String str = readFile(file2Load, clobWriter);
-						System.out.println("Wrote the following: " + clobWriter.toString());
-						System.out.println("Length of Clob: " + myClob.length());
-						ps.setClob(j + 1, myClob);
-
+						File file2Load = new File(row2Add.get(j).toString());
+						Blob blob = conn.createBlob();
+						ObjectOutputStream oos;
+						oos = new ObjectOutputStream(blob.setBinaryStream(1));
+						oos.writeObject(file2Load);
+						if (!colsAutoincrement.get(j)) {
+							ps.setBlob(++numUsedParameters, blob);
+						}
 					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (FileNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (IOException e) {
@@ -553,49 +593,75 @@ public class MyTableModel extends AbstractTableModel {
 						e.printStackTrace();
 					}
 				} else {
-					if (colsClasses.get(j) == java.sql.Blob.class) {
+
+					if (typeNames.get(j).equals("XML")) {
+
 						try {
 							// conn.setAutoCommit(false);
-							File file2Load = new File(row2Add.get(j).toString());
-							Blob blob = conn.createBlob();
-							ObjectOutputStream oos;
-							oos = new ObjectOutputStream(blob.setBinaryStream(1));
-							oos.writeObject(file2Load);
-							ps.setBlob(j + 1, blob);
+
+							// Reads the XML file
+
+							String fileName = row2Add.get(j).toString();
+							javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory
+									.newInstance();
+
+							factory.setNamespaceAware(true);
+							DocumentBuilder builder = factory.newDocumentBuilder();
+							StringReader strReader = new StringReader(fileName);
+							InputSource iSrc = new InputSource(strReader);
+							String XString = iSrc.toString();
+							XString = XString.replaceAll("[^\\x20-\\x7e\\x0A]", ""); // To replace illegal characters
+							Document doc = builder.parse(fileName);
+							String convertedDoc = JDBCUtilities.convertDocumentToString(doc);
+							if (!colsAutoincrement.get(j)) {
+								ps.setClob(++numUsedParameters, new StringReader(convertedDoc));
+							}
+							// conn.commit();
+
+						} catch (ParserConfigurationException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (SAXException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (TransformerConfigurationException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (TransformerException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							// e.printStackTrace();
+							JDBCUtilities.printSQLException(e);
+						}
+
+					} else {
+						try {
+							quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_PREFIX");
+							quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_SUFFIX");
+
+							if (quotePrefix != null) {
+								String toAdd = quotePrefix + row2Add.get(j) + quoteSuffix;
+								if (!colsAutoincrement.get(j)) {
+									ps.setObject(++numUsedParameters, toAdd);
+								}
+							}
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					} else {
-						if (colsClasses.get(j) == java.sql.SQLXML.class) {
-							try {
-								// conn.setAutoCommit(false);
-								File file2Load = new File(row2Add.get(j).toString());
-								rssData = conn.createSQLXML();
-								ps.setSQLXML(j + 1, rssData);
-
-							} catch (SQLException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						} else {
-
-							try {
-								ps.setObject(j + 1, row2Add.get(j));
-							} catch (SQLException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
 						}
 					}
 				}
 			}
 		}
 
-		try {
+		try
+
+		{
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -609,7 +675,6 @@ public class MyTableModel extends AbstractTableModel {
 		String nextLine = "";
 		StringBuffer sb = new StringBuffer();
 		while ((nextLine = br.readLine()) != null) {
-			System.out.println("Writing: " + nextLine);
 			writerArg.write(nextLine);
 			sb.append(nextLine);
 		}
@@ -618,6 +683,28 @@ public class MyTableModel extends AbstractTableModel {
 
 		// Return the data.
 		return clobData;
+	}
+
+	/**
+	 * @return the mode
+	 */
+	public String getMode() {
+		return mode;
+	}
+
+	/**
+	 * @param mode
+	 *            the mode to set
+	 */
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
+
+	/**
+	 * @return the sourceTable
+	 */
+	public String getSourceTable() {
+		return sourceTable;
 	}
 
 }

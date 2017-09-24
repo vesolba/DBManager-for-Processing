@@ -383,7 +383,9 @@ public class ExecSQLPanel extends JPanel {
 
 				int rowSel = tableSQLResult.getSelectedRow();
 
-				String text2Delete = " DELETE FROM " + textEditingElement.getText() + " WHERE ";
+				String text2Delete = " DELETE FROM " + model.getSourceTable() + " WHERE ";
+
+				System.out.println("text2Delete: " + text2Delete);
 
 				boolean isFirst = true;
 
@@ -410,6 +412,8 @@ public class ExecSQLPanel extends JPanel {
 				}
 
 				text2Delete += ";";
+
+				System.out.println("Texto borrador: " + text2Delete);
 
 				int deleteConfirm = JOptionPane.showConfirmDialog(btnDeleteRow,
 						"Do you want really to send this command: \n" + text2Delete + " ?", "Delete?",
@@ -571,6 +575,7 @@ public class ExecSQLPanel extends JPanel {
 					dialog.setTitle("Insert row in table " + textEditingElement.getText());
 					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 					dialog.setVisible(true);
+					updateUI();
 
 				} catch (Exception h) {
 					h.printStackTrace();

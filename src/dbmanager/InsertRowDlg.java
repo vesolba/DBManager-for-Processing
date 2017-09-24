@@ -10,8 +10,6 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.StringReader;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -32,13 +30,6 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.border.BevelBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 public class InsertRowDlg extends JDialog {
 
@@ -50,9 +41,9 @@ public class InsertRowDlg extends JDialog {
 	public String mode = "MODE_NEW_ROW";
 	private JLabel label;
 	private JPanel dynamicPanel;
-	private JTextField colValue;
-	private JButton btnBrowse;
-	private JCheckBox checkBox;
+	private JTextField[] colValue;
+	private JButton[] btnBrowse;
+	private JCheckBox[] checkBox;
 	private ArrayList<Object> row2Add = new ArrayList<>();
 
 	public InsertRowDlg(MyTableModel tModel, Connection conn) {
@@ -76,6 +67,9 @@ public class InsertRowDlg extends JDialog {
 		getContentPane().add(scrollPane);
 
 		int numColumns = tModel.getColumnCount();
+		colValue = new JTextField[numColumns];
+		btnBrowse = new JButton[numColumns];
+		checkBox = new JCheckBox[numColumns];
 
 		for (int i = 0; i < numColumns; i++) {
 
@@ -89,13 +83,13 @@ public class InsertRowDlg extends JDialog {
 				// Long.class;
 			case "INTEGER":
 				// Integer.class;
-				colValue = new JFormattedTextField(NumberFormat.getIntegerInstance());
-				colValue.setToolTipText(tModel.typeNames.get(i));
-				colValue.setColumns(20);
+				colValue[i] = new JFormattedTextField(NumberFormat.getIntegerInstance());
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
+				colValue[i].setColumns(20);
 
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
+				dynamicPanel.add(colValue[i]);
 				panel.add(dynamicPanel);
 
 				break;
@@ -108,48 +102,48 @@ public class InsertRowDlg extends JDialog {
 			case "DECIMAL":
 			case "NUMERIC":
 				// BigDecimal.class;
-				colValue = new JFormattedTextField(NumberFormat.getNumberInstance());
-				colValue.setToolTipText(tModel.typeNames.get(i));
-				colValue.setColumns(20);
+				colValue[i] = new JFormattedTextField(NumberFormat.getNumberInstance());
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
+				colValue[i].setColumns(20);
 
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
+				dynamicPanel.add(colValue[i]);
 				panel.add(dynamicPanel);
 				break;
 
 			case "DATE":
 				// java.sql.Date.class;
-				colValue = new JFormattedTextField(DateFormat.getDateInstance());
-				colValue.setToolTipText(tModel.typeNames.get(i));
-				colValue.setColumns(20);
+				colValue[i] = new JFormattedTextField(DateFormat.getDateInstance());
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
+				colValue[i].setColumns(20);
 
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
+				dynamicPanel.add(colValue[i]);
 				panel.add(dynamicPanel);
 				break;
 
 			case "TIME":
 				// java.sql.Time.class;
-				colValue = new JFormattedTextField(DateFormat.getTimeInstance());
-				colValue.setToolTipText(tModel.typeNames.get(i));
-				colValue.setColumns(20);
+				colValue[i] = new JFormattedTextField(DateFormat.getTimeInstance());
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
+				colValue[i].setColumns(20);
 
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
+				dynamicPanel.add(colValue[i]);
 				panel.add(dynamicPanel);
 				break;
 			case "TIMESTAMP":
 				// java.sql.Timestamp.class;
-				colValue = new JFormattedTextField(DateFormat.getDateTimeInstance());
-				colValue.setToolTipText(tModel.typeNames.get(i));
-				colValue.setColumns(20);
+				colValue[i] = new JFormattedTextField(DateFormat.getDateTimeInstance());
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
+				colValue[i].setColumns(20);
 
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
+				dynamicPanel.add(colValue[i]);
 				panel.add(dynamicPanel);
 				break;
 			case "CLOB":
@@ -157,16 +151,17 @@ public class InsertRowDlg extends JDialog {
 				// java.sql.Clob.class;
 				// java.sql.Blob.class;
 
-				colValue = new JTextField();
-				colValue.setToolTipText(tModel.typeNames.get(i));
-				colValue.setColumns(20);
+				colValue[i] = new JTextField();
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
+				colValue[i].setColumns(20);
 
-				btnBrowse = new JButton("Browse...");
+				btnBrowse[i] = new JButton("Browse...");
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
-				dynamicPanel.add(btnBrowse);
-				btnBrowse.addActionListener(new ActionListener() {
+				dynamicPanel.add(colValue[i]);
+				dynamicPanel.add(btnBrowse[i]);
+				JTextField auxField = colValue[i];
+				btnBrowse[i].addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						JFileChooser chooser = new JFileChooser();
@@ -176,7 +171,7 @@ public class InsertRowDlg extends JDialog {
 						if (returnVal == JFileChooser.APPROVE_OPTION) {
 							// System.out.println("You chose to open this file:
 							// " + chooser.getSelectedFile().getName());
-							colValue.setText(chooser.getSelectedFile().getName());
+							auxField.setText(chooser.getSelectedFile().getAbsolutePath());
 						}
 					}
 				});
@@ -186,36 +181,38 @@ public class InsertRowDlg extends JDialog {
 			case "CHAR":
 			case "VARCHAR":
 				// String.class;
-				colValue = new JTextField();
-				colValue.setToolTipText(tModel.typeNames.get(i));
-				colValue.setColumns(20);
+				colValue[i] = new JTextField();
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
+				colValue[i].setColumns(20);
 
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
+				dynamicPanel.add(colValue[i]);
 				panel.add(dynamicPanel);
 				break;
 
 			case "BOOLEAN":
 				// Boolean.class;
-				checkBox = new JCheckBox(tModel.getColumnName(i));
-				checkBox.setToolTipText(tModel.typeNames.get(i));
+				checkBox[i] = new JCheckBox(tModel.getColumnName(i));
+				checkBox[i].setToolTipText(tModel.typeNames.get(i));
 				dynamicPanel = new JPanel();
-				dynamicPanel.add(checkBox);
+				dynamicPanel.add(checkBox[i]);
 
 				break;
 
 			case "XML":
 				// java.sql.XML.class;
-				colValue = new JTextField();
-				colValue.setToolTipText(tModel.typeNames.get(i));
+				colValue[i] = new JTextField();
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
+				colValue[i].setColumns(30);
 
-				btnBrowse = new JButton("Browse...");
+				btnBrowse[i] = new JButton("Browse...");
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
-				dynamicPanel.add(btnBrowse);
-				btnBrowse.addActionListener(new ActionListener() {
+				dynamicPanel.add(colValue[i]);
+				dynamicPanel.add(btnBrowse[i]);
+				JTextField auxField2 = colValue[i];
+				btnBrowse[i].addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						JFileChooser chooser = new JFileChooser();
@@ -224,20 +221,21 @@ public class InsertRowDlg extends JDialog {
 						chooser.setFileFilter(new FileNameExtensionFilter("xml files (*.xml)", "xml"));
 						int returnVal = chooser.showOpenDialog(null);
 						if (returnVal == JFileChooser.APPROVE_OPTION) {
-							// System.out.println("You chose to open this file:
-							// " + chooser.getSelectedFile().getName());
-							colValue.setText(chooser.getSelectedFile().getName());
+							System.out.println(
+									"You chose to open this file: " + chooser.getSelectedFile().getAbsolutePath());
+							auxField2.setText(chooser.getSelectedFile().getAbsolutePath());
+
 						}
 					}
 				});
 				break;
 
 			default:
-				colValue = new JTextField("", 30);
-				colValue.setToolTipText(tModel.typeNames.get(i));
+				colValue[i] = new JTextField("", 30);
+				colValue[i].setToolTipText(tModel.typeNames.get(i));
 				dynamicPanel = new JPanel();
 				dynamicPanel.add(label);
-				dynamicPanel.add(colValue);
+				dynamicPanel.add(colValue[i]);
 			}
 
 			panel.add(dynamicPanel);
@@ -271,40 +269,11 @@ public class InsertRowDlg extends JDialog {
 				for (int i = 0; i < tModel.getColumnCount(); i++) {
 					switch (tModel.typeNames.get(i)) {
 					case "BOOLEAN":
-						row2Add.add(checkBox.isSelected());
+						row2Add.add(checkBox[i].isSelected());
 						break;
 
-					case "XML":
-						String fileName = colValue.getText();
-						try {
-							javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory
-									.newInstance();
-							factory.setNamespaceAware(true);
-							DocumentBuilder builder = factory.newDocumentBuilder();
-							Document doc = builder.parse(fileName);
-
-							String convertedDoc = JDBCUtilities.convertDocumentToString(doc);
-
-							String textToAdd = "xmlparse(document cast (" + new StringReader(convertedDoc)
-									+ " as clob) preserve whitespace)";
-
-							System.out.println("Adding XML file " + fileName);
-						} catch (ParserConfigurationException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						} catch (SAXException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						} catch (TransformerConfigurationException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						} catch (TransformerException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+					default:
+						row2Add.add(colValue[i].getText());
 
 						// String insertRowQuery = "insert into RSS_FEEDS (RSS_NAME, RSS_FEED_XML)
 						// values"
@@ -320,12 +289,12 @@ public class InsertRowDlg extends JDialog {
 
 						break;
 
-					default:
-						row2Add.add(colValue);
 					}
+
 				}
 
 				tModel.insertNewRow(row2Add);
+				setVisible(false);
 			}
 		});
 
