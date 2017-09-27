@@ -264,33 +264,84 @@ public class InsertRowDlg extends JDialog {
 		JButton btnSave = new JButton("   Save   ");
 		btnSave.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		btnSave.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent e) {
 
 				for (int i = 0; i < tModel.getColumnCount(); i++) {
 					switch (tModel.typeNames.get(i)) {
+
+					case "SMALLINT":
+					case "BIGINT":
+						// Long.class;
+					case "INTEGER":
+						// Integer.class;
+						row2Add.add(((JFormattedTextField) colValue[i]).getValue());
+						break;
+
+					case "FLOAT":
+					case "DOUBLE":
+						// Double.class;
+					case "REAL":
+						// Double.clas
+					case "DECIMAL":
+					case "NUMERIC":
+						// BigDecimal.class;
+						row2Add.add(((JFormattedTextField) colValue[i]).getValue());
+						break;
+
+					case "DATE":
+						// java.sql.Date.class;
+						row2Add.add(((JFormattedTextField) colValue[i]).getValue());
+						break;
+
+					case "TIME":
+						// java.sql.Time.class;
+						row2Add.add(((JFormattedTextField) colValue[i]).getValue());
+						break;
+					case "TIMESTAMP":
+						// java.sql.Timestamp.class;
+						row2Add.add(((JFormattedTextField) colValue[i]).getValue());
+						break;
+					case "CLOB":
+					case "BLOB":
+						// java.sql.Clob.class;
+						// java.sql.Blob.class;
+
+						row2Add.add(colValue[i].getText());
+						break;
+
+					case "CHAR":
+					case "VARCHAR":
+						// String.class;
+						row2Add.add(colValue[i].getText());
+						break;
+
 					case "BOOLEAN":
+						// Boolean.class;
 						row2Add.add(checkBox[i].isSelected());
+						break;
+
+					case "XML":
+						// java.sql.XML.class;
+						row2Add.add(colValue[i].getText());
 						break;
 
 					default:
 						row2Add.add(colValue[i].getText());
-
-						// String insertRowQuery = "insert into RSS_FEEDS (RSS_NAME, RSS_FEED_XML)
-						// values"
-						// + " (?, xmlparse(document cast (? as clob) preserve whitespace))";
-						//
-						// insertRow = con.prepareStatement(insertRowQuery);
-						// insertRow.setString(1, titleString);
-						// String convertedDoc = JDBCTutorialUtilities.convertDocumentToString(doc);
-						// insertRow.setClob(2, new StringReader(convertedDoc));
-						//
-						// System.out.println("Running executeUpdate()");
-						// insertRow.executeUpdate();
-
 						break;
-
 					}
 
+					// String insertRowQuery = "insert into RSS_FEEDS (RSS_NAME, RSS_FEED_XML)
+					// values"
+					// + " (?, xmlparse(document cast (? as clob) preserve whitespace))";
+					//
+					// insertRow = con.prepareStatement(insertRowQuery);
+					// insertRow.setString(1, titleString);
+					// String convertedDoc = JDBCTutorialUtilities.convertDocumentToString(doc);
+					// insertRow.setClob(2, new StringReader(convertedDoc));
+					//
+					// System.out.println("Running executeUpdate()");
+					// insertRow.executeUpdate();
 				}
 
 				tModel.insertNewRow(row2Add);

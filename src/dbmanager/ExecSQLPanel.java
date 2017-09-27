@@ -321,6 +321,8 @@ public class ExecSQLPanel extends JPanel {
 				return c;
 			}
 		};
+		tableSQLResult.setMinimumSize(new Dimension(100, 10));
+		tableSQLResult.setMaximumSize(new Dimension(20000, 200));
 
 		// tableSQLResult.getModel().addTableModelListener(this);
 
@@ -328,7 +330,6 @@ public class ExecSQLPanel extends JPanel {
 		tableSQLResult.setAutoscrolls(false);
 		tableSQLResult.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		tableSQLResult.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		tableSQLResult.setCellSelectionEnabled(true);
 		tableSQLResult.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tableSQLResult.setBackground(SystemColor.info);
 
@@ -401,6 +402,7 @@ public class ExecSQLPanel extends JPanel {
 						Object redValue = model.getValueAt(rowSel, i);
 
 						text2Delete += model.getColumnName(i) + " = ";
+
 						String quotePrefix = (String) DBManager.dataTypeInfo(model.typeNames.get(i), "LITERAL_PREFIX");
 						String quoteSuffix = (String) DBManager.dataTypeInfo(model.typeNames.get(i), "LITERAL_SUFFIX");
 						if (quotePrefix != null)
@@ -413,8 +415,6 @@ public class ExecSQLPanel extends JPanel {
 
 				text2Delete += ";";
 
-				System.out.println("Texto borrador: " + text2Delete);
-
 				int deleteConfirm = JOptionPane.showConfirmDialog(btnDeleteRow,
 						"Do you want really to send this command: \n" + text2Delete + " ?", "Delete?",
 						JOptionPane.YES_NO_OPTION);
@@ -422,10 +422,9 @@ public class ExecSQLPanel extends JPanel {
 				if (deleteConfirm == JOptionPane.YES_OPTION) {
 
 					executeSQL(text2Delete, "MODE_FILL");
-					executeSQL(lastSelect, "MODE_FILL"); // To refresh JTable
 
 				}
-
+				executeSQL(lastSelect, "MODE_FILL"); // To refresh JTable
 				tableSQLResult.updateUI();
 			}
 		});
@@ -449,6 +448,8 @@ public class ExecSQLPanel extends JPanel {
 
 				String query = "SELECT * FROM " + textEditingElement.getText();
 				executeSQL(query, "MODE_NEW_ROW");
+				executeSQL(lastSelect, "MODE_FILL"); // To refresh JTable
+				tableSQLResult.updateUI();
 			}
 		});
 		btnInsertRow.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
@@ -575,7 +576,7 @@ public class ExecSQLPanel extends JPanel {
 					dialog.setTitle("Insert row in table " + textEditingElement.getText());
 					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 					dialog.setVisible(true);
-					updateUI();
+					tableSQLResult.updateUI();
 
 				} catch (Exception h) {
 					h.printStackTrace();

@@ -50,6 +50,7 @@ public class MyTableModel extends AbstractTableModel {
 
 	ArrayList<Boolean> colsAutoincrement = new ArrayList<>();
 	ArrayList<Boolean> colsSearchable = new ArrayList<>();
+	ArrayList<Boolean> isXMLConvertedToClob = new ArrayList<>();
 	ArrayList<String> colsNames = new ArrayList<>(); // Column names
 	ArrayList<Integer> colsSizes = new ArrayList<>();
 	ArrayList<ArrayList<Object>> data = new ArrayList<>();
@@ -80,9 +81,10 @@ public class MyTableModel extends AbstractTableModel {
 			boolean fromAsterisk = false;
 
 			try {
-				if (query.contains("*")) { //May be it has hidden XML reads
+				if (query.contains("*")) { // May be it has hidden XML reads
 					fromAsterisk = true;
 					DatabaseMetaData dmd = conn.getMetaData();
+					ResultSet typeInfo = dmd.getTypeInfo();
 					ResultSet columns = dmd.getColumns(null, null, tableToUse, null);
 					String colName = "";
 					String columnsToUse = "";
@@ -99,8 +101,10 @@ public class MyTableModel extends AbstractTableModel {
 
 						if (typeNames.get(i).equals("XML")) {
 							columnsToUse += " xmlserialize (" + colsNames.get(i) + " as clob) ";
+							isXMLConvertedToClob.add(true);
 						} else {
 							columnsToUse += colsNames.get(i);
+							isXMLConvertedToClob.add(false);
 						}
 						columnsToUse += (i < (colsNames.size() - 1)) ? ", " : "";
 					}
@@ -108,29 +112,33 @@ public class MyTableModel extends AbstractTableModel {
 					int asterixPosition = query.indexOf("*");
 					finalQuery = query.substring(0, asterixPosition) + columnsToUse
 							+ query.substring(asterixPosition + 1);
-					//colsNames.clear();
+					// colsNames.clear();
 					typeNames.clear();
 					System.out.println(finalQuery);
 					query = finalQuery;
 				}
-				
+
 				statement = conn.createStatement();
 				resultSet = statement.executeQuery(query);
-
+				
+				
 				// Metadata for several values.
 				int c = resultSet.getMetaData().getColumnCount();
 				for (int i = 1; i <= c; i++) {
-					
+
 					System.out.println(resultSet.getMetaData().getColumnName(i));
-					
-					if(!fromAsterisk) 
+
+					if (!fromAsterisk)
 						colsNames.add(resultSet.getMetaData().getColumnName(i));
 					colsSizes.add(resultSet.getMetaData().getPrecision(i));
 					colsAutoincrement.add(resultSet.getMetaData().isAutoIncrement(i));
-					colsSearchable.add(resultSet.getMetaData().isSearchable(i));
+				//	colsSearchable.add(resultSet.getMetaData().isSearchable(i));
 					String columnTypeName = resultSet.getMetaData().getColumnTypeName(i);
-//					if(!fromAsterisk) 
-						typeNames.add(columnTypeName);
+					colsSearchable.add((short) DBManager.dataTypeInfo(columnTypeName, "SEARCHABLE") == 2
+									|| (short) DBManager.dataTypeInfo(columnTypeName, "SEARCHABLE") == 3);
+						
+					// if(!fromAsterisk)
+					typeNames.add(columnTypeName);
 					columnType = resultSet.getMetaData().getColumnType(i);
 					colsClasses.add(DBManager.getColClass(columnType, typeName));
 				}
@@ -144,9 +152,9 @@ public class MyTableModel extends AbstractTableModel {
 
 							System.out.println("typeNames" + i + ": " + typeNames.get(i));
 							System.out.println("colsclasses" + i + ": " + colsClasses.get(i));
-							
+
 							if (typeNames.get(i).equals("CLOB")) {
-//								if (colsClasses.get(i) == java.sql.Clob.class) {
+								// if (colsClasses.get(i) == java.sql.Clob.class) {
 
 								Clob clobValue = resultSet.getClob(i + 1);
 
@@ -157,8 +165,8 @@ public class MyTableModel extends AbstractTableModel {
 
 							} else {
 								if (typeNames.get(i).equals("BLOB")) {
-//								if (colsClasses.get(i) == java.sql.Blob.class) {
-								
+									// if (colsClasses.get(i) == java.sql.Blob.class) {
+
 									Blob blobValue = resultSet.getBlob(i + 1);
 									if (blobValue != null) {
 										JDBCTableLob lobValue = new JDBCTableLob(blobValue, lobPath);
@@ -176,8 +184,8 @@ public class MyTableModel extends AbstractTableModel {
 											redObj = sb.toString();
 										}
 									} else {
-										if (typeNames.get(i).equals("XML")) {			
-									//	if (colsClasses.get(i) == java.sql.SQLXML.class) {
+										if (typeNames.get(i).equals("XML")) {
+											// if (colsClasses.get(i) == java.sql.SQLXML.class) {
 											java.sql.SQLXML sqlXMLValue = resultSet.getSQLXML(i + 1);
 											redObj = sqlXMLValue.toString();
 										} else {
@@ -336,8 +344,8 @@ public class MyTableModel extends AbstractTableModel {
 	}
 
 	public int getColumnSize(int column) {
-		return colsSizes.get(column);
-
+		
+		return Math.max(colsSizes.get(column), 30);
 	}
 
 	@Override
@@ -449,53 +457,6 @@ public class MyTableModel extends AbstractTableModel {
 		return colsSearchable;
 	}
 
-	// public void insertNewData() {
-	//
-	// int numRows = data2Add.size();
-	// int numCols = getColumnCount();
-	// String tableName = sourceTable;
-	// int numRowsAdded = 0;
-	// String quotePrefix = "";
-	// String quoteSuffix = "";
-	//
-	// for (int i = 0; i < numRows; i++) {
-	// String order = "INSERT INTO " + tableName + "(";
-	// String order2 = " VALUES (";
-	//
-	// ArrayList<Object> row = data2Add.get(i);
-	//
-	// for (int j = 0; j < numCols; j++) {
-	// if (!colsAutoincrement.get(j)) {
-	//
-	// order += colsNames.get(j) + ((j < numCols - 1) ? "," : "");
-	//
-	// quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j),
-	// "LITERAL_PREFIX");
-	// quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j),
-	// "LITERAL_SUFFIX");
-	//
-	// if (quotePrefix != null)
-	// order2 += quotePrefix;
-	// order2 += row.get(j);
-	// if (quoteSuffix != null)
-	// order2 += quoteSuffix;
-	// order2 += "?" + ((j < numCols - 1) ? "," : "");
-	// }
-	// }
-	//
-	// order += ")" + order2 + ")";
-	//
-	// try {
-	// statement = conn.createStatement();
-	// int result = statement.executeUpdate(order);
-	// numRowsAdded++;
-	// } catch (SQLException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// }
-	// }
-
 	public void insertNewRow(ArrayList<Object> row2Add) {
 
 		int numCols = getColumnCount();
@@ -506,13 +467,23 @@ public class MyTableModel extends AbstractTableModel {
 		String order = "INSERT INTO " + tableName + " (";
 		String order2 = " VALUES (";
 
+		System.out.println("Entra 1");
+
 		for (int j = 0; j < numCols; j++) {
+			System.out.println("Entra 2");
 
 			if (!colsAutoincrement.get(j)) {
 
-				order += colsNames.get(j) + (((j < numCols - 1) && !colsAutoincrement.get(j + 1)) ? ", " : " ");
+				System.out.println("Entra 3");
+				order += colsNames.get(j) + (((j < numCols - 1) 
+						&& !colsAutoincrement.get(j + 1)) ? ", " : " ");
 
-				if (typeNames.get(j).equals("XML")) {
+				System.out.println("Entra 4: " + typeNames.get(j));
+				System.out.println("colsClasses.get(j): " + colsClasses.get(j));
+				System.out.println("typeNames.get(j): " + typeNames.get(j));
+
+				if (typeNames.get(j).equals("XML") || typeNames.get(j).equals("CLOB") && isXMLConvertedToClob.get(j)) {
+					System.out.println("Entra 5");
 					order2 += " xmlparse (document cast (? as clob) preserve whitespace)";
 
 					// XMLPARSE(DOCUMENT ' <name> Derby </name>' PRESERVE
@@ -520,6 +491,7 @@ public class MyTableModel extends AbstractTableModel {
 				} else {
 					order2 += "?";
 				}
+				System.out.println("Entra 6");
 
 				order2 += (((j < numCols - 1) && !colsAutoincrement.get(j + 1)) ? ", " : " ");
 			}
@@ -529,14 +501,18 @@ public class MyTableModel extends AbstractTableModel {
 		order2 += ")";
 
 		PreparedStatement ps = null;
+		System.out.println("Entra 7");
 
 		try {
+			System.out.println("Entra 8:" + order + order2);
 			ps = conn.prepareStatement(order + order2);
+			System.out.println("Entra 9");
 
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		System.out.println("Entra 10");
 
 		int numUsedParameters = 0;
 
@@ -549,6 +525,7 @@ public class MyTableModel extends AbstractTableModel {
 
 			if (colsClasses.get(j) == java.sql.Clob.class && !typeNames.get(j).equals("XML")) {
 
+				System.out.println("Entra 11");
 				String file2Load = row2Add.get(j).toString();
 
 				try {
@@ -641,15 +618,20 @@ public class MyTableModel extends AbstractTableModel {
 
 					} else {
 						try {
-							quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_PREFIX");
-							quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_SUFFIX");
+//							quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_PREFIX");
+//							quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_SUFFIX");
 
-							if (quotePrefix != null) {
-								String toAdd = quotePrefix + row2Add.get(j) + quoteSuffix;
-								if (!colsAutoincrement.get(j)) {
-									ps.setObject(++numUsedParameters, toAdd);
-								}
+//							if (quotePrefix != null) {
+//								String toAdd = quotePrefix + row2Add.get(j) + quoteSuffix;
+//								if (!colsAutoincrement.get(j)) {
+//									ps.setObject(++numUsedParameters, toAdd);
+//								}
+//							}
+							String toAdd = (String) row2Add.get(j);
+							if (!colsAutoincrement.get(j)) {
+								ps.setObject(++numUsedParameters, toAdd);
 							}
+							
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
