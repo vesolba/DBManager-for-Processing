@@ -12,4 +12,4 @@ For Processing forum updates on DBManager for Processing, see: https://forum.pro
 
 In order to install DBManager in your tools, please read https://github.com/vesolba/DBManager-for-Processing/blob/master/distribution/DBManager-1/README.md. Thanks.
 
-You can also insert in your databases BLOBS and XML files. 
+You can also insert in your databases BLOBS and XML files. https://github.com/vesolba/DBManager-for-Processing/blob/master/Captura%20Blobs.PNG
