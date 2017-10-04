@@ -11,3 +11,5 @@ This project can be found on [github.com/vesolba/DBManager-for-Processing/](http
 For Processing forum updates on DBManager for Processing, see: https://forum.processing.org/two/discussion/21440/db-manager-for-processing#latest
 
 In order to install DBManager in your tools, please read https://github.com/vesolba/DBManager-for-Processing/blob/master/distribution/DBManager-1/README.md. Thanks.
+
+You can also insert in your databases BLOBS and XML files. 
