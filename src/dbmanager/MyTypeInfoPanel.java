@@ -27,6 +27,8 @@ import java.awt.Dimension;
 import javax.swing.JTextArea;
 import javax.swing.BoxLayout;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class MyTypeInfoPanel extends JPanel {
 	private JTable table;
@@ -75,6 +77,11 @@ public class MyTypeInfoPanel extends JPanel {
 				return c;
 			}
 		};
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+			}
+		});
 		table.setToolTipText("Available Data Types ");
 		table.setMaximumSize(new Dimension(1000, 0));
 		table.setEnabled(false);

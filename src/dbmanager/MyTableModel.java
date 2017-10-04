@@ -1,14 +1,15 @@
 package dbmanager;
 
-import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.Writer;
+import java.net.URLConnection;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.ImageIcon;
 import javax.swing.table.AbstractTableModel;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
@@ -41,12 +43,8 @@ public class MyTableModel extends AbstractTableModel {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	/** Holds value of property lobPath. */
+	/** Holds value of large objects temp path property lobPath. */
 	private String lobPath = System.getProperty("java.io.tmpdir");
-	/** Text to be displayed for null values */
-	private String nullText = "??null??";
-	/** Holds value of property nullColour. */
-	private Color nullColour = new Color(240, 240, 240);
 
 	ArrayList<Boolean> colsAutoincrement = new ArrayList<>();
 	ArrayList<Boolean> colsSearchable = new ArrayList<>();
@@ -109,9 +107,9 @@ public class MyTableModel extends AbstractTableModel {
 						columnsToUse += (i < (colsNames.size() - 1)) ? ", " : "";
 					}
 
-					int asterixPosition = query.indexOf("*");
-					finalQuery = query.substring(0, asterixPosition) + columnsToUse
-							+ query.substring(asterixPosition + 1);
+					int asteriskPosition = query.indexOf("*");
+					finalQuery = query.substring(0, asteriskPosition) + columnsToUse
+							+ query.substring(asteriskPosition + 1);
 					// colsNames.clear();
 					typeNames.clear();
 					System.out.println(finalQuery);
@@ -120,8 +118,7 @@ public class MyTableModel extends AbstractTableModel {
 
 				statement = conn.createStatement();
 				resultSet = statement.executeQuery(query);
-				
-				
+
 				// Metadata for several values.
 				int c = resultSet.getMetaData().getColumnCount();
 				for (int i = 1; i <= c; i++) {
@@ -132,12 +129,10 @@ public class MyTableModel extends AbstractTableModel {
 						colsNames.add(resultSet.getMetaData().getColumnName(i));
 					colsSizes.add(resultSet.getMetaData().getPrecision(i));
 					colsAutoincrement.add(resultSet.getMetaData().isAutoIncrement(i));
-				//	colsSearchable.add(resultSet.getMetaData().isSearchable(i));
 					String columnTypeName = resultSet.getMetaData().getColumnTypeName(i);
 					colsSearchable.add((short) DBManager.dataTypeInfo(columnTypeName, "SEARCHABLE") == 2
-									|| (short) DBManager.dataTypeInfo(columnTypeName, "SEARCHABLE") == 3);
-						
-					// if(!fromAsterisk)
+							|| (short) DBManager.dataTypeInfo(columnTypeName, "SEARCHABLE") == 3);
+
 					typeNames.add(columnTypeName);
 					columnType = resultSet.getMetaData().getColumnType(i);
 					colsClasses.add(DBManager.getColClass(columnType, typeName));
@@ -165,10 +160,9 @@ public class MyTableModel extends AbstractTableModel {
 
 							} else {
 								if (typeNames.get(i).equals("BLOB")) {
-									// if (colsClasses.get(i) == java.sql.Blob.class) {
-
 									Blob blobValue = resultSet.getBlob(i + 1);
 									if (blobValue != null) {
+										System.out.println("Entra j1");
 										JDBCTableLob lobValue = new JDBCTableLob(blobValue, lobPath);
 										redObj = lobValue;
 									}
@@ -201,51 +195,12 @@ public class MyTableModel extends AbstractTableModel {
 						data.add(row);
 
 					} while (resultSet.next());
-
-				} // (mode.equals("MODE_FILL") && resultSet.next())
-
-				// else { //There is not data or we doesn't want it.
-				// ArrayList<Object> row = new ArrayList<>();
-				// for (int i = 0; i < c; i++) {
-				//
-				// if (colsClasses.get(i) == Clob.class) {
-				// Clob defValue = conn.createClob();
-				// defValue.setString(1, "");
-				// row.add(defValue);
-				// } else
-				//
-				// if (colsClasses.get(i) == Blob.class) {
-				// Blob defValue = conn.createBlob();
-				// byte[] zeroByte = { 00 };
-				// defValue.setBytes(1, zeroByte);
-				// row.add(defValue);
-				// } else
-				//
-				// if (colsClasses.get(i) == Byte.class) {
-				// byte[] defValue = { 00 };
-				// row.add(defValue);
-				// } else
-				//
-				// if (colsClasses.get(i) == java.sql.Date.class || colsClasses.get(i) ==
-				// java.sql.Time.class
-				// || colsClasses.get(i) == java.sql.Timestamp.class || colsClasses.get(i) ==
-				// String.class
-				// || colsClasses.get(i) == java.sql.SQLXML.class) {
-				// Object defValue = "";
-				// row.add(defValue);
-				// } else {
-				// Object defValue = 0;
-				// row.add(defValue);
-				// }
-				// }
-				// data.add(row);
-				// }
+				}
 			} catch (SQLException | IOException ex) {
 				System.out.println("Could not connect to database");
 				ex.printStackTrace();
 			} finally {
 				try {
-
 					if (statement != null) {
 						statement.close();
 					}
@@ -305,36 +260,72 @@ public class MyTableModel extends AbstractTableModel {
 
 		Object value = row.get(columnIndex);
 
-		if (colsClasses.get(columnIndex) == java.sql.Clob.class) {
+		if (typeNames.get(columnIndex).equals("CLOB")) {
+			// if (colsClasses.get(columnIndex) == java.sql.Clob.class) {
 			value = ((JDBCTableLob) value).getText();
-		} else if (colsClasses.get(columnIndex) == java.sql.Blob.class) {
+
+		} else if (typeNames.get(columnIndex).equals("BLOB")) {
+			// if (colsClasses.get(columnIndex) == java.sql.Blob.class) {
+
+			File tempFile = ((JDBCTableLob) value).getFile();
+			String filename = tempFile.toString();
+			
+			
+			String newfilename = filename.substring(0, filename.lastIndexOf('.')) + ".PNG";
+			File newFile = new File(newfilename); 
+			tempFile.renameTo(newFile);
+			
+			ImageIcon icon = new ImageIcon(newfilename);
+			// setValueAt(icon, row, columnIndex);
+
+			return icon;
+
+			//////////////////////////////////
+
+			////////////////////////////////////
+			// byte[] auxValue = ((Blob) value).getBytes(1, (int) ((Blob) value).length());
+			// return auxValue;
+			// } catch (SQLException e) {
+			// e.printStackTrace();
+		} else if (typeNames.get(columnIndex).equals("XML")) {
+
 			try {
-				return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
+				value = ((java.sql.SQLXML) value).getString();
+
 			} catch (SQLException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if (colsClasses.get(columnIndex) == java.sql.SQLXML.class) {
-				try {
-					value = ((java.sql.SQLXML) value).getString();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 
-				// if (colsClasses.get(columnIndex) == Clob.class) {
-				// try {
-				// return ((Clob) value).getSubString(1, (int) ((Clob) value).length());
-				// } catch (SQLException e) {
-				// e.printStackTrace();
-				// }
-				// } else if (colsClasses.get(columnIndex) == Blob.class) {
-				// try {
-				// return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
-				// } catch (SQLException e) {
-				// e.printStackTrace();
-				// }
-			}
-		} // else
+			// if (colsClasses.get(columnIndex) == Clob.class) {
+			// try {
+			// return ((Clob) value).getSubString(1, (int) ((Clob) value).length());
+			// } catch (SQLException e) {
+			// e.printStackTrace();
+			// }
+			// } else if (colsClasses.get(columnIndex) == Blob.class) {
+			// try {
+			// return ((Blob) value).getBytes(1, (int) ((Blob) value).length());
+			// } catch (SQLException e) {
+			// e.printStackTrace();
+
+		}
+		return value;
+	}
+
+	public Object getBlobAt(int rowIndex, int columnIndex) {
+
+		if (rowIndex >= getRowCount() || columnIndex >= getColumnCount())
+			return null;
+
+		ArrayList<Object> row;
+
+		if (mode.equals("MODE_NEW_ROW")) {
+			row = data2Add.get(rowIndex);
+		} else {
+			row = data.get(rowIndex);
+		}
+		Object value = row.get(columnIndex);
 		return value;
 	}
 
@@ -344,7 +335,7 @@ public class MyTableModel extends AbstractTableModel {
 	}
 
 	public int getColumnSize(int column) {
-		
+
 		return Math.max(colsSizes.get(column), 30);
 	}
 
@@ -446,10 +437,17 @@ public class MyTableModel extends AbstractTableModel {
 	}
 
 	@Override
-	public Class<?> getColumnClass(int column) {
-		return colsClasses.get(column);
-	}
+//	public Class<?> getColumnClass(int column) {
+//		return colsClasses.get(column);
+//	}
 
+	  //  Returning the Class of each column will allow different
+    //  renderers to be used based on Class
+    public Class<?> getColumnClass(int column)
+    {
+        return getValueAt(0, column).getClass();
+    }
+    
 	/**
 	 * @return the colsSearchable
 	 */
@@ -467,23 +465,12 @@ public class MyTableModel extends AbstractTableModel {
 		String order = "INSERT INTO " + tableName + " (";
 		String order2 = " VALUES (";
 
-		System.out.println("Entra 1");
-
 		for (int j = 0; j < numCols; j++) {
-			System.out.println("Entra 2");
-
 			if (!colsAutoincrement.get(j)) {
 
-				System.out.println("Entra 3");
-				order += colsNames.get(j) + (((j < numCols - 1) 
-						&& !colsAutoincrement.get(j + 1)) ? ", " : " ");
-
-				System.out.println("Entra 4: " + typeNames.get(j));
-				System.out.println("colsClasses.get(j): " + colsClasses.get(j));
-				System.out.println("typeNames.get(j): " + typeNames.get(j));
+				order += colsNames.get(j) + (((j < numCols - 1) && !colsAutoincrement.get(j + 1)) ? ", " : " ");
 
 				if (typeNames.get(j).equals("XML") || typeNames.get(j).equals("CLOB") && isXMLConvertedToClob.get(j)) {
-					System.out.println("Entra 5");
 					order2 += " xmlparse (document cast (? as clob) preserve whitespace)";
 
 					// XMLPARSE(DOCUMENT ' <name> Derby </name>' PRESERVE
@@ -491,8 +478,6 @@ public class MyTableModel extends AbstractTableModel {
 				} else {
 					order2 += "?";
 				}
-				System.out.println("Entra 6");
-
 				order2 += (((j < numCols - 1) && !colsAutoincrement.get(j + 1)) ? ", " : " ");
 			}
 		}
@@ -501,31 +486,20 @@ public class MyTableModel extends AbstractTableModel {
 		order2 += ")";
 
 		PreparedStatement ps = null;
-		System.out.println("Entra 7");
-
 		try {
-			System.out.println("Entra 8:" + order + order2);
 			ps = conn.prepareStatement(order + order2);
-			System.out.println("Entra 9");
 
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		System.out.println("Entra 10");
 
 		int numUsedParameters = 0;
 
 		for (int j = 0; j < numCols; j++) {
 
-			System.out.println("colsClasses.get(j): " + colsClasses.get(j));
-			System.out.println("typeName.get(j): " + typeNames.get(j));
-
-			// + " " + typeNames.get(j).equals("XML"));
-
 			if (colsClasses.get(j) == java.sql.Clob.class && !typeNames.get(j).equals("XML")) {
 
-				System.out.println("Entra 11");
 				String file2Load = row2Add.get(j).toString();
 
 				try {
@@ -552,15 +526,29 @@ public class MyTableModel extends AbstractTableModel {
 			} else {
 
 				if (colsClasses.get(j) == java.sql.Blob.class) {
+
+					System.out.println("Insert entra 1: " + colsClasses.get(j));
 					try {
+						System.out.println("Insert entra 2");
 						// conn.setAutoCommit(false);
 						File file2Load = new File(row2Add.get(j).toString());
-						Blob blob = conn.createBlob();
-						ObjectOutputStream oos;
-						oos = new ObjectOutputStream(blob.setBinaryStream(1));
-						oos.writeObject(file2Load);
+						System.out.println("Insert entra 3: file2Load " + file2Load);
+						// Blob blob = conn.createBlob();
+						InputStream fin = new FileInputStream(file2Load);
+
+						// System.out.println("Insert entra 4: blob "+ blob);
+						// ObjectOutputStream oos;
+						System.out.println("Insert entra 5");
+
+						// oos = new ObjectOutputStream(blob.setBinaryStream(1));
+						System.out.println("Insert entra 6");
+						// oos.writeObject(file2Load);
+						System.out.println("Insert entra 7");
 						if (!colsAutoincrement.get(j)) {
-							ps.setBlob(++numUsedParameters, blob);
+							System.out.println("Insert entra 8");
+							ps.setBinaryStream(++numUsedParameters, fin);
+							// ps.setBlob(++numUsedParameters, blob);
+							System.out.println("Insert entra 9");
 						}
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
@@ -618,20 +606,22 @@ public class MyTableModel extends AbstractTableModel {
 
 					} else {
 						try {
-//							quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_PREFIX");
-//							quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j), "LITERAL_SUFFIX");
+							// quotePrefix = (String) DBManager.dataTypeInfo(typeNames.get(j),
+							// "LITERAL_PREFIX");
+							// quoteSuffix = (String) DBManager.dataTypeInfo(typeNames.get(j),
+							// "LITERAL_SUFFIX");
 
-//							if (quotePrefix != null) {
-//								String toAdd = quotePrefix + row2Add.get(j) + quoteSuffix;
-//								if (!colsAutoincrement.get(j)) {
-//									ps.setObject(++numUsedParameters, toAdd);
-//								}
-//							}
+							// if (quotePrefix != null) {
+							// String toAdd = quotePrefix + row2Add.get(j) + quoteSuffix;
+							// if (!colsAutoincrement.get(j)) {
+							// ps.setObject(++numUsedParameters, toAdd);
+							// }
+							// }
 							String toAdd = (String) row2Add.get(j);
 							if (!colsAutoincrement.get(j)) {
 								ps.setObject(++numUsedParameters, toAdd);
 							}
-							
+
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -644,6 +634,7 @@ public class MyTableModel extends AbstractTableModel {
 		try
 
 		{
+			System.out.println("Entra executeUpdate");
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -687,6 +678,13 @@ public class MyTableModel extends AbstractTableModel {
 	 */
 	public String getSourceTable() {
 		return sourceTable;
+	}
+
+	/**
+	 * @return the lobPath
+	 */
+	public String getLobPath() {
+		return lobPath;
 	}
 
 }

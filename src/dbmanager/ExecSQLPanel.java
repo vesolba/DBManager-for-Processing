@@ -9,6 +9,8 @@ import java.awt.SystemColor;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
@@ -17,6 +19,7 @@ import java.sql.Statement;
 
 import javax.swing.Box;
 import javax.swing.DropMode;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -37,18 +40,15 @@ import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.tree.DefaultTreeModel;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import javax.swing.event.CaretListener;
-import javax.swing.event.CaretEvent;
 
 @SuppressWarnings("serial")
 public class ExecSQLPanel extends JPanel {
@@ -313,26 +313,62 @@ public class ExecSQLPanel extends JPanel {
 				TableColumn tableColumn = getColumnModel().getColumn(column);
 				tableColumn.setPreferredWidth(
 						Math.max(rendererWidth + getIntercellSpacing().width, tableColumn.getPreferredWidth()));
-
+				if (tableColumn.getPreferredWidth() > 1000) {
+					tableColumn.setPreferredWidth(500);
+				}
 				// Alternate row color
 				if (!isRowSelected(row))
 					c.setBackground(row % 2 == 0 ? getBackground() : Color.LIGHT_GRAY);
 
 				return c;
 			}
+
 		};
-		tableSQLResult.setMinimumSize(new Dimension(100, 10));
-		tableSQLResult.setMaximumSize(new Dimension(20000, 200));
+		tableSQLResult.setFillsViewportHeight(true);
+		tableSQLResult.setCellSelectionEnabled(true);
+		tableSQLResult.setColumnSelectionAllowed(true);
+		tableSQLResult.setAutoscrolls(false);
+		tableSQLResult.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		tableSQLResult.setMinimumSize(new Dimension(1000, 20));
+		tableSQLResult.setMaximumSize(new Dimension(2000, 2000));
 
 		// tableSQLResult.getModel().addTableModelListener(this);
 
 		tableSQLResult.setIntercellSpacing(new Dimension(10, 2));
-		tableSQLResult.setAutoscrolls(false);
-		tableSQLResult.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		tableSQLResult.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		tableSQLResult.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		tableSQLResult.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tableSQLResult.setBackground(SystemColor.info);
+		tableSQLResult.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				int rowIndex = tableSQLResult.getSelectedRow();
+				int colIndex = tableSQLResult.getSelectedColumn();
+				MyTableModel uModel = (MyTableModel) tableSQLResult.getModel();
+				String typeAux = uModel.typeNames.get(colIndex);
+				System.out.println("Entra 0. typeAux = " + typeAux);
+				System.out.println("Entra 0. RowIndex = " + rowIndex + " colIndex = " + colIndex);
+				if (typeAux.equals("BLOB") && SwingUtilities.isLeftMouseButton(arg0)) {
 
+					try {
+						ImageIcon Icon = (ImageIcon) uModel.getValueAt(rowIndex, colIndex);
+						BLOBViewer blobViewer = new BLOBViewer();
+
+						blobViewer.setImage(Icon);
+						Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+						blobViewer.pack();
+						blobViewer.setSize(screenSize.width * 1 / 3, screenSize.height * 1 / 3);
+						blobViewer.setLocationRelativeTo(null);
+						blobViewer.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+						blobViewer.setVisible(true);
+						// tableSQLResult.updateUI();
+
+					} catch (Exception h) {
+						h.printStackTrace();
+					}
+
+				}
+			}
+		});
 		if (DBManager.propsDBM != null) {
 			String propTable = DBManager.propsDBM.getDBMProp("spinTable");
 
@@ -375,6 +411,7 @@ public class ExecSQLPanel extends JPanel {
 		btnDeleteRow = new JButton(" Delete Row ");
 		btnDeleteRow.setEnabled(false);
 		btnDeleteRow.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent arg0) {
 
 				MyTableModel model = (MyTableModel) tableSQLResult.getModel();
@@ -552,7 +589,9 @@ public class ExecSQLPanel extends JPanel {
 	 *            MODE_NEW_ROW -- Creates an editable row
 	 */
 	public void executeSQL(String redQuery, String mode) {
+
 		Connection conn = null;
+
 		try {
 			conn = DBConnect.connect(!DBConnect.serverIsOn, getTxtSelected().getText(), "", null, false);
 		} catch (Exception ex) {
@@ -576,7 +615,7 @@ public class ExecSQLPanel extends JPanel {
 					dialog.setTitle("Insert row in table " + textEditingElement.getText());
 					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 					dialog.setVisible(true);
-					tableSQLResult.updateUI();
+					// tableSQLResult.updateUI();
 
 				} catch (Exception h) {
 					h.printStackTrace();
