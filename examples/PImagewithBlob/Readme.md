@@ -5,4 +5,3 @@ After its execution you will see an output sketch window like this
 
 [![Image](https://github.com/vesolba/DBManager-for-Processing/blob/master/examples/PImagewithBlob/Captura.PNG)](https://github.com/vesolba/DBManager-for-Processing/blob/master/examples/PImagewithBlob/Captura.PNG)
 
-[![Blobs](https://github.com/vesolba/DBManager-for-Processing/blob/master/Captura%20Blobs.PNG)](https://github.com/vesolba/DBManager-for-Processing/blob/master/Captura%20Blobs.PNG)
