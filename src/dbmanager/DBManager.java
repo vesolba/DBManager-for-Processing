@@ -38,6 +38,7 @@ import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -78,10 +79,8 @@ public class DBManager<propsDBM> implements Tool {
 	public static String javaDBInstall; // Path to Derby installation
 	public static String pathToDBSettings;
 	public static DBManageProps propsDBM;
-	public static Statement stmt;
 	public static String pathToSketchBook;
 	public static TreeModel treeDataModel;
-	public static Connection conn;
 	public static JTree dBtree;
 	public static String derbySystemHome;
 	public TreePath treePath;
@@ -95,6 +94,7 @@ public class DBManager<propsDBM> implements Tool {
 	private static Map<String, Integer> rowSearch = new HashMap<String, Integer>();
 	private static Map<String, Integer> colSearch = new HashMap<String, Integer>();
 	public static Map<String, String> typeConvert = new HashMap<String, String>();
+	public static String prefInicConn;
 
 	@Override
 	public String getMenuTitle() {
@@ -112,7 +112,7 @@ public class DBManager<propsDBM> implements Tool {
 	public void run() {
 		// Get the currently active Editor to run the Tool on it
 		Editor editor = base.getActiveEditor();
-
+		
 		Sketch sketch = editor.getSketch();
 
 		// Fill in author.name, author.url, tool.prettyVersion and
@@ -209,8 +209,7 @@ public class DBManager<propsDBM> implements Tool {
 							frame.getExecSQLPanel().getBtnSaveChanges().setEnabled(false);
 						} else {
 							DBTreeNodeK nodeInfo = (DBTreeNodeK) selectedNode.getUserObject();
-							ExecSQLPanel.getTxtSelected()
-									.setText(nodeInfo.getPathLocation() + '/' + nodeInfo.getdBaseName());
+							ExecSQLPanel.setTxtSelectedDB(nodeInfo.getPathLocation() + '/' + nodeInfo.getdBaseName());
 							frame.getExecSQLPanel().getTextPaneInSQL().setEnabled(true);
 							if (nodeInfo.getCategory().equals("TABLE")) {
 								String table2Manage = nodeInfo.getText();
@@ -235,7 +234,10 @@ public class DBManager<propsDBM> implements Tool {
 					DBTreeNodeK childNodeInfo = (DBTreeNodeK) childNode.getUserObject();
 
 					if (nodeInfo.getCategory().equals("Java DB") && childNodeInfo.getCategory().equals("DUMMY")) {
+
+						// Read the rest of data of lazy reading.
 						DBConnect.loadTables(node, nodeInfo);
+
 					}
 				}
 
@@ -423,6 +425,7 @@ public class DBManager<propsDBM> implements Tool {
 			});
 
 			frame = new DBGUIFrame();
+			
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 			frame.pack();
 			frame.setSize(screenSize.width * 2 / 3, screenSize.height * 2 / 3);
@@ -430,11 +433,13 @@ public class DBManager<propsDBM> implements Tool {
 		}
 
 		String servInicSt = propsDBM.getDBMProp("Server_initial_state");
-		if (servInicSt.equals("on")) {
+		if (servInicSt.equals("online")) {
 			DBConnect.inicServer();
 		}
 
-		DBGUIFrame.checkServerMenu();
+		MyTypeInfoPanel infoPanel = new MyTypeInfoPanel();
+		editor.getContentPane().add(infoPanel);
+		frame.checkServerMenu();
 		frame.setVisible(true);
 		frame.toFront();
 	}
@@ -448,24 +453,21 @@ public class DBManager<propsDBM> implements Tool {
 
 		WelcomeDlg dialog = null;
 		pathToDBManager = pathToDBSettings + "/" + DBConnect.DBMSYSTABLE;
+		prefInicConn = propsDBM.getDBMProp("prefer_initial_connect_mode");
 
 		// We attempt to connect DBMSYSTABLE and determine if exists
+		Connection conn = null;
 		try {
-			conn = DBConnect.connect(!DBConnect.serverIsOn, pathToDBManager, "", null, false);
+			conn = DBConnect.connect(prefInicConn, pathToDBManager, false);
 		} catch (Exception ex) {
-			try {
-				DBConnect.inicServer();
-				conn = DBConnect.connect(!DBConnect.serverIsOn, pathToDBManager, "", null, false);
-			} catch (Exception ez) {
-				System.out.println("The DBM system database doesn't exists.");
-				conn = null;
-			}
-		}
-
-		if (conn == null) { // DBMSYSTABLE is missing. May be this is the first
-							// run of the tool.
+			System.out.println("May be that the DBM system database doesn't exists.");
+			// ex.printStackTrace();
+			// }
+			// if (conn == null) { // DBMSYSTABLE is missing. May be this is the first
+			// run of the tool.
 			// A welcome dialog
 			try {
+
 				dialog = new WelcomeDlg();
 				dialog.getTxtJavaExec().setText(Paths.get(System.getenv("java_home")).toRealPath().toString());
 				dialog.getTxtJavaDBExec().setText(Paths.get(System.getenv("derby_home")).toRealPath().toString());
@@ -478,35 +480,51 @@ public class DBManager<propsDBM> implements Tool {
 				dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
 				dialog.setLocationRelativeTo(null);
 				dialog.setVisible(true);
-			} catch (Exception f) {
-				f.printStackTrace();
-			}
+				// } catch (Exception f) {
+				// f.printStackTrace();
+				// }
 
-			if (dialog.result == 0) {
-				System.setProperty("derby.system.home", dialog.getTxtDerbySysHome().getText());
-			}
+				if (dialog.result == 0) {
+					System.setProperty("derby.system.home", dialog.getTxtDerbySysHome().getText());
+				}
 
-			dialog.dispose();
+				dialog.dispose();
 
-			// We attempt to connect again to DBMSYSTABLE but now with "create =
-			// true".
-			try {
-				conn = DBConnect.connect(!DBConnect.serverIsOn, pathToDBManager, "", null, true);
-			} catch (Exception ex) {
-				System.out.println("The DBM system database can't be created or is not accesible.");
-				conn = null;
-				ex.printStackTrace();
-			}
+				// We attempt to connect again to DBMSYSTABLE but now with "create =
+				// true".
+				// try {
+				conn = DBConnect.connect(prefInicConn, pathToDBManager, true);
+				// } catch (Exception ex) {
+				// System.out.println("The DBM system database can't be created or "
+				// + "it is not accesible. May it being locked by other process?");
+				// ex.printStackTrace();
+				// }
 
-			try {
+				// Lets try to create it.
+				// try {
 				DBConnect.createSysDB(conn, pathToDBManager);
 			} catch (Exception ey) {
 				ey.printStackTrace();
+
+				System.out.println("The DBM system database can't be created or "
+						+ "is not accesible. May it be locked by another process?");
+				// No way. We close the process.
+				try {
+					if (conn != null && !conn.isClosed()) {
+						// To unlock the database.
+						String myURL = conn.getMetaData().getURL();
+						DriverManager.getConnection(myURL + ";shutdown=true");
+						conn.close();
+						return null;
+					}
+				} catch (SQLException e) {
+				}
 				return null;
 			}
 
 		}
 
+		// There is connection, so we continue.
 		try {
 
 			// Fills a local table with data types
@@ -518,29 +536,27 @@ public class DBManager<propsDBM> implements Tool {
 
 			if (!rs.next()) {
 				DBConnect.createSysDB(conn, pathToDBManager);
-			} else {
-
-				// System.out.println("SysTable exists detected." + rs.toString());
-
 			}
 
-		} catch (SQLException ex) {
-			System.out.println("SysTable detection failed.");
-			ex.printStackTrace();
-			return null;
-		}
+			// } catch (SQLException ex) {
+			// System.out.println("SysTable detection failed.");
+			// ex.printStackTrace();
+			// return null;
+			// }
 
-		try {
-			stmt = conn.createStatement();
+			// try
+			// {
+			Statement stmt = conn.createStatement();
+			// This is to build the tree of databases
 			String sql = "SELECT * from DBLIST";
-			ResultSet rs = stmt.executeQuery(sql);
-			DatabaseMetaData dmd = conn.getMetaData();
+			rs = stmt.executeQuery(sql);
+			dmd = conn.getMetaData();
 
 			DefaultMutableTreeNode partialHead = root;
 
 			// Partial lazy reading. First, we complete the tree until the list of
-			// databases, and
-			// we read each database in the moment of open it to add its data to the tree.
+			// databases, and then we read each database in the moment of open it
+			// to add its data to the tree.
 			while (rs.next()) {
 				String redDBMS = rs.getString("DBMS");
 				String dBName = rs.getString("DBNAME");
@@ -554,42 +570,9 @@ public class DBManager<propsDBM> implements Tool {
 
 				// We create dummy data to manage lazy reading
 				DBTreeNodeK dummyTablesHead = new DBTreeNodeK("DUMMY", "Tables", "", "", "", dBaseName, "");
-				// DBTreeNodeK dummyViewsHead = new DBTreeNodeK("DUMMY", "Views", "", "", "",
-				// dBaseName);
-				// DBTreeNodeK dummyProcsHead = new DBTreeNodeK("DUMMY", "Procedures", "", "",
-				// "",
-				// dBaseName);
 				DefaultMutableTreeNode dummyNodeT = new DefaultMutableTreeNode(dummyTablesHead);
-				// DefaultMutableTreeNode dummyNodeV = new
-				// DefaultMutableTreeNode(dummyViewsHead);
-				// DefaultMutableTreeNode dummyNodeP = new
-				// DefaultMutableTreeNode(dummyProcsHead);
 				auxNode.add(dummyNodeT);
-				// auxNode.add(dummyNodeV);
-				// auxNode.add(dummyNodeP);
-
 			}
-
-			// Next, we read drivers
-			/*
-			 * newHeadNode = new DBTreeNodeK(); newHeadNode.setCategory("DRIVERHEAD");
-			 * newHeadNode.setText("Drivers"); partialHead = new
-			 * DefaultMutableTreeNode(newHeadNode); root.add(partialHead);
-			 * 
-			 * sql = "SELECT * from DRIVERLIST"; rs = stmt.executeQuery(sql); while
-			 * (rs.next()) { String redDriver = rs.getString("DRVNAME"); nodeInfo = new
-			 * DBTreeNodeK(); nodeInfo.setCategory("DRIVER"); nodeInfo.setText(redDriver);
-			 * partialHead.add(new DefaultMutableTreeNode(nodeInfo)); }
-			 * 
-			 * // Next, we read connections newHeadNode = new DBTreeNodeK();
-			 * newHeadNode.setCategory("CONNHEAD"); newHeadNode.setText("Connections");
-			 * partialHead = new DefaultMutableTreeNode(newHeadNode); root.add(partialHead);
-			 * 
-			 * sql = "SELECT * from CONNLIST"; rs = stmt.executeQuery(sql); while
-			 * (rs.next()) { String redConn = rs.getString("DISPLAYNAME"); nodeInfo = new
-			 * DBTreeNodeK(); nodeInfo.setCategory("CONN"); nodeInfo.setText(redConn);
-			 * partialHead.add(new DefaultMutableTreeNode(nodeInfo)); }
-			 */
 
 		} catch (SQLException ex) {
 			System.out.println("SQL Exception " + ex);
@@ -597,29 +580,33 @@ public class DBManager<propsDBM> implements Tool {
 		catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			if (conn != null) {
+				try {
+					// To unlock the database.
+					String myURL = conn.getMetaData().getURL();
+					DriverManager.getConnection(myURL + ";shutdown=true");
+					conn.close();
+				} catch (SQLException e) {
+				//	e.printStackTrace();
+				}
+			}
 		}
-		try {
-			stmt.close();
-			conn.close();
-		} catch (Exception e) {
-		}
+
+		// Returns the root of the tree
 		return (root);
 	}
 
-	public static boolean isInteger (String str) {
+	public static boolean isInteger(String str) {
 		return Pattern.matches("^\\d*$", str);
 	}
-	
+
 	public static boolean isNumeric(String str) {
 		return (str.matches("[+-]?\\d*(\\.\\d+)?") && str.equals("") == false);
 	}
 
 	public static void loadHiddenDataTypes(Connection conn) {
 		try {
-
-			// private Object[][] hiddenTypesTable = {};
-			// private Map rowSearch = new HashMap();
-
 			DatabaseMetaData dbmd = conn.getMetaData();
 			ResultSet rset;
 			rset = dbmd.getTypeInfo();

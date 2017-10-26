@@ -28,15 +28,15 @@ public class DBTreeNodeK extends DefaultMutableTreeNode {
 		this.fullTypeDesc = fullTypeDesc;
 	}
 
-	@Override
-	public boolean isLeaf() {
-		return false;
-
-		// if (category == "INDEXEDCOLUMN")
-		// return true;
-		// else
-		// return false;
-	}
+//	@Override
+//	public boolean isLeaf() {
+//		return false;
+//
+//		// if (category == "INDEXEDCOLUMN")
+//		// return true;
+//		// else
+//		// return false;
+//	}
 
 	/**
 	 * @return the category

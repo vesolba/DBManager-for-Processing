@@ -9,11 +9,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.Writer;
-import java.net.URLConnection;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -79,7 +79,7 @@ public class MyTableModel extends AbstractTableModel {
 			boolean fromAsterisk = false;
 
 			try {
-				if (query.contains("*")) { // May be it has hidden XML reads
+				if (query.contains("*")) { // It can have hidden XML readings
 					fromAsterisk = true;
 					DatabaseMetaData dmd = conn.getMetaData();
 					ResultSet typeInfo = dmd.getTypeInfo();
@@ -162,9 +162,9 @@ public class MyTableModel extends AbstractTableModel {
 								if (typeNames.get(i).equals("BLOB")) {
 									Blob blobValue = resultSet.getBlob(i + 1);
 									if (blobValue != null) {
-										System.out.println("Entra j1");
 										JDBCTableLob lobValue = new JDBCTableLob(blobValue, lobPath);
 										redObj = lobValue;
+
 									}
 								} else {
 									if (colsClasses.get(i) == java.lang.Byte.class) {
@@ -203,9 +203,18 @@ public class MyTableModel extends AbstractTableModel {
 				try {
 					if (statement != null) {
 						statement.close();
+						if (conn != null) {
+							// To unlock the database
+							String myURL = conn.getMetaData().getURL();
+							DriverManager.getConnection(myURL + ";shutdown=true");
+
+							conn.close();
+							return;
+							
+						}
 					}
 				} catch (SQLException ex) {
-					Logger.getLogger(MyTableModel.class.getName()).log(Level.SEVERE, null, ex);
+					// Logger.getLogger(MyTableModel.class.getName()).log(Level.SEVERE, null, ex);
 				}
 			}
 		}
@@ -265,17 +274,15 @@ public class MyTableModel extends AbstractTableModel {
 			value = ((JDBCTableLob) value).getText();
 
 		} else if (typeNames.get(columnIndex).equals("BLOB")) {
-			// if (colsClasses.get(columnIndex) == java.sql.Blob.class) {
-
 			File tempFile = ((JDBCTableLob) value).getFile();
 			String filename = tempFile.toString();
-			
-			
-			String newfilename = filename.substring(0, filename.lastIndexOf('.')) + ".PNG";
-			File newFile = new File(newfilename); 
+
+			// String newfilename = filename.substring(0, filename.lastIndexOf('.')) +
+			// ".PNG";
+			File newFile = new File(filename);
 			tempFile.renameTo(newFile);
-			
-			ImageIcon icon = new ImageIcon(newfilename);
+
+			ImageIcon icon = new ImageIcon(filename);
 			// setValueAt(icon, row, columnIndex);
 
 			return icon;
@@ -437,17 +444,16 @@ public class MyTableModel extends AbstractTableModel {
 	}
 
 	@Override
-//	public Class<?> getColumnClass(int column) {
-//		return colsClasses.get(column);
-//	}
+	// public Class<?> getColumnClass(int column) {
+	// return colsClasses.get(column);
+	// }
 
-	  //  Returning the Class of each column will allow different
-    //  renderers to be used based on Class
-    public Class<?> getColumnClass(int column)
-    {
-        return getValueAt(0, column).getClass();
-    }
-    
+	// Returning the Class of each column will allow different
+	// renderers to be used based on Class
+	public Class<?> getColumnClass(int column) {
+		return getValueAt(0, column).getClass();
+	}
+
 	/**
 	 * @return the colsSearchable
 	 */
@@ -526,30 +532,29 @@ public class MyTableModel extends AbstractTableModel {
 			} else {
 
 				if (colsClasses.get(j) == java.sql.Blob.class) {
-
-					System.out.println("Insert entra 1: " + colsClasses.get(j));
 					try {
-						System.out.println("Insert entra 2");
-						// conn.setAutoCommit(false);
 						File file2Load = new File(row2Add.get(j).toString());
-						System.out.println("Insert entra 3: file2Load " + file2Load);
-						// Blob blob = conn.createBlob();
+
+						/// Mode 1: Raw data from file into blob column
 						InputStream fin = new FileInputStream(file2Load);
 
-						// System.out.println("Insert entra 4: blob "+ blob);
+						if (!colsAutoincrement.get(j)) {
+							ps.setBinaryStream(++numUsedParameters, fin);
+						}
+						/// End Mode 1
+
+						/// Mode 2: data into blob object into blob column
+						// conn.setAutoCommit(false);
+						// Blob blob = conn.createBlob();
 						// ObjectOutputStream oos;
-						System.out.println("Insert entra 5");
 
 						// oos = new ObjectOutputStream(blob.setBinaryStream(1));
-						System.out.println("Insert entra 6");
 						// oos.writeObject(file2Load);
-						System.out.println("Insert entra 7");
-						if (!colsAutoincrement.get(j)) {
-							System.out.println("Insert entra 8");
-							ps.setBinaryStream(++numUsedParameters, fin);
-							// ps.setBlob(++numUsedParameters, blob);
-							System.out.println("Insert entra 9");
-						}
+
+						// if (!colsAutoincrement.get(j)) {
+						// ps.setBlob(++numUsedParameters, blob);
+						// }
+						// End mode 2
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -602,6 +607,16 @@ public class MyTableModel extends AbstractTableModel {
 							// TODO Auto-generated catch block
 							// e.printStackTrace();
 							JDBCUtilities.printSQLException(e);
+						} finally {
+							try {
+								// To unlock the database.
+								String myURL = conn.getMetaData().getURL();
+								DriverManager.getConnection("myURL;shutdown=true");
+							} catch (SQLException e) {
+								// TODO Auto-generated catch block
+								// e.printStackTrace();
+								JDBCUtilities.printSQLException(e);
+							}
 						}
 
 					} else {
@@ -680,11 +695,11 @@ public class MyTableModel extends AbstractTableModel {
 		return sourceTable;
 	}
 
-	/**
-	 * @return the lobPath
-	 */
-	public String getLobPath() {
-		return lobPath;
-	}
+	// /**
+	// * @return the lobPath
+	// */
+	// public String getLobPath() {
+	// return lobPath;
+	// }
 
 }

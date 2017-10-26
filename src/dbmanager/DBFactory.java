@@ -132,10 +132,11 @@ public class DBFactory {
 
 			if (response == JOptionPane.YES_OPTION) {
 
-				conn = null;
-
+			
 				try {
-					conn = DBConnect.connect(true, nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(), "", null,
+					conn.close();
+					conn = null;
+					conn = DBConnect.connect(DBManager.prefInicConn, nodeInfo.getPathLocation() + "/" + nodeInfo.getdBaseName(), "", null,
 							false);
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(null, "The database " + nodeInfo.getPathLocation() + "/"
@@ -260,7 +261,7 @@ public class DBFactory {
 			String columnName = "";
 
 			try {
-				conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
+				conn = DBConnect.connect(DBManager.prefInicConn, currDBPath + "/" + currDBName, "", null, false);
 
 				// Data for the data type combo
 				dbmd = conn.getMetaData();
@@ -401,7 +402,7 @@ public class DBFactory {
 				conn = null;
 
 				try {
-					conn = DBConnect.connect(true, nodeInfo.getPathLocation() + "/" + colDBName, "", null, false);
+					conn = DBConnect.connect(DBManager.prefInicConn, nodeInfo.getPathLocation() + "/" + colDBName, "", null, false);
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(null,
 							"The database " + nodeInfo.getPathLocation() + "/" + colDBName + " is not available.");
@@ -529,27 +530,9 @@ public class DBFactory {
 		if (callFromDel || dialogResult == JOptionPane.YES_OPTION) {
 
 			try {
-				sysConn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager, "", null, false);
+				sysConn = DBConnect.connect(DBManager.prefInicConn, DBManager.pathToDBManager, "", null, false);
 			} catch (Exception ey) {
 
-				// If we can not connect and the server is off, lets try with server on.
-				// if (!DBConnect.serverIsOn) {
-				// try {
-				// DBConnect.inicServer();
-				// DBGUIFrame.getMnServer().setForeground(Color.GREEN);
-				// sysConn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager,
-				// "", null, false);
-				//
-				// } catch (Exception ex) {
-				// JOptionPane.showMessageDialog(null, "Database not available.", "Error",
-				// JOptionPane.ERROR_MESSAGE);
-				// ex.printStackTrace();
-				// }
-				// } else {
-				// System.out.println("The database " + DBManager.pathToDBManager + " is not
-				// available.");
-				// ey.printStackTrace();
-				// }
 				errorPrint(ey);
 			}
 

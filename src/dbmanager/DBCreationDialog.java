@@ -361,7 +361,7 @@ public class DBCreationDialog extends JDialog {
 						// Verifies if the database exists in the given file path. The system allows
 						// duplicates if their paths and name in the registration table do not match.
 						try {
-							testConnection = DBConnect.connect(!DBConnect.serverIsOn, newDBPath + "/" + newDBName,
+							testConnection = DBConnect.connect(DBManager.prefInicConn, newDBPath + "/" + newDBName,
 									txtNbuser.getText(), txtPwd.getPassword(), false);
 						} catch (Exception g) {
 
@@ -410,7 +410,7 @@ public class DBCreationDialog extends JDialog {
 
 						if (createDB) { // The database is created.
 							try {
-								Connection creaConn = DBConnect.connect(!DBConnect.serverIsOn,
+								Connection creaConn = DBConnect.connect(DBManager.prefInicConn,
 										newDBPath + "/" + newDBName, txtNbuser.getText(), txtPwd.getPassword(), true);
 							} catch (Exception g) {
 								System.out.println("create failed ");
@@ -421,10 +421,10 @@ public class DBCreationDialog extends JDialog {
 						if (registerDB) {
 
 							try {
-								Connection sysConn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager,
-										"", null, false);
+								Connection sysConn = DBConnect.connect(DBManager.prefInicConn,
+										DBManager.pathToDBManager, "", null, false);
 
-								DBManager.stmt = sysConn.createStatement();
+								Statement stmt = sysConn.createStatement();
 								char[] paswd = txtPwd.getPassword();
 								if (paswd != null && !paswd.toString().equals("")) {
 								}
@@ -433,7 +433,7 @@ public class DBCreationDialog extends JDialog {
 										+ "VALUES (\'Java DB\', \'" + txtDBName.getText() + "\', \'"
 										+ txtDescription.getText() + "\', \'" + txtDBLocation.getText() + "\')";
 
-								int result = DBManager.stmt.executeUpdate(insert);
+								int result = stmt.executeUpdate(insert);
 
 								if (result >= 0) {
 									DefaultTreeModel model = (DefaultTreeModel) DBManager.dBtree.getModel();
@@ -492,41 +492,40 @@ public class DBCreationDialog extends JDialog {
 		Connection conn = null;
 
 		try {
-			conn = DBConnect.connect(!DBConnect.serverIsOn, filePath.getAbsolutePath().toString(), "", null, false);
+			conn = DBConnect.connect(DBManager.prefInicConn, filePath.getAbsolutePath().toString(), "", null, false);
 
 			// If success, there was a database in the path
 			return true;
 
 		} catch (Exception ex) {
 
-			// String sQLState = ((SQLException) ex).getSQLState();
-			//
-			// if (sQLState.equals("08004")) { // Authentication error
-			// JOptionPane.showMessageDialog(
-			// null, "Error : " + ((SQLException) ex).getSQLState() + " "
-			// + ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
-			// "Authentication Error", JOptionPane.WARNING_MESSAGE);
-			// return true;
-			// }
-			//
-			// if (sQLState.equals("XJ004")) {
-			// JOptionPane.showMessageDialog(null,
-			// "Error : " + sQLState + " " + ((SQLException) ex).getErrorCode() + " " +
-			// (ex).getMessage(),
-			// "The folder is not a valid Java DB.", JOptionPane.ERROR_MESSAGE);
-			// return false;
-			// } else {
-			// JOptionPane.showMessageDialog(null,
-			// "Error : " + sQLState + " " + ((SQLException) ex).getErrorCode() + " " +
-			// (ex).getMessage(),
-			// "SQL Error", JOptionPane.ERROR_MESSAGE);
-			// }
-			// } else {
-			// JOptionPane.showMessageDialog(null, "It is locked by another process or it is
-			// not a valid folder.",
-			// "Folder not available.", JOptionPane.ERROR_MESSAGE);
-			return false;
+			String sQLState = ((SQLException) ex).getSQLState();
 
+			if (sQLState.equals("08004")) { // Authentication error
+				JOptionPane
+						.showMessageDialog(null,
+								"Error : " + ((SQLException) ex).getSQLState() + " "
+										+ ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+								"Authentication Error", JOptionPane.WARNING_MESSAGE);
+				return true;
+			}
+
+			if (sQLState.equals("XJ004")) {
+				JOptionPane.showMessageDialog(null,
+						"Error : " + sQLState + " " + ((SQLException) ex).getErrorCode() + " " + (ex).getMessage(),
+						"The folder is not a valid Java DB.", JOptionPane.ERROR_MESSAGE);
+				return false;
+				// } else {
+				// JOptionPane.showMessageDialog(null,
+				// "Error : " + sQLState + " " + ((SQLException) ex).getErrorCode() + " " +
+				// (ex).getMessage(), "SQL Error", JOptionPane.ERROR_MESSAGE);
+				// }
+
+			} else {
+				JOptionPane.showMessageDialog(null, "It is locked by another process or it is not a valid folder.",
+						"Folder not available.", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
 		} finally {
 			try {
 				if (conn != null && !conn.isClosed()) {
@@ -546,46 +545,21 @@ public class DBCreationDialog extends JDialog {
 
 		try {
 			// Connect to SYSDBM
-			connSYSDBM = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager, txtNbuser.getText(),
+			connSYSDBM = DBConnect.connect(DBManager.prefInicConn, DBManager.pathToDBManager, txtNbuser.getText(),
 					txtPwd.getPassword(), false);
-		} catch (SQLException ey) {
+			Statement stmt = connSYSDBM.createStatement();
+			String sql = "SELECT * from DBLIST WHERE FILEPATH = \'" + DBPath + "\' AND  DBNAME = \'" + DBName + "\'";
+			System.out.println(sql);
 
-			// If we are offline, we try to connect online
-			if (!DBConnect.serverIsOn) {
-				try {
-					DBConnect.inicServer();
-					DBGUIFrame.getMnServer().setForeground(Color.GREEN);
-					connSYSDBM = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager,
-							txtNbuser.getText(), txtPwd.getPassword(), false);
+			ResultSet rs = stmt.executeQuery(sql);
 
-					Statement stmt = connSYSDBM.createStatement();
-					String sql = "SELECT * from DBLIST WHERE FILEPATH = \'" + DBPath + "\' AND  DBNAME = \'" + DBName
-							+ "\'";
-					System.out.println(sql);
-
-					ResultSet rs = stmt.executeQuery(sql);
-
-					if (rs.next()) {
-						AuxRegistered = true;
-					}
-
-				} catch (Exception ez) {
-					JOptionPane.showMessageDialog(null, "System Database not available.", "Error",
-							JOptionPane.ERROR_MESSAGE);
-					ez.printStackTrace();
-				}
-			} else {
-				JOptionPane.showMessageDialog(null, "The database " + DBManager.pathToDBManager + " is not available.",
-						"Error", JOptionPane.ERROR_MESSAGE);
-				// System.out.println("The database " + DBManager.pathToDBManager + " is not
-				// available.");
-				ey.printStackTrace();
+			if (rs.next()) {
+				AuxRegistered = true;
 			}
 
-		} catch (Exception ey) {
-			System.out.println("Error when table creation.");
-			ey.printStackTrace();
-
+		} catch (Exception ez) {
+			JOptionPane.showMessageDialog(null, "System Database not available.", "Error", JOptionPane.ERROR_MESSAGE);
+			ez.printStackTrace();
 		}
 
 		return AuxRegistered;

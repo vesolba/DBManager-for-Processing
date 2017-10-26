@@ -147,12 +147,6 @@ public class DBGUIFrame extends JFrame {
 					dialog.setLocationRelativeTo(null);
 					dialog.setVisible(true);
 
-					// if (dialog != null) {
-
-					// TxtInstallation will be ok if the connection works.
-
-					// }
-
 				} catch (Exception f) {
 					f.printStackTrace();
 				}
@@ -376,12 +370,6 @@ public class DBGUIFrame extends JFrame {
 
 		execSQLPanel = new ExecSQLPanel();
 		tabbedPane.addTab("Exec SQL", null, execSQLPanel, null);
-
-		JPanel panelBatch = new JPanel();
-		tabbedPane.addTab("Batch", null, panelBatch, null);
-
-		JPanel codeGenPanel = new JPanel();
-		tabbedPane.addTab("Code Gen.", null, codeGenPanel, null);
 
 		testPanel = new MyTypeInfoPanel();
 		tabbedPane.addTab("Info Panel", null, testPanel, null);

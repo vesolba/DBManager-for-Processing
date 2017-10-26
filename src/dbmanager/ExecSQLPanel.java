@@ -55,10 +55,9 @@ public class ExecSQLPanel extends JPanel {
 
 	private JSpinner spinFontSize;
 	private JSpinner spinTable;
-	private JSpinner spintTabCrea;
 	private JTextField txtLastMessage;
 	private JTable tableSQLResult;
-	private static JTextPane txtSelected;
+	private static JTextPane txtSelectedDB;
 	private JTextPane textPaneInSQL;
 	private JTextField textEditingElement;
 	private String lastSelect = "";
@@ -94,9 +93,9 @@ public class ExecSQLPanel extends JPanel {
 		JLabel lblWriteSQL = new JLabel(" Data From: ");
 		menuBar_1.add(lblWriteSQL);
 
-		txtSelected = new JTextPane();
-		txtSelected.setEditable(false);
-		menuBar_1.add(txtSelected);
+		txtSelectedDB = new JTextPane();
+		txtSelectedDB.setEditable(false);
+		menuBar_1.add(txtSelectedDB);
 
 		Component horizontalGlue = Box.createHorizontalGlue();
 		menuBar_1.add(horizontalGlue);
@@ -345,8 +344,6 @@ public class ExecSQLPanel extends JPanel {
 				int colIndex = tableSQLResult.getSelectedColumn();
 				MyTableModel uModel = (MyTableModel) tableSQLResult.getModel();
 				String typeAux = uModel.typeNames.get(colIndex);
-				System.out.println("Entra 0. typeAux = " + typeAux);
-				System.out.println("Entra 0. RowIndex = " + rowIndex + " colIndex = " + colIndex);
 				if (typeAux.equals("BLOB") && SwingUtilities.isLeftMouseButton(arg0)) {
 
 					try {
@@ -523,11 +520,8 @@ public class ExecSQLPanel extends JPanel {
 
 	}
 
-	/**
-	 * @return the txtSelected
-	 */
-	public static JTextPane getTxtSelected() {
-		return txtSelected;
+	public static void setTxtSelectedDB(String dBName) {
+		txtSelectedDB.setText(dBName);
 	}
 
 	private static void addPopup(Component component, final JPopupMenu popup) {
@@ -593,7 +587,7 @@ public class ExecSQLPanel extends JPanel {
 		Connection conn = null;
 
 		try {
-			conn = DBConnect.connect(!DBConnect.serverIsOn, getTxtSelected().getText(), "", null, false);
+			conn = DBConnect.connect(DBManager.prefInicConn, txtSelectedDB.getText(), "", null, false);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -606,7 +600,7 @@ public class ExecSQLPanel extends JPanel {
 
 			if (mode.equals("MODE_NEW_ROW")) {
 				try {
-					InsertRowDlg dialog = new InsertRowDlg(tModel, conn);
+					InsertRowDlg dialog = new InsertRowDlg(tModel);
 
 					Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 					dialog.pack();
@@ -695,46 +689,5 @@ public class ExecSQLPanel extends JPanel {
 	public JButton getBtnExecSQL() {
 		return btnExecSQL;
 	}
-
-	// @Override
-	// public void tableChanged(TableModelEvent arg0) {
-	//
-	// int rowFirstIndex = arg0.getFirstRow();
-	// int rowLastIndex = arg0.getLastRow();
-	// int column = arg0.getColumn();
-	//
-	// MyTableModel model = (MyTableModel) arg0.getSource();
-	// String columnName = model.getColumnName(column);
-	// Object data = model.getValueAt(rowFirstIndex, column);
-	//
-	// if (arg0.getType() == TableModelEvent.DELETE) {
-	//
-	// if (arg0.getType() == TableModelEvent.UPDATE) {
-	// int updatedColIndex = arg0.getColumn();
-	// String updateColmn = txtSelected.getColumnName(updatedColIndex);
-	// String updatedValue = (String) model.getValueAt(rowFirstIndex,
-	// updatedColIndex);
-	// System.out.println("column: " + updateColmn + " value: " + updatedValue);
-	// updateDB(updateColmn, updatedValue);
-	// uprs.updateFloat("PRICE", f * percentage);
-	// uprs.updateRow();
-	// }
-	//
-	// else if (arg0.getType() == TableModelEvent.INSERT) {
-	// for (int i = rowFirstIndex; i <= rowLastIndex; i++) {
-	// Vector rowData = (Vector) model.getDataVector().get(i);
-	//
-	// Map<String, String> dataMap = new HashMap<>();
-	//
-	// for (int j = 0; j < rowData.size(); j++)
-	// dataMap.put(table.getColumnName(j), (String) rowData.get(j));
-	//
-	// InsertToDB(dataMap); // now it contains columndName corresponding to row
-	// value
-	//
-	// }
-	// }
-	// }
-	// }
 
 }

@@ -105,7 +105,7 @@ public class TableCreaDialog extends JDialog {
 		setTitle("Database " + currDBName + " Table Creation");
 
 		try {
-			conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
+			conn = DBConnect.connect(DBManager.prefInicConn, currDBPath + "/" + currDBName, "", null, false);
 		} catch (Exception ex) {
 
 			System.out.println("The database " + currDBPath + "/" + currDBName + " is not available.");
@@ -209,7 +209,7 @@ public class TableCreaDialog extends JDialog {
 					String currDBPath = currentNodeInfo.getPathLocation();
 					String currDBName = currentNodeInfo.getdBaseName();
 
-					conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
+					conn = DBConnect.connect(DBManager.prefInicConn, currDBPath + "/" + currDBName, "", null, false);
 
 					// Data for the data type combo
 					dbmd = conn.getMetaData();
@@ -436,7 +436,7 @@ public class TableCreaDialog extends JDialog {
 					String currDBPath = currentNodeInfo.getPathLocation();
 					String currDBName = currentNodeInfo.getdBaseName();
 
-					conn = DBConnect.connect(true, currDBPath + "/" + currDBName, "", null, false);
+					conn = DBConnect.connect(DBManager.prefInicConn, currDBPath + "/" + currDBName, "", null, false);
 
 					// Data for the data type combo
 					dbmd = conn.getMetaData();

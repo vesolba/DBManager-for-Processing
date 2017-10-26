@@ -10,7 +10,6 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -46,11 +45,11 @@ public class InsertRowDlg extends JDialog {
 	private JCheckBox[] checkBox;
 	private ArrayList<Object> row2Add = new ArrayList<>();
 
-	public InsertRowDlg(MyTableModel tModel, Connection conn) {
-		jbInit(tModel, conn);
+	public InsertRowDlg(MyTableModel tModel) {
+		jbInit(tModel);
 	}
 
-	private void jbInit(MyTableModel tModel, Connection conn) {
+	private void jbInit(MyTableModel tModel) {
 
 		setModal(true);
 		setModalityType(ModalityType.APPLICATION_MODAL);
@@ -331,17 +330,6 @@ public class InsertRowDlg extends JDialog {
 						break;
 					}
 
-					// String insertRowQuery = "insert into RSS_FEEDS (RSS_NAME, RSS_FEED_XML)
-					// values"
-					// + " (?, xmlparse(document cast (? as clob) preserve whitespace))";
-					//
-					// insertRow = con.prepareStatement(insertRowQuery);
-					// insertRow.setString(1, titleString);
-					// String convertedDoc = JDBCTutorialUtilities.convertDocumentToString(doc);
-					// insertRow.setClob(2, new StringReader(convertedDoc));
-					//
-					// System.out.println("Running executeUpdate()");
-					// insertRow.executeUpdate();
 				}
 
 				tModel.insertNewRow(row2Add);
@@ -377,104 +365,5 @@ public class InsertRowDlg extends JDialog {
 		btnCancel.setMaximumSize(new Dimension(150, 50));
 		btnCancel.setPreferredSize(new Dimension(100, 30));
 		toolBar.add(btnCancel);
-
-		// Jner InserTable = new JSpinner();
-		// spinInserTable.setToolTipText("Table Font Size");
-		// spinInserTable.setModel(new SpinnerNumberModel(new Integer(12), null, null,
-		// new Integer(1)));
-		// toolBar.add(spinInserTable);
-
-		// if (DBManager.propsDBM != null) {
-		// String propTable = DBManager.propsDBM.getDBMProp("spinInserTable");
-		//
-		// spinInserTable.addChangeListener(new ChangeListener() {
-		// public void stateChanged(ChangeEvent arg0) {
-		// panel.setFont(panel.getFont().deriveFont(Float.parseFloat(spinInserTable.getValue().toString())));
-		// DBManager.propsDBM.setDBMProp("spinInserTable",
-		// spinInserTable.getValue().toString());
-		// DBManager.propsDBM.saveProperties();
-		// }
-		// });
-		// propTable = DBManager.propsDBM.getDBMProp("spinInserTable");
-		//
-		// if (propTable != null && !propTable.isEmpty()) {
-		//
-		// spinInserTable.setValue(Integer.parseInt(propTable));
-		//
-		// panel.setFont(panel.getFont().deriveFont(Float.parseFloat(spinInserTable.getValue().toString())));
-		//
-		// }
-		//
-		// }
-
 	}
-
-	// @Override
-	// public Object getValueAt(int rowIndex, int columnIndex) {
-	// ArrayList<Object> row = data.get(rowIndex);
-	// Object value = row.get(columnIndex);
-	// return value;
-	// }
-	//
-	// @Override
-	// public void setValueAt(Object value, int rowIndex, int columnIndex) {
-	//
-	// ArrayList<Object> row = data.get(rowIndex);
-	// row.set(columnIndex, value);
-
-	// }
-
-	// Doesn't adds nothing. Only to format columns.
-	// public boolean addRow(Connection conn) {
-	//
-	// int numCols = tModel.getColumnCount();
-	//
-	// ArrayList<Object> row = new ArrayList<>();
-	//
-	// try {
-	//
-	// for (int i = 0; i < numCols; i++) {
-	//
-	// if (tModel.colsClasses.get(i) == Clob.class) {
-	// Clob defValue;
-	// defValue = conn.createClob();
-	//
-	// defValue.setString(1, "");
-	// row.add(defValue);
-	// } else
-	//
-	// if (tModel.colsClasses.get(i) == Blob.class) {
-	// Blob defValue = conn.createBlob();
-	// byte[] zeroByte = { 00 };
-	// defValue.setBytes(1, zeroByte);
-	// row.add(defValue);
-	// } else
-	//
-	// if (tModel.colsClasses.get(i) == Byte.class) {
-	// byte[] defValue = { 00 };
-	// row.add(defValue);
-	// } else
-	//
-	// if (tModel.colsClasses.get(i) == java.sql.Date.class ||
-	// tModel.colsClasses.get(i) == java.sql.Time.class
-	// || tModel.colsClasses.get(i) == java.sql.Timestamp.class
-	// || tModel.colsClasses.get(i) == String.class
-	// || tModel.colsClasses.get(i) == java.sql.SQLXML.class) {
-	// Object defValue = "";
-	// row.add(defValue);
-	// } else {
-	// Object defValue = 0;
-	// row.add(defValue);
-	// }
-	// }
-	//
-	// tModel.data.add(row);
-	//
-	// } catch (SQLException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// return false;
-	//
-	// };
 }

@@ -40,6 +40,7 @@ public class MyTypeInfoPanel extends JPanel {
 	}
 
 	private void jbInit() {
+
 		setLayout(new BorderLayout(0, 0));
 
 		JMenuBar menuBar = new JMenuBar();
@@ -126,7 +127,8 @@ public class MyTypeInfoPanel extends JPanel {
 
 		Connection conn = null;
 		try {
-			conn = DBConnect.connect(!DBConnect.serverIsOn, DBManager.pathToDBManager, "", null, false);
+
+			conn = DBConnect.connect(DBManager.prefInicConn, DBManager.pathToDBManager, false);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -207,6 +209,13 @@ public class MyTypeInfoPanel extends JPanel {
 				return columnTypes[columnIndex];
 			}
 		};
+	}
+
+	/**
+	 * @return the table
+	 */
+	public JTable getTable() {
+		return table;
 	}
 
 }
