@@ -2,10 +2,10 @@
 # UTF-8 supported.
 
 # The name of your tool as you want it formatted.
-name = DB Manager for Processing
+name = DBManager for Processing
 
 # List of authors. Links can be provided using the syntax [author name](url).
-authors = [Venerando Solis Barrado](https://github.com/vesolba)
+authors = [Venerando Solís Barrado](https://github.com/vesolba)
 
 # A web page for your tool, NOT a direct link to where to download it.
 url = https://github.com/vesolba/DBManager-for-Processing
@@ -18,20 +18,20 @@ url = https://github.com/vesolba/DBManager-for-Processing
 # 
 # If a value other than those listed is used, your library will listed as 
 # "Other". Many categories must be comma-separated.
-categories = Utilities,GUI,Data
+categories = Data
 
 # A short sentence (or fragment) to summarize the tool's function. This will be
 # shown from inside the PDE when the tool is being installed. Avoid repeating
 # the name of your tool here. Also, avoid saying anything redundant like
 # mentioning that it's a tool. This should start with a capitalized letter, and
 # end with a period.
-sentence = To manage a Java DB (aka Derby) server from Processing.
+sentence = A simplified Derby(aka Java DB) manager.
 
 # Additional information suitable for the Processing website. The value of
 # 'sentence' always will be prepended, so you should start by writing the
 # second sentence here. If your tool only works on certain operating systems,
 # mention it here.
-paragraph = Tested only on Windows 10.  
+paragraph = Integrated in Processing to create and maintain lightweight databases without the need of using more sophisticated external programs.
 
 # Links in the 'sentence' and 'paragraph' attributes can be inserted using the
 # same syntax as for authors. 
@@ -41,7 +41,7 @@ paragraph = Tested only on Windows 10.
 # compare different versions of the same tool, and check if an update is 
 # available. You should think of it as a counter, counting the total number of 
 # releases you've had.
-version = 1  # This must be parsable as an int
+version = 1 # This must be parsable as an int
 
 # The version as the user will see it. If blank, the version attribute will be 
 # used here. This should be a single word, with no spaces.
