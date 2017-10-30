@@ -111,7 +111,7 @@ public class DBManager<propsDBM> implements Tool {
 	@Override
 	public void run() {
 		// Get the currently active Editor to run the Tool on it
-		Editor editor = base.getActiveEditor();
+		Editor editor = base.getActiveEditor();	
 		
 		Sketch sketch = editor.getSketch();
 
@@ -437,8 +437,6 @@ public class DBManager<propsDBM> implements Tool {
 			DBConnect.inicServer();
 		}
 
-		MyTypeInfoPanel infoPanel = new MyTypeInfoPanel();
-		editor.getContentPane().add(infoPanel);
 		frame.checkServerMenu();
 		frame.setVisible(true);
 		frame.toFront();

@@ -492,6 +492,7 @@ public class MyTableModel extends AbstractTableModel {
 		order2 += ")";
 
 		PreparedStatement ps = null;
+		
 		try {
 			ps = conn.prepareStatement(order + order2);
 
